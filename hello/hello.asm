@@ -23,11 +23,13 @@
 .var CLEAR_SCREEN_KERNAL = $E544     // Kernal routine to clear screen
 .var PRINT_STRING_BASIC = $AB1E      // Basic routine to print text
 
-StrToPrint: .text "HELLO VIA BASIC"  // null terminated string to print
+StrToPrint: .text @"HELLO VIA BASIC\$00"  // null terminated string to print
                                       // via the BASIC routine
+//.byte 0
 
-StrToPoke: .text  "hello direct"  // null terminated string to print
+StrToPoke: .text  @"hello direct\$00"  // null terminated string to print
                                   // via copy direct to screen memory
+//.byte 0
 
 
 .var SCREEN_START = $0400            // The start of c64 screen memory
@@ -49,7 +51,6 @@ StrToPoke: .text  "hello direct"  // null terminated string to print
         ldy #>StrToPrint        // MSB of addr of str to print to Y
         jsr PRINT_STRING_BASIC  // call kernal routine to print the string
 
-
         // method 2 write direct to screen memory
         ldx #0                  // use x reg as loop index start at 0
 DirectLoop:
@@ -60,9 +61,5 @@ DirectLoop:
         jmp DirectLoop          // Go back for next byte
 Done:
         
-
         rts                     // program done, return
 
-
-
-        
