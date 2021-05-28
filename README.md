@@ -4,6 +4,10 @@ This is a repository of Commodore 64 sample programs that are built using the Ki
 # Setup
 To setup a development environment to build and run these sampes follow the following steps
 
+- Install the latest java runtime
+  - Download from here: https://www.java.com/en/download/manual.jsp
+  - I used version 1.8.0_291
+
 - Install Kick Assembler.  This is an assembler specifically for C64 code.
   - Download the latest released version here: http://theweb.dk/KickAssembler
   - I used version: V5.20  
@@ -11,6 +15,10 @@ To setup a development environment to build and run these sampes follow the foll
 - Install the VICE C64 emulator 
   - Download the latest version here: https://vice-emu.sourceforge.io/
   - I used version 3.5
+
+- Install C64 debugger to use.
+  - Download lastest from here: https://sourceforge.net/projects/c64-debugger/
+  - I used version v0.64.58.4
 
 - Select a code editor, I used VS Code
   - Download from here: https://code.visualstudio.com/
@@ -21,9 +29,11 @@ To setup a development environment to build and run these sampes follow the foll
   - Search for Extension (ctrl-shift-x) 
   - type in Kick Assembler (C64)
   - Install
-  - configure the extension in VS Code, specifically find and set the settings that point where to find
-    - Kick assembler jar file
-    - VICE C64 emulator
+  - configure the extension in VS Code, specifically find and set the settings that point the extension where it can find
+    - Kick assembler jar file (KickAss.jar)
+    - Emulator runtime, which is the VICE C64 emulator (x64sc.exe)
+    - C64 debugger runtime (C64Debugger.exe)
+    - Java runtime (java.exe) 
     
 - Now you should be ready to try the samples in this repository.
 
