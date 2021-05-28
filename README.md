@@ -1,9 +1,4 @@
 # c64_samples_kick
-Commodore 64 sample programs using the Kick Assembler
-
-
-
-# c64_samples_kick
 This is a repository of Commodore 64 sample programs that are built using the Kick Assmebler.  Each directory usually contains a small example program demonstrating just one or a few concepts.  The programs can be executed/tested on the VICE C64 emulator running on Windows or loaded onto to a real Commodore 64.
 
 # Setup
