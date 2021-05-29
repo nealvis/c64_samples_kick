@@ -1,0 +1,5 @@
+*.dbg
+*.prg
+*.sym
+*.vs
+ByteDump.txt
