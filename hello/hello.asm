@@ -3,7 +3,7 @@
 // 2 Writing direct to screen memory
 
 
-*=$0801 "basic"  // location to put a 1 line basic program so we can just
+*=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
         // will just call assembled program at correct location
         //    10 SYS (4096)
@@ -20,41 +20,37 @@
         .byte $00, $00, $00      // end of basic program (addr $080E from above)
 
 
-.var CLEAR_SCREEN_KERNAL = $E544     // Kernal routine to clear screen
-.var PRINT_STRING_BASIC = $AB1E      // Basic routine to print text
+        // assembler constants for special memory locations
+        .const CLEAR_SCREEN_KERNAL_ADDR = $E544     // Kernal routine to clear screen
+        .const PRINT_STRING_BASIC_ADDR = $AB1E      // Basic routine to print text
+        .const SCREEN_START = $0400                 // The start of c64 screen memory
 
-StrToPrint: .text @"HELLO VIA BASIC\$00"  // null terminated string to print
-                                      // via the BASIC routine
-//.byte 0
+        // a somewhat random location in screen memory to write to directly
+        .const SCREEN_DIRECT_START = SCREEN_START + $0100 
 
-StrToPoke: .text  @"hello direct\$00"  // null terminated string to print
-                                  // via copy direct to screen memory
-//.byte 0
+// program variables
+str_to_print: .text @"HELLO VIA BASIC\$00"  // null terminated string to print
+                                            // via the BASIC routine
 
-
-.var SCREEN_START = $0400            // The start of c64 screen memory
-
-// we'll write directly to screen starting at a somewhat random
-// screen location 
-.var SCREEN_DIRECT_START = SCREEN_START + $0100
-
+str_to_poke: .text  @"hello direct\$00"  // null terminated string to print
+                                         // via copy direct to screen memory
 
 // our assembly code will goto this address
-*=$1000 "Main"
+*=$1000 "Main Start"
 
         // clear screeen leave cursor upper left
-        jsr CLEAR_SCREEN_KERNAL 
+        jsr CLEAR_SCREEN_KERNAL_ADDR 
         
         // method 1 call basic routine since we cleared screen 
         // above the string will start in upper left
-        lda #<StrToPrint        // LSB of addr of string to print to A
-        ldy #>StrToPrint        // MSB of addr of str to print to Y
-        jsr PRINT_STRING_BASIC  // call kernal routine to print the string
+        lda #<str_to_print           // LSB of addr of string to print to A
+        ldy #>str_to_print           // MSB of addr of str to print to Y
+        jsr PRINT_STRING_BASIC_ADDR  // call kernal routine to print the string
 
         // method 2 write direct to screen memory
         ldx #0                  // use x reg as loop index start at 0
 DirectLoop:
-        lda StrToPoke,x         // put a byte from string into accum
+        lda str_to_poke,x         // put a byte from string into accum
         beq Done                // if the byte was 0 then we're done 
         sta SCREEN_DIRECT_START,x // Store the byte to screen
         inx                     // inc to next byte and next screen location 
