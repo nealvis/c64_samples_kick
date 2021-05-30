@@ -28,16 +28,18 @@
 // sprite 0 / multicolor / color: $01
 *=$0900 "Sprite 0"
 
-        // Byte 64 of each sprite contains multicolor (high nibble) & color (low nibble) information
+        // Byte 64 of each sprite contains the following:
+        //   high nibble: high bit set (8) if multi color, or cleared (0) if single color/high res
+        //   low nibble: this sprite's color in it 0-F
         sprite_0:
         .byte $00,$00,$00,$00,$00,$00,$00,$00
-        .byte $00,$00,$00,$00,$12,$80,$00,$1b
-        .byte $e0,$00,$1b,$f8,$00,$13,$fe,$00
-        .byte $02,$ff,$80,$00,$ff,$e0,$00,$bf
-        .byte $f8,$00,$ff,$e0,$02,$ff,$80,$13
-        .byte $fe,$00,$1b,$f8,$00,$1b,$e0,$00
-        .byte $12,$80,$00,$00,$00,$00,$00,$00
-        .byte $00,$00,$00,$00,$00,$00,$00,$81
+        .byte $00,$40,$00,$00,$13,$c0,$00,$5e
+        .byte $b0,$00,$5e,$ac,$00,$12,$ab,$00
+        .byte $43,$aa,$c0,$03,$aa,$b0,$00,$aa
+        .byte $ac,$03,$aa,$b0,$43,$aa,$c0,$12
+        .byte $ab,$00,$5e,$ac,$00,$5e,$b0,$00
+        .byte $13,$c0,$00,$40,$00,$00,$00,$00
+        .byte $00,$00,$00,$00,$00,$00,$00,$84
 
 
 // our assembly code will goto this address
@@ -61,9 +63,14 @@
         // byte here.  sprite_0's ninth bit is bit 0 of the byte at this addr.
         .const ALL_SPRITE_X_HIGH_BIT_ADDR = $D010
 
+        // the low 4 bits (0-3) contain the color for sprite 0
+        // the hi 4 bits don't seem to be writable
+        .const SPRITE_0_COLOR_REG_ADDR = $d027
+
         // clear screeen leave cursor upper left
         jsr CLEAR_SCREEN_KERNAL_ADDR 
         
+
         // set sprite 0 to muli color mode and all other sprites to high res
         lda #$01
         sta SPRITE_MODE_REG_ADDR
@@ -71,14 +78,18 @@
         lda #(sprite_0 / 64)
         sta SPRITE_0_DATA_PTR_ADDR
 
-        lda #$07 // sprite multicolor 1
-        sta $D025
-        lda #$08 // sprite multicolor 2
-        sta $D026
+        lda #$0d // multicolor sprites global color 1
+        sta SPRITE_COLOR_1_ADDR
+        lda #$01 // multicolor sprites global color 2
+        sta SPRITE_COLOR_2_ADDR
+
+        // set this sprite's color
+        lda sprite_0 + 63
+        sta SPRITE_0_COLOR_REG_ADDR
 
         // turn on sprit 0?
         lda #$01
-        sta $d015
+        sta SPRITE_ENABLE_REG_ADDR
 
         // set sprite 0 x loc
         lda #22
