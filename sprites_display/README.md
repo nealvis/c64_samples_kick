@@ -18,13 +18,17 @@ When you run it you'll see a screen like this:
 
 ## Description
 To create this project first step was to create two sprites
-- ship sprite (multi color/lo res)
-- astroid sprite (hi res/single color)
+- Ship sprite (multi color/lo res)
+- Asteroid sprite (hi res/single color)
+
 To do this you can point a web browser at spritemate.com and work on your sprites right in your browser.  This is what the UI looks like:
 ![spritemate screen](images/sprites_display_spritemate_screen.jpg)
 Note that multiple sprites can be saved at once.
 
-Other resources to check out regarding C64 sprites:
+When done with the sprites, just save the project.  Its best to save in the native spritemate format for editing later.  But also save as assembly code for Kick Assembler in order to get the sprites into the program.  When 
+
+## Other Resources 
+check out other resources regarding C64 sprites:
 - https://www.c64-wiki.com/wiki/Sprite
 - PETSCII Editor: http://petscii.krissz.hu/
 
