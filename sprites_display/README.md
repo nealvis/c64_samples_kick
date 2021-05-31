@@ -8,7 +8,7 @@ When you run it you'll see a screen like this:
 
 ## Setup
 - VS Code, Kick Assembler, VICE as outlined in [main repository README.md](../README.md)
-- To create the ship and astroid sprites the online spritemate web based tool was used: [spritemate.com](spritemate.com)
+- To create the ship and astroid sprites the online spritemate web based tool was used: [http://spritemate.com](http://spritemate.com)
 
 ## File Descriptions
 - **spritedisplay.asm:** The main (only) source code file for the project.
