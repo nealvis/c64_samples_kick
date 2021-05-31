@@ -68,62 +68,78 @@
         .const SPRITE_0_COLOR_REG_ADDR = $d027
 
 
-        ////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////
         // clear screeen leave cursor upper left
         jsr CLEAR_SCREEN_KERNAL_ADDR 
         
-        ////////////////////////////////////////////////////////////////////////////
-        // setup the system for our sprite, sprite_0 aka sprite_ship
+        //////////////////////////////////////////////////////////////////////
+        // Setup the system for our sprite, sprite_0 aka sprite_ship
         // the steps are:
-        // Step 1. set the sprite mode for the sprite to multi color or high res (one color)
-        // Step 2. set the sprite data pointer for to the 64 bytes at sprite_ship label
-        // Step 3. set the distinct color for sprite 3 
-        // Step 4. set the global multi color sprite colors
-        // Step 5. Enable the sprite
-        // Step 6. Set sprite's location
+        // Step 1. set the sprite mode for the sprite to multi color or 
+        //         high res (one color)
+        // Step 2. set the global multi color sprite colors
+        // Step 3. set the sprite data pointer for to the 64 bytes at sprite_ship label
+        // Step 4. set the distinct color for sprite 3 
 
-        ////// Step 1. //////
 
-        // assume single color (high res) and override below if needed
+        ////// Step 1: set mode for sprite_0 /////////////////////////////////
+
+        // set it to single color (high res) and override below if needed
         lda #$00
         sta SPRITE_MODE_REG_ADDR
 
-        lda #$F0                // load mask in A 
+        lda #$F0                // load mask in A, checking for any ones in high nibble
         bit sprite_0 + 63       // set Zero flag if the masked bits are all 0s
-                                // if any masked bits in the sprite + 63 were set then
-                                // assume its a multi colored sprite
+                                // if any masked bits in the last byte of sprite_0 are set 
+                                // then its a multi colored sprite
         beq skip_multicolor     // if Zero is set, ie no masked bits were set, then branch
                                 // to skip multi color mode.
-        // set sprite 0 to muli color mode and all other sprites to high res
-        lda #$01
-        sta SPRITE_MODE_REG_ADDR
+
+        // If we didn't skip the multi color, then set sprite 0 to muli color mode
+        lda #$01                // we are loading a 1 to set sprite_0 as multi color
+        sta SPRITE_MODE_REG_ADDR // we are also clearing all the other bits for sprites 1-7 
 skip_multicolor:
-        ////// Step 1 done //////
+        ////// Step 1 done ///////////////////////////////////////////////////
 
-        ////// Step 2 //////
-        lda #(sprite_0 / 64)
-        sta SPRITE_0_DATA_PTR_ADDR
-        ////// step 2 done //////
-
-        ////// step 3 //////
-        // set this sprite's color
-        lda sprite_0 + 63
-        sta SPRITE_0_COLOR_REG_ADDR
-        ////// step 3 done //////
-
-        ////// step 4 //////
+        ////// step 2: Set the two global colors for multi color sprites /////
         lda #$0d // multicolor sprites global color 1
         sta SPRITE_COLOR_1_ADDR
         lda #$01 // multicolor sprites global color 2
         sta SPRITE_COLOR_2_ADDR
-        ////// step 4 done //////
+        ////// step 2 done ///////////////////////////////////////////////////
 
-        ////// step 5 //////
-        lda #$01                        // set the bit for sprite 0, note we are clearing other bits
-        sta SPRITE_ENABLE_REG_ADDR      // store to sprite enable register one bit for each sprite.
-        ////// step 5 done //////
 
-        ////// step 6 //////
+        ////// Step 2 set sprite data pointer ////////////////////////////////
+        lda #(sprite_0 / 64)            // implied this is multiplied by 64
+        sta SPRITE_0_DATA_PTR_ADDR
+        ////// step 2 done ///////////////////////////////////////////////////
+
+        ////// step 3: set this sprites unique color /////////////////////////
+        // set this sprite's color.  
+        lda sprite_0 + 63               // The color is the low nibble of the
+                                        // last byte of sprite. We'll just 
+                                        // write the whole byte because the
+                                        // only lo 4 bits of reg are writable
+        sta SPRITE_0_COLOR_REG_ADDR     
+        ////// step 3 done ///////////////////////////////////////////////////
+
+
+
+        //////////////////////////////////////////////////////////////////////
+        // Display the sprite, all the setup is done.  There are two 
+        // steps to show the sprite on the screen
+        // Step 1. Enable the sprite
+        // Step 2. Set sprite's location
+
+        ////// step 1: enable sprite /////////////////////////////////////////
+        lda #$01                        // set the bit for sprite 0, 
+                                        // note we are clearing other bits
+        sta SPRITE_ENABLE_REG_ADDR      // store to sprite enable register 
+                                        //one bit for each sprite.
+        ////// step 1 done ///////////////////////////////////////////////////
+
+
+        ////// step 2: Set Sprite Location ///////////////////////////////////
         // set sprite 0 x loc
         lda #22
         sta SPRITE_0_X_ADDR
@@ -131,7 +147,7 @@ skip_multicolor:
         // set sprite 0 y loc
         lda #50
         sta SPRITE_0_Y_ADDR
-        ////// step 6 done //////
-        
+        ////// step 2 done ///////////////////////////////////////////////////
+
         rts                     // program done, return
 
