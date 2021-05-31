@@ -45,6 +45,24 @@
 // our assembly code will goto this address
 *=$1000 "Main Start"
 
+        // c64 colors
+        .const C64_COLOR_BLACK = $00
+        .const C64_COLOR_WHITE = $01
+        .const C64_COLOR_RED = $02
+        .const C64_COLOR_CYAN = $03
+        .const C64_COLOR_PURPLE = $04
+        .const C64_COLOR_GREEN = $05
+        .const C64_COLOR_BLUE = $06
+        .const C64_COLOR_YELLOW = $07
+        .const C64_COLOR_ORANGE = $08
+        .const C64_COLOR_BROWN = $09
+        .const C64_COLOR_LITE_RED = $0a
+        .const C64_COLOR_DARK_GREY = $0b
+        .const C64_COLOR_GREY = $0c
+        .const C64_COLOR_LITE_GREEN = $0d
+        .const C64_COLOR_LITE_BLUE = $0e
+        .const C64_COLOR_LITE_GREY = $0f
+
         .const SPRITE_ENABLE_REG_ADDR = $d015 // each bit turns on one of the sprites lsb is sprite 0, msb is sprite 7
         .const SPRITE_COLOR_1_ADDR = $D025 // address of color for sprite bits that are binary 01
         .const SPRITE_COLOR_2_ADDR = $D026 // address of color for sprite bits that are binary 11
@@ -102,9 +120,9 @@ skip_multicolor:
         ////// Step 1 done ///////////////////////////////////////////////////
 
         ////// step 2: Set the two global colors for multi color sprites /////
-        lda #$0d // multicolor sprites global color 1
+        lda #C64_COLOR_LITE_GREEN // multicolor sprites global color 1
         sta SPRITE_COLOR_1_ADDR
-        lda #$01 // multicolor sprites global color 2
+        lda #C64_COLOR_WHITE      // multicolor sprites global color 2
         sta SPRITE_COLOR_2_ADDR
         ////// step 2 done ///////////////////////////////////////////////////
 
@@ -132,20 +150,21 @@ skip_multicolor:
         // Step 2. Set sprite's location
 
         ////// step 1: enable sprite /////////////////////////////////////////
-        lda #$01                        // set the bit for sprite 0, 
-                                        // note we are clearing other bits
+        lda SPRITE_ENABLE_REG_ADDR      // load with sprite enabled reg
+        ora #$01                        // set the bit for sprite 0, 
+                                        // Leaving other bits untouched
         sta SPRITE_ENABLE_REG_ADDR      // store to sprite enable register 
-                                        //one bit for each sprite.
+                                        // one bit for each sprite.
         ////// step 1 done ///////////////////////////////////////////////////
 
 
         ////// step 2: Set Sprite Location ///////////////////////////////////
         // set sprite 0 x loc
-        lda #22
+        lda #22                 // picking X loc for left of screen
         sta SPRITE_0_X_ADDR
 
         // set sprite 0 y loc
-        lda #50
+        lda #50                 // picking Y loc for top of screen
         sta SPRITE_0_Y_ADDR
         ////// step 2 done ///////////////////////////////////////////////////
 
