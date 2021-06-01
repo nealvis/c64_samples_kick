@@ -139,6 +139,6 @@ skip_multicolor:
 {
 loop:
     lda $D012
-    cmp #$00
+    cmp #$fa
     bne loop
 }
