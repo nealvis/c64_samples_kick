@@ -72,12 +72,25 @@
         nv_sprite_setup($01, sprite_astroid)
 
         // set locations for both sprites
-        nv_sprite_set_loc($00, 22, 50)
-        nv_sprite_set_loc($01, 122, 50)
+        .var ship_x = 22
+        .var ship_y = 50
+        .var astroid_x = 265
+        .var astroid_y = 50
+        nv_sprite_set_loc($00, ship_x, ship_y)
+        nv_sprite_set_loc($01, astroid_x, astroid_y)
 
         // enable both sprites
         nv_sprite_enable($00)
         nv_sprite_enable($01)
+
+        .for(var index=0;index<100;index++)
+        {
+                nv_sprite_wait_scan()
+                //.print "Number " + index
+                .var new_x = ship_x + 1 * index
+                nv_sprite_set_loc($00, new_x, ship_y)
+                nv_sprite_set_loc($01, astroid_x, astroid_y)
+        }
 
         // move cursor out of the way before returning
         nv_screen_plot_cursor(5, 24)

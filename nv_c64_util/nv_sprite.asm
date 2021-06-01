@@ -110,6 +110,21 @@ skip_multicolor:
 
     lda #sprite_y
     sta NV_SPRITE_0_Y_ADDR,x    // store in right sprites y loc
+
+    .var sprite_mask = $01 << sprite_num
+    .if (sprite_x > 255)
+    {
+        lda NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+        ora #sprite_mask
+        sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+    }
+    .if (sprite_x <= 255)
+    {
+        .var not_sprite_mask = ~sprite_mask
+        lda NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+        and #not_sprite_mask
+        sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR 
+    }
 }
 
 // Setup everything for a sprite so its ready to be enabled and moved.
@@ -118,4 +133,12 @@ skip_multicolor:
     nv_sprite_set_mode(sprite_num, sprite_data_addr)
     nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
     nv_sprite_set_color(sprite_num, sprite_data_addr)
+}
+
+.macro nv_sprite_wait_scan()
+{
+loop:
+    lda $D012
+    cmp #$00
+    bne loop
 }
