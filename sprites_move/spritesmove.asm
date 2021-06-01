@@ -43,7 +43,7 @@
         .byte $13,$c0,$00,$40,$00,$00,$00,$00
         .byte $00,$00,$00,$00,$00,$00,$00,$84
 
-        sprite_astroid:
+        sprite_asteroid:
         // saved from spritemate:
         // sprite 1 / singlecolor / color: $0f
         sprite_1:
@@ -55,6 +55,8 @@
         .byte $ff,$fc,$1f,$ff,$f8,$1f,$ff,$f8
         .byte $1f,$ff,$f0,$0f,$f1,$c0,$0f,$e0
         .byte $80,$03,$c0,$00,$00,$00,$00,$0f
+
+
 
 // our assembly code will goto this address
 *=$1000 "Main Start"
@@ -68,28 +70,28 @@
         // setup everything for the sprite_ship so its ready to enable
         nv_sprite_setup($00, sprite_ship)
 
-        // setup everything for the sprite_astroid so its ready to enable
-        nv_sprite_setup($01, sprite_astroid)
+        // setup everything for the sprite_asteroid so its ready to enable
+        nv_sprite_setup($01, sprite_asteroid)
 
         // set locations for both sprites
         .var ship_x = 22
         .var ship_y = 50
-        .var astroid_x = 265
-        .var astroid_y = 50
+        .var asteroid_x = 265
+        .var asteroid_y = 50
         nv_sprite_set_loc($00, ship_x, ship_y)
-        nv_sprite_set_loc($01, astroid_x, astroid_y)
+        nv_sprite_set_loc($01, asteroid_x, asteroid_y)
 
         // enable both sprites
         nv_sprite_enable($00)
         nv_sprite_enable($01)
 
-        .for(var index=0;index<100;index++)
+        .for(var index=0;index<150;index++)
         {
                 nv_sprite_wait_scan()
                 //.print "Number " + index
                 .var new_x = ship_x + 1 * index
                 nv_sprite_set_loc($00, new_x, ship_y)
-                nv_sprite_set_loc($01, astroid_x, astroid_y)
+                nv_sprite_set_loc($01, asteroid_x, asteroid_y)
         }
 
         // move cursor out of the way before returning
