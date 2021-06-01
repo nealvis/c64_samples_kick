@@ -27,7 +27,7 @@
 // since there are more than 255 x locations across the screen
 // the high bit for each sprite's X location is gathered in the 
 // byte here.  sprite_0's ninth bit is bit 0 of the byte at this addr.
-.const NV_ALL_SPRITE_X_HIGH_BIT_ADDR = $D010
+.const NV_SPRITE_ALL_X_HIGH_BIT_ADDR = $D010
 
 // the low 4 bits (0-3) contain the color for sprite 0
 // the hi 4 bits don't seem to be writable
@@ -38,7 +38,7 @@
 .const NV_SPRITE_1_COLOR_REG_ADDR = $d028
 
 
-.macro nv_set_sprite_multicolors(color1, color2) 
+.macro nv_sprite_set_multicolors(color1, color2) 
 {
     lda #color1 // multicolor sprites global color 1
     sta NV_SPRITE_COLOR_1_ADDR   // can also get this from spritemate
@@ -46,9 +46,8 @@
     sta NV_SPRITE_COLOR_2_ADDR
 }
 
-#import "nv_screen.asm"
 
-.macro nv_set_sprite_mode(sprite_num, sprite_data_addr)
+.macro nv_sprite_set_mode(sprite_num, sprite_data_addr)
 {
     .var sprite_mask = $01 << sprite_num
     .var not_sprite_mask = ~sprite_mask
@@ -72,7 +71,7 @@ skip_multicolor:
 }
 
 
-.macro nv_set_sprite_data_ptr(sprite_num, sprite_data_addr)
+.macro nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
 {
     lda #(sprite_data_addr / 64)            // implied this is multiplied by 64
     ldx #sprite_num
@@ -80,7 +79,7 @@ skip_multicolor:
 } 
 
 
-.macro nv_set_sprite_color(sprite_num, sprite_data_addr)
+.macro nv_sprite_set_color(sprite_num, sprite_data_addr)
 {
     lda sprite_data_addr + 63       // The color is the low nibble of the
                                     // last byte of sprite. We'll just 
@@ -90,7 +89,7 @@ skip_multicolor:
     sta NV_SPRITE_0_COLOR_REG_ADDR,x   // store in color reg for this sprite  
 }
 
-.macro nv_enable_sprite(sprite_num)
+.macro nv_sprite_enable(sprite_num)
 {
     .var sprite_mask = $01 << sprite_num
 
@@ -101,7 +100,7 @@ skip_multicolor:
                                        // one bit for each sprite.
 }
 
-.macro nv_set_sprite_loc(sprite_num, sprite_x, sprite_y)
+.macro nv_sprite_set_loc(sprite_num, sprite_x, sprite_y)
 {
     ldx #sprite_num * 2         // sprite number times 2 since location
                                 // regs are in pairs, x loc and y loc
@@ -114,9 +113,9 @@ skip_multicolor:
 }
 
 // Setup everything for a sprite so its ready to be enabled and moved.
-.macro nv_setup_sprite(sprite_num, sprite_data_addr)
+.macro nv_sprite_setup(sprite_num, sprite_data_addr)
 {
-    nv_set_sprite_mode(sprite_num, sprite_data_addr)
-    nv_set_sprite_data_ptr(sprite_num, sprite_data_addr)
-    nv_set_sprite_color(sprite_num, sprite_data_addr)
+    nv_sprite_set_mode(sprite_num, sprite_data_addr)
+    nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
+    nv_sprite_set_color(sprite_num, sprite_data_addr)
 }

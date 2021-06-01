@@ -60,27 +60,26 @@
 *=$1000 "Main Start"
 
         // clear the screen just to have an empty canvas
-        nv_clear_screen()
+        nv_screen_clear()
 
         // set the global sprite multi colors        
-        nv_set_sprite_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
+        nv_sprite_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
 
         // setup everything for the sprite_ship so its ready to enable
-        nv_setup_sprite($00, sprite_ship)
+        nv_sprite_setup($00, sprite_ship)
 
         // setup everything for the sprite_astroid so its ready to enable
-        nv_setup_sprite($01, sprite_astroid)
+        nv_sprite_setup($01, sprite_astroid)
 
         // set locations for both sprites
-        nv_set_sprite_loc($00, 22, 50)
-        nv_set_sprite_loc($01, 122, 50)
+        nv_sprite_set_loc($00, 22, 50)
+        nv_sprite_set_loc($01, 122, 50)
 
         // enable both sprites
-        nv_enable_sprite($00)
-        nv_enable_sprite($01)
+        nv_sprite_enable($00)
+        nv_sprite_enable($01)
 
         // move cursor out of the way before returning
-        nv_plot_cursor(5, 24)
-
+        nv_screen_plot_cursor(5, 24)
         rts   // program done, return
 
