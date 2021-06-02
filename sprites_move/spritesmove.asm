@@ -22,6 +22,17 @@
         .byte $20, $28, $34, $30, $39, $36, $29 // ASCII for " (4096)"
         .byte $00, $00, $00      // end of basic program (addr $080E from above)
 
+*=$0820 "Vars"
+ship_x_loc:
+        .word 22
+ship_y_loc: 
+        .byte 50
+
+asteroid_x_loc: 
+        .word 265
+asteroid_y_loc: 
+        .byte 50
+
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -78,13 +89,39 @@
         .var ship_y = 50
         .var asteroid_x = 265
         .var asteroid_y = 50
-        nv_sprite_set_loc($00, ship_x, ship_y)
-        nv_sprite_set_loc($01, asteroid_x, asteroid_y)
+        //nv_sprite_set_loc($00, ship_x, ship_y)
+        //nv_sprite_set_loc($01, asteroid_x, asteroid_y)
+
+        jsr SetShipLocFromMem 
+        jsr SetAsteroidLocFromMem
 
         // enable both sprites
         nv_sprite_enable($00)
         nv_sprite_enable($01)
 
+        ldy #150
+LoopStart:
+        nv_sprite_wait_scan()
+        inc ship_x_loc
+        bne Skip
+        inc ship_x_loc+1
+Skip:
+        lda ship_x_loc+1
+        beq Skip2
+        lda ship_x_loc
+        cmp #$20
+        bcs ResetX            // accum greater than or equal to memory loc
+        jmp Skip2
+ResetX: 
+        lda #$00
+        sta ship_x_loc
+        sta ship_x_loc + 1
+Skip2:        
+        jsr SetShipLocFromMem
+        dey
+        bne LoopStart
+
+/*
         .for(var index=0;index<150;index++)
         {
                 nv_sprite_wait_scan()
@@ -93,8 +130,14 @@
                 nv_sprite_set_loc($00, new_x, ship_y)
                 nv_sprite_set_loc($01, asteroid_x, asteroid_y)
         }
-
+*/
         // move cursor out of the way before returning
         nv_screen_plot_cursor(5, 24)
         rts   // program done, return
 
+
+SetShipLocFromMem:
+nv_sprite_set_location_from_memory(0, ship_x_loc, ship_y_loc)
+
+SetAsteroidLocFromMem:
+nv_sprite_set_location_from_memory(1, asteroid_x_loc, asteroid_y_loc)

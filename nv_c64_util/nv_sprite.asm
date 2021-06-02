@@ -142,3 +142,33 @@ loop:
     cmp #$fa
     bne loop
 }
+
+
+.macro nv_sprite_set_location_from_memory(sprite_num, sprite_x_addr, sprite_y_addr)
+{
+    ldx #(sprite_num*2) // load x with offset to sprite location for this sprite
+
+    lda sprite_x_addr               
+    sta NV_SPRITE_0_X_ADDR,x    // store in right sprite's x loc
+
+    lda sprite_y_addr
+    sta NV_SPRITE_0_Y_ADDR,x    // store in right sprites y loc
+
+    .var sprite_mask = $01 << sprite_num
+
+    lda sprite_x_addr+1
+    bne SetBit                            // high byte was non zero, so set bit
+    // clear bit
+    .var not_sprite_mask = ~sprite_mask
+    lda NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+    and #not_sprite_mask
+    sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR 
+    rts
+    
+ SetBit:   
+    lda NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+    ora #sprite_mask
+    sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR  
+    rts
+
+}
