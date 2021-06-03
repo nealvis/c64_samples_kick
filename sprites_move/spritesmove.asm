@@ -33,6 +33,13 @@ asteroid_x_loc:
 asteroid_y_loc: 
         .byte 50
 
+*=$08F8
+TempRtsLsb:
+        .byte $00
+
+TempRtsMsb:
+        .byte $00
+
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -100,24 +107,12 @@ asteroid_y_loc:
         nv_sprite_enable($01)
 
         ldy #150
+
 LoopStart:
         nv_sprite_wait_scan()
-        inc ship_x_loc
-        bne Skip
-        inc ship_x_loc+1
-Skip:
-        lda ship_x_loc+1
-        beq Skip2
-        lda ship_x_loc
-        cmp #$20
-        bcs ResetX            // accum greater than or equal to memory loc
-        jmp Skip2
-ResetX: 
-        lda #$00
-        sta ship_x_loc
-        sta ship_x_loc + 1
-Skip2:        
-        jsr SetShipLocFromMem
+        lda #4
+        pha
+        jsr MoveShipX
         dey
         bne LoopStart
 
@@ -135,9 +130,50 @@ Skip2:
         nv_screen_plot_cursor(5, 24)
         rts   // program done, return
 
+////////////////////////////////////////////////////////////
+// subroutine to increment ship's x position by the 
+// number of pixels in accumulator
+MoveShipX:
+{
+        pla             // pull LSB of return address
+        sta TempRtsLsb  // store in Temp memory
+        pla             // pull MSB of return address
+        sta TempRtsMsb  // save other byte in temp memory
+        inc TempRtsLsb  // since JSR stores ret addr minus 1 must add 1
+        bne SkipIncMsb  // if didn't roll over to zero then skip MSB inc
+        inc TempRtsMsb  // did roll over to zero so inc MSB too
+SkipIncMsb:
+
+        pla             // now pull param1, num pixels to move
+        clc
+        //lda #2
+        adc ship_x_loc
+        bcs IncByte2                    // accum (old x loc) > new x loc so inc high byte 
+        jmp SkipByte2 
+IncByte2:
+        sta ship_x_loc
+        inc ship_x_loc+1
+SkipByte2:
+        sta ship_x_loc
+        lda ship_x_loc+1
+        beq UpdateRegisterLoc           // high byte is zero so don't bother testing right border
+        lda ship_x_loc
+        cmp #$20
+        bcs ResetX                      // accum greater than or equal to memory loc
+        jmp UpdateRegisterLoc
+ResetX: 
+        lda #$00
+        sta ship_x_loc
+        sta ship_x_loc + 1
+UpdateRegisterLoc:        
+        jsr SetShipLocFromMem
+FinishedUpdate:        
+        jmp (TempRtsLsb)                // already popped the return address, jump back now
+}
 
 SetShipLocFromMem:
 nv_sprite_set_location_from_memory(0, ship_x_loc, ship_y_loc)
 
 SetAsteroidLocFromMem:
 nv_sprite_set_location_from_memory(1, asteroid_x_loc, asteroid_y_loc)
+
