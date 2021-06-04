@@ -149,8 +149,79 @@ temp_rts_msb:
         jsr PrintCharCallParamBlock
         //
 
+        // Stack preserving method of parameter passing
+        lda #5                                  // Character 'E'
+        pha
+        lda #7                                  // X location (col)
+        pha
+        lda #3                                  // Y location (row)
+        pha
+        jsr PrintCharStackPreserving
+
         rts
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Stack Preserving method of passing parameters to print a char 
+// somewhere on first 5 lines.  To call this subroutine the following
+// byte values must be pushed to the stack in this order prior 
+// to calling jsr. 
+//   character to print
+//   x location (column)
+//   y location (row)
+//   
+// After pushing those 3 bytes then call JSR to this routine
+// Pros:
+//   - registers are left free 
+//   - fairly easy to setup.
+//   - not limited by number of registers
+// Cons:
+//   - Stack space is limited to 256 bytes. Nested calls can exhaust this
+//   - Always need to setup every parameter for every call
+//   - Some "extra" work required to maintain the return address on the stack
+//     before calling rts inside the routine
+PrintCharStackPreserving:
+{
+        // first need to pop off the return address (minus 1) that 
+        // JSR pushed on to the stack.  Our Parameters were pushed
+        // on befor this addr.  We'll save ret addr so we can get back
+        pla                     // pop and save the LSB of the return 
+        sta temp_rts_lsb        // address (minus 1) into temp_rts_lsb
+        pla                     // pop and save the MSB of the return
+        sta temp_rts_msb        // address (minus 1) into temp_rts_msb
+
+        pla                     // pop off the y loc (row) param to accum
+        tay                     // put the y location into Y register
+
+        pla                     // pop off the x loc (col) param to accum
+
+        cpy #$00
+        beq DoneY                       // when Y is 0 then we've added enough 
+LoopY:
+        clc
+        adc #SCREEN_COLS
+        dey
+        beq DoneY                       // if Y still not 0 then loop up and add again
+        jmp LoopY
+DoneY:
+        tay                             // move just calculated offest to Y reg
+        pla                             // pop char to print from stack to the accum
+        sta SCREEN_START_ADDR,y         // store the char to print to screen start + offset   
+        
+        // now need to replace the return address (minus 1) to the stack
+        // so that rts works as expected
+
+        lda temp_rts_msb                // put msb of saved ret addr -1 into accum
+        pha                             // push accum (msb) onto stack
+        
+        lda temp_rts_lsb                // put lsb of saved ret addr -1 into accum
+        pha                             // push accum (lsb) onto stack
+
+        rts
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Caller defined parameter block method used to print a char somewhere 
@@ -358,44 +429,5 @@ DoneY:
 
 
 
-/*
-////////////////////////////////////////////////////////////
-// Print the string by passing string addresss in registers
-// To call:
-//   Put LSB of string to print in X reg
-//   put MSB of string to print in A reg
-//   put number of times to print in Y
-//   JSR to this routine
-// Pros:
-//   easy to setup.
-//   JSR and RTS work as designed.
-// Cons:
-PrintStringRegistersOnly:
-
-        // use a temp word in memory to store the string address 
-        // so that we can use the address +x in the inner loop below
-        // this isn't convienent but there are no 16 bit registers that
-        // can be used to point to our input string
-        stx registers_only_temp
-        sta registers_only_temp+1
-
-OuterLoop:
-        //cpy #$00
-        //beq DoneOuter
-        //ldx #$00                     // use x reg as inner loop index, start at 0
-InnerLoop:
-        lda (registers_only_temp,x)    // put a byte from string into accum
-        beq DoneInner                // if the byte was 0 then we're done 
-        sta PREDEFINED_PRINT_LOC,x   // Store the byte to screen
-        inx                          // inc to next byte and next screen location 
-        jmp InnerLoop                // Go back for next byte
-DoneInner: 
-        //dey
-        //jmp OuterLoop
-
-DoneOuter:
-        rts
-registers_only_temp: .word $0000
-*/
 
 
