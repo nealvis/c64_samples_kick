@@ -31,8 +31,21 @@ func_param_block:
 .byte $07       // X (col) position for character, offset 0
 .byte $03       // Y (row) position for character, offset 1
 .byte $05       // character to print,             offset 2
+.const func_param_block_x_addr = func_param_block + func_param_block_offset_x
+.const func_param_block_y_addr = func_param_block + func_param_block_offset_y
+.const func_param_block_char_addr = func_param_block + func_param_block_offset_char
 ////////////////////////////////////////////////////////////
 
+
+////////////////////////////////////////////////////////////
+// offsets into PrintCharCodeModification for params
+.const code_modification_offset_x = 1
+.const code_modification_offset_y = 3
+.const code_modification_offset_char = 17
+.const code_modification_x_addr = PrintCharCodeModification + code_modification_offset_x
+.const code_modification_y_addr = PrintCharCodeModification + code_modification_offset_y
+.const code_modification_char_addr = PrintCharCodeModification + code_modification_offset_char
+////////////////////////////////////////////////////////////
 
 *=$08F8
 TempRtsLsb:
@@ -58,7 +71,8 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         // clear screeen leave cursor upper left
         jsr CLEAR_SCREEN_KERNAL_ADDR 
 
-        // setup and call using registers only for params
+
+        //// setup and call using registers only for params
         lda #20    // x (col)
         ldy #05    // y (row)  
         ldx #01    // character 'A'
@@ -66,17 +80,25 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         //
 
 
-        // setup and call using a function param block
-        ldx #func_param_block_offset_x  // set x reg with offset into param block to X
-        lda #15                         // load accum with the X position for char
-        sta func_param_block,x          // store the X position into param block
-        ldx #func_param_block_offset_y  // set x reg with offset into param block to y
-        lda #3                          // load accum with the y position
-        sta func_param_block,x          // store the Y position into param block
-        ldx #func_param_block_offset_char  // set x reg with offset into param block to char
-        lda #2                             // load accum with the char
-        sta func_param_block,x             // store the char into param block
-        jsr PrintCharFuncParamBlock        // call subroutine
+        //// setup and call using function defined param block
+        lda #20
+        sta func_param_block_x_addr
+        lda #2
+        sta func_param_block_y_addr
+        lda #2                                  // character 'B'
+        sta func_param_block_char_addr
+        jsr PrintCharFuncParamBlock
+        //
+
+
+        //// setup and call using code modification method
+        lda #22
+        sta code_modification_x_addr
+        lda #2
+        sta code_modification_y_addr
+        lda #3                                  // character 'C'
+        sta code_modification_char_addr
+        jsr PrintCharCodeModification
         //
 
 
@@ -85,12 +107,58 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Print a char somewhere on first 5 lines by passing the 
-// character, x (column), and y() row) in registers
+// Print a char somewhere on first 5 lines.  caller must specify the 
+// character, x (column), and y() row) in registers by overwriting
+// the subroutine code at the following locations
+// code_modification_x_addr      offset 1 from subroutine label
+// code_modification_y_addr      offset 3 from subroutine label
+// code_modification_char_addr   offset 17 from subroutine label
+
 // Setup registers to call it:
 //   Accum: X (col) location for char in Accumulator 
 //   Y Reg: Y (row) location for char in Y reg - must be between 0 and 5
 //   X Reg: Char to print
+//   JSR to this routine
+// Pros:
+//   All registers free for use within routine
+//   JSR and RTS work as designed.
+//   param values persist between calls
+//   could be tedius to call when lots of parameters
+//   code simple to write and understand
+// Cons:
+//   Hard to maintain because code changes could move the locations to overwrite 
+//   can't maintain more than one set of parameters.  
+//   
+////////////////////////////////////////////////////////////////////////////////
+PrintCharCodeModification:
+{
+        lda #30              // load accum with X location offset = 1
+        ldy #3               // load Y reg with Y location offset = 3
+        beq DoneY            // when Y is 0 then we've added enough 
+LoopY:
+        clc
+        adc #SCREEN_COLS
+        dey
+        beq DoneY                  // if Y still not 0 then loop up and add again
+        jmp LoopY
+DoneY:
+        tay                        // move just calculated offest to Y reg
+        lda #10                    // move char to print to the accum offset = 17
+        sta SCREEN_START_ADDR,y    // store the char to print to screen start + offset   
+        
+        rts
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Print a char somewhere on first 5 lines by passing the 
+// character, x (column), and y() row) in a function defined paramete
+// block.
+// Setup data in the following addresses to call function 
+//   func_param_block_x_addr    : X (col) location for char in Accumulator 
+//   func_param_block_x_addr    : Y (row) location for char in Y reg - must be between 0 and 5
+//   func_param_block_char_addr : Char to print
 //   JSR to this routine
 // Pros:
 //   all registers free for use within routine
@@ -98,31 +166,27 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
 //   param values persist between calls
 //   can pass unlimited data using one or more param blocks 
 // Cons:
-//   setup is more complicated than setting registers
-//   a single block for all calls could caller maintaining multiple blocks and 
-//     overwriting the function param block ever call
+//   maintaining multiple sets of parameters will require constant overwriting
+//      of the whole function param block
 //   
 ////////////////////////////////////////////////////////////////////////////////
 PrintCharFuncParamBlock:
 {
-        ldx #func_param_block_offset_x
-        lda func_param_block,x               // x loc in accum
-        ldx #func_param_block_offset_y
-        ldy func_param_block,x             // y loc in Y reg
+        lda func_param_block_x_addr     // put x location in accum
+        ldy func_param_block_y_addr     // put y location in Y register
 
         cpy #$00
-        beq DoneY                          // when Y is 0 then we've added enough 
+        beq DoneY                       // when Y is 0 then we've added enough 
 LoopY:
         clc
         adc #SCREEN_COLS
         dey
-        beq DoneY                          // if Y still not 0 then loop up and add again
+        beq DoneY                       // if Y still not 0 then loop up and add again
         jmp LoopY
 DoneY:
-        tay                                // move just calculated offest to Y reg
-        ldx #func_param_block_offset_char
-        lda func_param_block,x             // move char to print to the accum
-        sta SCREEN_START_ADDR,y            // store the char to print to screen start + offset   
+        tay                             // move just calculated offest to Y reg
+        lda func_param_block_char_addr  // put char to print in accum
+        sta SCREEN_START_ADDR,y         // store the char to print to screen start + offset   
         
         rts
 }
@@ -204,48 +268,3 @@ registers_only_temp: .word $0000
 */
 
 
-/*
-//////////////////////////////////////////////////////////////////////////////
-// Print a char somewhere on first 5 lines by passing the 
-// character, x (column), and y() row) in registers
-// To call:
-//   Put X location for char in X reg
-//   put Y location for char in Y reg - must be between 0 and 5
-//   put the character to print in the Accumulator
-//   JSR to this routine
-// Pros:
-//   easy to setup.
-//   JSR and RTS work as designed.
-// Cons:
-//   Caller has to preserve any registers needed to persist
-//   Can only pass 3 bytes of information this way
-PrintCharRegistersOnly:
-        sta temp_register_only_a        // store the byte to print so we can
-                                        // use the accumulator
-        stx temp_register_only_x
-        sty temp_register_only_y 
-
-        txa                             // need to set x as the offset from screen start
-        cpy #$00
-        beq DoneY
-LoopY:
-        clc
-        adc #SCREEN_COLS
-        dey
-        beq DoneY
-        jmp LoopY
-DoneY:
-        tax
-        lda temp_register_only_a
-        sta SCREEN_START_ADDR,x           
-        
-        rts
-
-temp_register_only_a:
-        .byte $00
-temp_register_only_x:
-        .byte $00
-temp_register_only_y:
-        .byte $00
-
-*/

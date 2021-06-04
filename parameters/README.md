@@ -13,12 +13,12 @@ To show the different parameter passing strategies, the parameters.asm file incl
 3. The character to print on the screen
 
 This function is reproduced a number of times, each time with a different way to pass the parameters to it.  The following different strategies for this function are:
-- Registers only
-- Function defined parameter block
-- Caller modidfication of routine code (yes self modifying code)
-- Caller defined parameter block
-- Routine stack perserving
-- Routine JMP back
-- Caller Push Caller Pop
+- Registers Only:                   All parameters passed in registers
+- Function defined parameter block: Single global parameter block for function params
+- Code Modification:                Caller modifies subroutine code (yes self modifying code)
+- Caller defined parameter block:   Caller defines the param block for the call
+- Routine stack perserving:         Caller pushes params onto the stack routines preserves stack
+- Routine JMP back:                 Caller pushes params onto the stack, routine pops params and jumps back (no rts)
+- Caller Push Caller Pop:           Caller pushes prior to calling and must pop upon return
 
 
