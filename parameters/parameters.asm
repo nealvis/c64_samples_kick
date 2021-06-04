@@ -157,10 +157,86 @@ temp_rts_msb:
         lda #3                                  // Y location (row)
         pha
         jsr PrintCharStackPreserving
+        //
+
+        // Jmp Back method of parameter passing
+        lda #6                                  // Character 'F'
+        pha
+        lda #12                                 // X location (col)
+        pha
+        lda #3                                  // Y location (row)
+        pha
+        jsr PrintCharStackPreserving
+        //
+
 
         rts
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Routine Jmp Back method of passing parameters to print a char 
+// somewhere on first 5 lines.  To call this subroutine the following
+// byte values must be pushed to the stack in this order prior 
+// to calling jsr. 
+//   character to print
+//   x location (column)
+//   y location (row)
+//   
+// After pushing those 3 bytes then call JSR to this routine.
+//
+// Pros:
+//   - registers are left free 
+//   - fairly easy to setup.
+//   - not limited by number of registers
+// Cons:
+//   - Stack space is limited to 256 bytes. Nested calls can exhaust this
+//   - Always need to setup every parameter for every call
+//   - Some "extra" work required to get the address to jump back to
+//     because JSR pushes the return address minus 1
+PrintCharCallerJmpBack:
+{
+        // first need to pop off the return address (minus 1) that 
+        // JSR pushed on to the stack.  Our Parameters were pushed
+        // on befor this addr.  We'll save ret addr so we can get back
+        pla                     // pop and save the LSB of the return 
+        sta temp_rts_lsb        // address (minus 1) into temp_rts_lsb
+        pla                     // pop and save the MSB of the return
+        sta temp_rts_msb        // address (minus 1) into temp_rts_msb
+
+        pla                     // pop off the y loc (row) param to accum
+        tay                     // put the y location into Y register
+
+        pla                     // pop off the x loc (col) param to accum
+
+        cpy #$00
+        beq DoneY                       // when Y is 0 then we've added enough 
+LoopY:
+        clc
+        adc #SCREEN_COLS
+        dey
+        beq DoneY                       // if Y still not 0 then loop up and add again
+        jmp LoopY
+DoneY:
+        tay                             // move just calculated offest to Y reg
+        pla                             // pop char to print from stack to the accum
+        sta SCREEN_START_ADDR,y         // store the char to print to screen start + offset   
+        
+        // instead of putting the return address minus 1 onto the stack we will
+        // jump back to the address.  But since the address pushed onto the stack by
+        // JSR is 1 less than the address we need to jump to, we need to increment 
+        // the addr we saved first
+        inc temp_rts_lsb
+        // check if we rolled over to zero in which case need to add one to msb 
+        bne SkipIncMsb
+        inc temp_rts_msb
+SkipIncMsb:
+        // now jump back to the instruction after the calling JSR
+        jmp temp_rts_lsb
+
+        // note there is no rts from this subroutine
+}
 
 
 //////////////////////////////////////////////////////////////////////////////
