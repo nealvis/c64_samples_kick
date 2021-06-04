@@ -53,13 +53,18 @@ func_param_block:
 .const call_param_block_offset_y = 1
 .const call_param_block_offset_char = 2
 call_param_block: 
-.byte $EA       // X (col) position for character, offset 0
-.byte $EB       // Y (row) position for character, offset 1
-.byte $EC       // character to print,             offset 2
+.byte $00       // X (col) position for character, offset 0
+.byte $00       // Y (row) position for character, offset 1
+.byte $00       // character to print,             offset 2
 .const call_param_block_x_addr = call_param_block + call_param_block_offset_x
 .const call_param_block_y_addr = call_param_block + call_param_block_offset_y
 .const call_param_block_char_addr = call_param_block + call_param_block_offset_char
 ////////////////////////////////////////////////////////////
+
+
+// Temp zero page locations to use for indirection
+.const ZERO_PAGE_LO = $FB
+.const ZERO_PAGE_HI = $FC
 
 
 *=$08F8
@@ -119,7 +124,7 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         //// setup and call using caller's parameter block
         lda #35                                 // X = 35
         sta call_param_block_x_addr
-        lda #2                                  // Y = 1
+        lda #1                                  // Y = 1
         sta call_param_block_y_addr
         lda #4                                  // Character 'D'
         sta call_param_block_char_addr          
@@ -147,42 +152,43 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
 // Then you can JSR to this routine
 //
 // Pros:
-//
-// Cons:
+//   can keep separate parameter blocks and pass in whichever 
 //   
+// Cons:
+//   Requires a zero page pointer which is scarce resource so could conflict
+//     with other subroutines that want to use that location.  or else need to 
+//     save and restore values in the zero page pointer.
 ////////////////////////////////////////////////////////////////////////////////
-temp_x: .byte 0
-temp_y: .byte 0
-temp_char: .byte 0
 PrintCharCallParamBlock:
 {
         // load the address of the caller's param block to a pointer in 
         // zero page (first 256 bytes of memory)
-        sta $00FB   // store lo byte of addr of caller's param block
-        sty $00FC   // store hi byte of addr of caller's param block 
+        sta ZERO_PAGE_LO   // store lo byte of addr of caller's param block
+        sty ZERO_PAGE_HI   // store hi byte of addr of caller's param block 
 
-        // get the Y location into Y register
+        // get the Y location from caller's param block into Y register
         ldy #call_param_block_offset_y  // load Y reg with offset to y loc
-        lda ($FB),y                     // indirectly load y loc in accum
-        tay                             // copy y loc from accum to Y reg
+        lda (ZERO_PAGE_LO),y                     // indirectly load y loc to accum
+        tax                             // copy y loc from accum to x reg
  
-        // get the x location into the accum
-        ldx #call_param_block_offset_x  // load X reg with offset to x loc
-        lda ($FB),x                     // indirectly load x loc into accum
+        // get the x location from caller's param block into the accum
+        ldy #call_param_block_offset_x  // load Y reg with offset to x loc
+        lda (ZERO_PAGE_LO),y                     // indirectly load x loc into accum
         
-        cpy #$00
-        beq DoneY                       // when Y is 0 then we've added enough 
+        cpx #$00
+        beq DoneY                       // when X reg is 0 then we've added enough 
 LoopY:
         clc
         adc #SCREEN_COLS
-        dey
-        beq DoneY                       // if Y still not 0 then loop up and add again
+        dex
+        beq DoneY                       // if X reg still not 0 then loop up and add again
         jmp LoopY
 DoneY:
         tax                             // move the just calculated offest to X reg
         
+        // get the char to print from the caller's param block to the accum
         ldy #call_param_block_offset_char
-        lda ($FB),y
+        lda (ZERO_PAGE_LO),y
 
         sta SCREEN_START_ADDR,x         // store the char to print to screen start + offset   
         

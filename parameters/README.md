@@ -16,7 +16,7 @@ This function is reproduced a number of times, each time with a different way to
 - Registers Only:                   All parameters passed in registers
 - Function defined parameter block: Single global parameter block for function params
 - Code Modification:                Caller modifies subroutine code (yes self modifying code)
-- Caller defined parameter block:   Caller defines the param block for the call
+- Caller defined parameter block:   Caller defines the param block for the call and passes address of it in regs
 - Routine stack perserving:         Caller pushes params onto the stack routines preserves stack
 - Routine JMP back:                 Caller pushes params onto the stack, routine pops params and jumps back (no rts)
 - Caller Push Caller Pop:           Caller pushes prior to calling and must pop upon return
