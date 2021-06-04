@@ -7,12 +7,12 @@ This is a topic becase JSR puts the return address (minus 1) on to the stack bef
 All the assembler code in this directory is written for Kick Assembler and in general the setup outlined in the [main repository README.md](../README.md)
 
 ## Strategies Considered
-To show the different parameter passing strategies, the parameters.asm file includes a function that needs three parameters in order to do its job of printing a character some where in first 5 rows of the screen.
-1. The row at which the char will appear (only 0-5)
-2. The col at which the char will appear (0-39) 
+The parameters.asm file includes multiple subroutines that all do the same thing which is print a single character at an x and y location on the screen.  Each subroutine uses a different method to pass get the 3 required pieces of information to the routine.
+1. The x location (row) at which the char will appear (only 0-5)
+2. The y location (col) at which the char will appear (0-39) 
 3. The character to print on the screen
 
-This function is reproduced a number of times, each time with a different way to pass the parameters to it.  The following different strategies for this function are:
+This multiple subroutines include one for each of the following methods to get their parameters:
 - Registers Only:                   All parameters passed in registers
 - Function defined parameter block: Single global parameter block for function params
 - Code Modification:                Caller modifies subroutine code (yes self modifying code)
@@ -20,4 +20,8 @@ This function is reproduced a number of times, each time with a different way to
 - Routine stack perserving:         Caller pushes params onto the stack routines preserves stack
 - Routine JMP back:                 Caller pushes params onto the stack, routine pops params and jumps back (no rts)
 
+## Main program
+The main program calls each of the routines described above and passes a different character and (x, y) location.  When the program is executed the output looks like this:
+
+![parameters screen output](images/parameters_screen.jpg)
 
