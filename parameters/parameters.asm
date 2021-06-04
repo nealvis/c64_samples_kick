@@ -23,14 +23,19 @@
 *=$0820 "Vars"
 
 ///////////////////////////////////////////////////////////
-// paramater block for PrintCharFuncParamBlock
+// paramater block for PrintCharFuncParamBlock and some 
+// constants to go with it.  This is the function defined
+// param block which is global in that every call to 
+// PrintCharFuncParamBlock must set values in this one 
+// block of memory
+func_param_block: 
+.byte $00       // X (col) position for character, offset 0
+.byte $00       // Y (row) position for character, offset 1
+.byte $00       // character to print,             offset 2
+// consts to go with the func param block
 .const func_param_block_offset_x = 0
 .const func_param_block_offset_y = 1
 .const func_param_block_offset_char = 2
-func_param_block: 
-.byte $07       // X (col) position for character, offset 0
-.byte $03       // Y (row) position for character, offset 1
-.byte $05       // character to print,             offset 2
 .const func_param_block_x_addr = func_param_block + func_param_block_offset_x
 .const func_param_block_y_addr = func_param_block + func_param_block_offset_y
 .const func_param_block_char_addr = func_param_block + func_param_block_offset_char
@@ -48,40 +53,51 @@ func_param_block:
 ////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////
-// paramater block for PrintCharFuncParamBlock
-.const call_param_block_offset_x = 0
-.const call_param_block_offset_y = 1
-.const call_param_block_offset_char = 2
+// caller defined parameter block the address of which 
+// can be passed to the PrintCharCallParamBlock function.
+// multiple of similar blocks could be created and passed 
+// in different calls to PrintCharCallParamBlock.  The
+// subroutine doesn't care were the actual parameter block is
+// it indirectly accesses the fields via the address of 
+// the block which is passed into the routine  
 call_param_block: 
 .byte $00       // X (col) position for character, offset 0
 .byte $00       // Y (row) position for character, offset 1
 .byte $00       // character to print,             offset 2
+// consts for caller defined param block. offsets could apply to
+// any similar param block but the addr's are only for this 
+// specific param block
+.const call_param_block_offset_x = 0
+.const call_param_block_offset_y = 1
+.const call_param_block_offset_char = 2
 .const call_param_block_x_addr = call_param_block + call_param_block_offset_x
 .const call_param_block_y_addr = call_param_block + call_param_block_offset_y
 .const call_param_block_char_addr = call_param_block + call_param_block_offset_char
 ////////////////////////////////////////////////////////////
 
 
-// Temp zero page locations to use for indirection
+// Temp zero page locations to use for indirection.  These two
+// zero page bytes are unused for normal C64 normal operation 
+// including during BASIC which is why they were selected.  
+// We'll treat these as a scratch zero page address whenever 
+// we need one.  When doing this need to beware of contention 
+// between routines.  To be safe each routine that uses
+// these could save and restore the values upon entry and exit.
 .const ZERO_PAGE_LO = $FB
 .const ZERO_PAGE_HI = $FC
 
-
 *=$08F8
-TempRtsLsb:
+
+
+temp_rts_lsb:
         .byte $00
 
-TempRtsMsb:
+temp_rts_msb:
         .byte $00
-
-str_to_print: .text  @"hello direct\$00"  // null terminated string to print
 
 .const SCREEN_START_ADDR = $0400       // The start of c64 screen memory
 .const SCREEN_COLS = 40                // chars across
 .const SCREEN_ROWS = 25                // chars down
-
-// predefined location in screen memory where the string will be printed
-.const PREDEFINED_PRINT_LOC = SCREEN_START_ADDR + $0100 
 
 .const CLEAR_SCREEN_KERNAL_ADDR = $E544     // Kernal routine to clear screen
 
@@ -92,7 +108,7 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         jsr CLEAR_SCREEN_KERNAL_ADDR 
 
 
-        //// setup and call using registers only for params
+        //// Registers only for parameter passing
         lda #20    // x (col)
         ldy #05    // y (row)  
         ldx #01    // character 'A'
@@ -100,7 +116,7 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         //
 
 
-        //// setup and call using function defined param block
+        //// function defined param block for parameter passing
         lda #20
         sta func_param_block_x_addr
         lda #2
@@ -111,7 +127,7 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         //
 
 
-        //// setup and call using code modification method
+        //// Code modification method for parameter passing
         lda #22
         sta code_modification_x_addr
         lda #2
@@ -121,7 +137,7 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         jsr PrintCharCodeModification
         //
 
-        //// setup and call using caller's parameter block
+        //// caller defined parameter block for parameter passing
         lda #35                                 // X = 35
         sta call_param_block_x_addr
         lda #1                                  // Y = 1
@@ -133,42 +149,53 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         jsr PrintCharCallParamBlock
         //
 
-
         rts
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Print a char somewhere on first 5 lines by passing the 
-// character, x (column), and y() row) in a caller defined parameter
-// block.
-// A caller's parameter block must be setup with the following layout
+// Caller defined parameter block method used to print a char somewhere 
+// on first 5 lines by passing the character, the x (col), and y (row) in 
+// a caller defined parameter block.  The block must be setup with the 
+// following layout
 //   .byte : X location for char to print
 //   .byte : Y location for char to print (only pass 0-5)
 //   .byte : The char to print
-// Before calling the address of the caller's parameter block should be
-// set as follows:
+// The address of the caller's parameter block must be passed to this
+// subroutine as follows:
 //   Accum    : LSB of caller's parameter block address
 //   Y Reg    : MSB of caller's parameter block address
 // Then you can JSR to this routine
 //
 // Pros:
-//   can keep separate parameter blocks and pass in whichever 
-//   
+//   - can keep separate parameter blocks and pass in the address to 
+//     whichever one you'd like this routine to operate on 
+//   - Most versitile.
+//   - Don't need to worry about the stack, jsr and rts used as designed  
 // Cons:
-//   Requires a zero page pointer which is scarce resource so could conflict
-//     with other subroutines that want to use that location.  or else need to 
-//     save and restore values in the zero page pointer.
+//   - Requires a zero page pointer which is scarce resource so could conflict
+//     with other subroutines that want to use that location.  Could  
+//     save and restore values in the zero page pointer to prevent that though.
 ////////////////////////////////////////////////////////////////////////////////
 PrintCharCallParamBlock:
 {
         // load the address of the caller's param block to a pointer in 
-        // zero page (first 256 bytes of memory)
+        // zero page (first 256 bytes of memory.)  we need a zero page 
+        // location to store the address of the caller's parameter block
+        // so that we can later use indirect index addressing into the block
+        // for the individual fields (x loc, y loc, char to print)
         sta ZERO_PAGE_LO   // store lo byte of addr of caller's param block
         sty ZERO_PAGE_HI   // store hi byte of addr of caller's param block 
 
-        // get the Y location from caller's param block into Y register
+        // get the Y location parameter from caller's param block into accum
+        // and then transfer to X register/  For this we'll be 
+        // using indirect indexed addressing where we pass a zero page 
+        // address that contains the low byte of an address (the address of 
+        // caller's param block) and then the Y register (in our case that
+        // is the offset within the param block to the y location) is added 
+        // to that address to form the actual address of the memory to be loaded
+        // into the accum with the lda 
         ldy #call_param_block_offset_y  // load Y reg with offset to y loc
-        lda (ZERO_PAGE_LO),y                     // indirectly load y loc to accum
+        lda (ZERO_PAGE_LO),y            // indirect indexed load y loc to accum
         tax                             // copy y loc from accum to x reg
  
         // get the x location from caller's param block into the accum
@@ -197,33 +224,42 @@ DoneY:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Print a char somewhere on first 5 lines.  caller must specify the 
-// character, x (column), and y() row) in registers by overwriting
+// Code modification method of parameter passing to print a char somewhere 
+// on first 5 lines.  Be for calling, the caller must specify the 
+// character, x location (col), and y location (row) by overwriting
 // the subroutine code at the following locations
 // code_modification_x_addr      offset 1 from subroutine label
 // code_modification_y_addr      offset 3 from subroutine label
 // code_modification_char_addr   offset 17 from subroutine label
-
-// Setup registers to call it:
-//   Accum: X (col) location for char in Accumulator 
-//   Y Reg: Y (row) location for char in Y reg - must be between 0 and 5
-//   X Reg: Char to print
+// In the future if the code is changed and that results in moving these
+// locations instructions then these addresses will need to be updated.
+// Setup by writing byte values to the following locations before calling:
+//   code_modification_x_addr: X (col) location for char to print 
+//   code_modification_y_addr: Y (row) location for char to print (0-5 only)
+//   code_modification_char_addr: Char to print
 //   JSR to this routine
 // Pros:
-//   All registers free for use within routine
-//   JSR and RTS work as designed.
-//   param values persist between calls
-//   could be tedius to call when lots of parameters
-//   code simple to write and understand
+//   - All registers free for use within routine
+//   - JSR and RTS work as designed.
+//   - param values persist between calls
+//   - could be tedius to call when lots of parameters
+//   - code simple to write and understand
 // Cons:
-//   Hard to maintain because code changes could move the locations to overwrite 
-//   can't maintain more than one set of parameters.  
+//   - Hard to maintain because code changes could move the locations that
+//   - callers need to overwrite 
+//   - much like function defined param block all parameters have to be set
+//     every call can't maintain them in separate blocks   
 //   
 ////////////////////////////////////////////////////////////////////////////////
 PrintCharCodeModification:
 {
-        lda #30              // load accum with X location offset = 1
-        ldy #3               // load Y reg with Y location offset = 3
+        lda #0               // load accum with X location (col) 
+                             // the #0 is at offset = 1 and must be 
+                             // overwritten before calling
+        ldy #0               // load Y reg with Y location (row).  The 
+                             // #0 is at offset = 3 and must be overwritten
+                             // before calling
+
         beq DoneY            // when Y is 0 then we've added enough 
 LoopY:
         clc
@@ -233,7 +269,9 @@ LoopY:
         jmp LoopY
 DoneY:
         tay                        // move just calculated offest to Y reg
-        lda #10                    // move char to print to the accum offset = 17
+        lda #0                     // move char to print to the accum.  the #0 is at
+                                   // offset = 17.  this must be overwritten with
+                                   // the char to print before calling
         sta SCREEN_START_ADDR,y    // store the char to print to screen start + offset   
         
         rts
@@ -242,14 +280,15 @@ DoneY:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Print a char somewhere on first 5 lines by passing the 
-// character, x (column), and y() row) in a function defined paramete
-// block.
-// Setup data in the following addresses to call function 
+// Function defined parameter block method of parameter passing to print 
+// a char somewhere on first 5 lines by passing the:
+// x locatoin (column), y location (row), and char to print in a 
+// function defined parameter block.
+// Setup data in the following addresses with the parameters befor calling 
 //   func_param_block_x_addr    : X (col) location for char in Accumulator 
-//   func_param_block_x_addr    : Y (row) location for char in Y reg - must be between 0 and 5
+//   func_param_block_x_addr    : Y (row) location for char in Y reg (0 - 5)
 //   func_param_block_char_addr : Char to print
-//   JSR to this routine
+//  After setup above then JSR to this routine
 // Pros:
 //   all registers free for use within routine
 //   JSR and RTS work as designed.
@@ -282,20 +321,22 @@ DoneY:
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////////
 // Print a char somewhere on first 5 lines by passing the 
-// character, x (column), and y() row) in registers
-// Setup registers to call it:
-//   Accum: X (col) location for char in Accumulator 
-//   Y Reg: Y (row) location for char in Y reg - must be between 0 and 5
-//   X Reg: Char to print
+// x location (column), y location (row) in registers
+// Setup registers as follows before calling:
+//   Accum: X location (col) for char in Accumulator 
+//   Y Reg: Y location (Row) for char in Y reg.  only values 0 to 5
+//   X Reg: Character to print
 //   JSR to this routine
 // Pros:
-//   easy to setup.
-//   JSR and RTS work as designed.
+//   - easy to setup.
+//   - JSR and RTS work as designed.
 // Cons:
-//   Can only pass 3 bytes of information this way
+//   - Can only pass 3 bytes of information this way.  if more info needed
+//     then need another strategy.
+//   - likely need to set all parameters before each call because likely
+//     that all registers will have changed between calls.
 PrintCharRegistersOnly:
 {
         cpy #$00
