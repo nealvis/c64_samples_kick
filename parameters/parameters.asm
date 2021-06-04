@@ -47,6 +47,21 @@ func_param_block:
 .const code_modification_char_addr = PrintCharCodeModification + code_modification_offset_char
 ////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////
+// paramater block for PrintCharFuncParamBlock
+.const call_param_block_offset_x = 0
+.const call_param_block_offset_y = 1
+.const call_param_block_offset_char = 2
+call_param_block: 
+.byte $EA       // X (col) position for character, offset 0
+.byte $EB       // Y (row) position for character, offset 1
+.byte $EC       // character to print,             offset 2
+.const call_param_block_x_addr = call_param_block + call_param_block_offset_x
+.const call_param_block_y_addr = call_param_block + call_param_block_offset_y
+.const call_param_block_char_addr = call_param_block + call_param_block_offset_char
+////////////////////////////////////////////////////////////
+
+
 *=$08F8
 TempRtsLsb:
         .byte $00
@@ -101,7 +116,76 @@ str_to_print: .text  @"hello direct\$00"  // null terminated string to print
         jsr PrintCharCodeModification
         //
 
+        //// setup and call using caller's parameter block
+        lda #35                                 // X = 35
+        sta call_param_block_x_addr
+        lda #2                                  // Y = 1
+        sta call_param_block_y_addr
+        lda #4                                  // Character 'D'
+        sta call_param_block_char_addr          
+        lda #<call_param_block
+        ldy #>call_param_block
+        jsr PrintCharCallParamBlock
+        //
 
+
+        rts
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Print a char somewhere on first 5 lines by passing the 
+// character, x (column), and y() row) in a caller defined parameter
+// block.
+// A caller's parameter block must be setup with the following layout
+//   .byte : X location for char to print
+//   .byte : Y location for char to print (only pass 0-5)
+//   .byte : The char to print
+// Before calling the address of the caller's parameter block should be
+// set as follows:
+//   Accum    : LSB of caller's parameter block address
+//   Y Reg    : MSB of caller's parameter block address
+// Then you can JSR to this routine
+//
+// Pros:
+//
+// Cons:
+//   
+////////////////////////////////////////////////////////////////////////////////
+temp_x: .byte 0
+temp_y: .byte 0
+temp_char: .byte 0
+PrintCharCallParamBlock:
+{
+        // load the address of the caller's param block to a pointer in 
+        // zero page (first 256 bytes of memory)
+        sta $00FB   // store lo byte of addr of caller's param block
+        sty $00FC   // store hi byte of addr of caller's param block 
+
+        // get the Y location into Y register
+        ldy #call_param_block_offset_y  // load Y reg with offset to y loc
+        lda ($FB),y                     // indirectly load y loc in accum
+        tay                             // copy y loc from accum to Y reg
+ 
+        // get the x location into the accum
+        ldx #call_param_block_offset_x  // load X reg with offset to x loc
+        lda ($FB),x                     // indirectly load x loc into accum
+        
+        cpy #$00
+        beq DoneY                       // when Y is 0 then we've added enough 
+LoopY:
+        clc
+        adc #SCREEN_COLS
+        dey
+        beq DoneY                       // if Y still not 0 then loop up and add again
+        jmp LoopY
+DoneY:
+        tax                             // move the just calculated offest to X reg
+        
+        ldy #call_param_block_offset_char
+        lda ($FB),y
+
+        sta SCREEN_START_ADDR,x         // store the char to print to screen start + offset   
+        
         rts
 }
 
