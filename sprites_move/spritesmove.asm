@@ -23,21 +23,39 @@
         .byte $00, $00, $00      // end of basic program (addr $080E from above)
 
 *=$0820 "Vars"
+
+// min and max speed for all sprites
+.const MAX_SPEED = 6
+.const MIN_SPEED = 1
+
+// ship variables
 ship_x_loc:
         .word 22
 ship_y_loc: 
         .byte 50
+ship_speed: 
+        .byte 4
 
+// asteroid variables
 asteroid_x_loc: 
         .word 265
 asteroid_y_loc: 
         .byte 50
+asteroid_speed: 
+        .byte 1
+
+// some loop indices
+loop_index_1: .byte 0
+loop_index_2: .byte 0
+
 
 *=$08F8
-TempRtsLsb:
-        .byte $00
 
-TempRtsMsb:
+// two bytes to store the return address from the stack temporarily while 
+// popping other parameters from the stack 
+temp_rts_lsb:
+        .byte $00
+temp_rts_msb:
         .byte $00
 
 
@@ -106,47 +124,77 @@ TempRtsMsb:
         nv_sprite_enable($00)
         nv_sprite_enable($01)
 
-        ldy #150
+        lda #MAX_SPEED
+        sta ship_speed
 
-LoopStart:
-        nv_sprite_wait_scan()
-        lda #4
-        pha
-        jsr MoveShipX
-        dey
-        bne LoopStart
+        lda #MIN_SPEED
+        sta asteroid_speed
 
-/*
-        .for(var index=0;index<150;index++)
-        {
-                nv_sprite_wait_scan()
-                //.print "Number " + index
-                .var new_x = ship_x + 1 * index
-                nv_sprite_set_loc($00, new_x, ship_y)
-                nv_sprite_set_loc($01, asteroid_x, asteroid_y)
-        }
-*/
-        // move cursor out of the way before returning
+        
+        ldy #12                 // outer loops counts down from this number to 0 
+        sty loop_index_2
+
+OuterLoop:
+        ldy #100                // inner loop counts down from this number to zero
+        sty loop_index_1
+
+InnerLoop:
+        nv_sprite_wait_scan()   // update sprites after particular scan line or will be too fast to see.
+        
+        //// call function to move sprite in x direction
+        lda ship_speed          // push the number of pixels to move it.
+        pha                     // the subroutine will pop this off
+        jsr MoveShipX           
+        
+        //// call routine to move asteroid in y direction
+        lda asteroid_speed      // push the number of pixels to move it 
+        pha                     // the subroutine will pop this off
+        jsr MoveAsteroidY
+
+        // loop back for inner loop if appropriate
+        dec loop_index_1
+        bne InnerLoop
+
+        // inner loop finished change speed of sprites before checking outer loop
+        dec ship_speed          // decrement ship speed
+        bne SkipShipMax         // if its not zero yet then skip setting to max
+        lda #MAX_SPEED          // if it is zero then set it back to the max speed
+        sta ship_speed          // save the new ship speed (max speed)
+
+ SkipShipMax:                   
+        inc asteroid_speed      // increment asteroid speed 
+        lda asteroid_speed      // load new speed just incremented
+        cmp #MAX_SPEED+1        // compare new spead with max +1
+        bne SkipAsteroidMin     // if we haven't reached max + 1 then skip settin to min
+        lda #MIN_SPEED          // else, we have reached max+1 so need to reset it back min
+        sta asteroid_speed
+
+SkipAsteroidMin:
+        // now we can loop back for outer loop if appropriate.
+        dec loop_index_2
+        bne OuterLoop
+
+        // Done moving sprites, move cursor out of the way 
+        // and return, but leave the sprites on the screen
         nv_screen_plot_cursor(5, 24)
         rts   // program done, return
 
+
+
 ////////////////////////////////////////////////////////////
 // subroutine to increment ship's x position by the 
-// number of pixels in accumulator
+// number of pixels pushed on the stack before JSR was called
+// Note if the sprite goes off the right edge it will be 
+// reset to the left edge
 MoveShipX:
 {
-        pla             // pull LSB of return address
-        sta TempRtsLsb  // store in Temp memory
-        pla             // pull MSB of return address
-        sta TempRtsMsb  // save other byte in temp memory
-        inc TempRtsLsb  // since JSR stores ret addr minus 1 must add 1
-        bne SkipIncMsb  // if didn't roll over to zero then skip MSB inc
-        inc TempRtsMsb  // did roll over to zero so inc MSB too
-SkipIncMsb:
+        pla               // pull LSB of return address
+        sta temp_rts_lsb  // store in Temp memory
+        pla               // pull MSB of return address
+        sta temp_rts_msb  // save other byte in temp memory
 
-        pla             // now pull param1, num pixels to move
+        pla               // now pull param1, num pixels to move
         clc
-        //lda #2
         adc ship_x_loc
         bcs IncByte2                    // accum (old x loc) > new x loc so inc high byte 
         jmp SkipByte2 
@@ -158,22 +206,73 @@ SkipByte2:
         lda ship_x_loc+1
         beq UpdateRegisterLoc           // high byte is zero so don't bother testing right border
         lda ship_x_loc
-        cmp #$20
-        bcs ResetX                      // accum greater than or equal to memory loc
-        jmp UpdateRegisterLoc
+        cmp #78                         // if x location reaches this AND MSB of x loc isn't zero, then
+        bcs ResetX                      // carry will be set and need to reset X loc to left side
+        jmp UpdateRegisterLoc           // if we didn't branch above the we can update actual 
+                                        // sprite register
 ResetX: 
-        lda #$00
+        lda #22                         // set sprite x to this location
         sta ship_x_loc
+        lda #0                          // also clear the high bit of the x location
         sta ship_x_loc + 1
+
 UpdateRegisterLoc:        
-        jsr SetShipLocFromMem
-FinishedUpdate:        
-        jmp (TempRtsLsb)                // already popped the return address, jump back now
+        jsr SetShipLocFromMem           // Actually update sprite from the x and y loc in memory
+
+FinishedUpdate:
+        lda temp_rts_msb                // restore the return addr (minus 1) so we can call rts.
+        pha
+        lda temp_rts_lsb
+        pha
+        rts                // already popped the return address, jump back now
 }
 
+
+
+////////////////////////////////////////////////////////////
+// subroutine to increment ship's x position by the 
+// number of pixels pushed on the stack before JSR was called
+// Note if the sprite goes off the bottom edge it will be 
+// reset to the top
+MoveAsteroidY:
+{
+        pla               // pull LSB of return address
+        sta temp_rts_lsb  // store in Temp memory
+        pla               // pull MSB of return address
+        sta temp_rts_msb  // save other byte in temp memory
+
+        pla               // now pull param1, num pixels to move
+        clc
+        adc asteroid_y_loc // add the number of pixels to move down
+        cmp #250           // check if off bottom of screen
+        bcs ResetY         // accum is >= to compare value, so set y back to 0
+        sta asteroid_y_loc // if didn't branch above then update the y loca
+        jmp UpdateRegisterLoc  // and jump to actually update the sprite location
+
+ResetY: 
+        lda #10             // reset the y location back near the top of screen
+        sta asteroid_y_loc  // store it in our memory location    
+
+UpdateRegisterLoc:        
+        jsr SetAsteroidLocFromMem  // now actually set the sprite register with new y loc 
+
+FinishedUpdate:
+        lda temp_rts_msb    // restore the return address (minus -1) so can call rts.
+        pha
+        lda temp_rts_lsb
+        pha
+        rts
+}
+
+// pull in macro routine that sets sprite 0 location from memory locations
+// this routine won't do any checking as far as if the sprite is being put 
+// to a valid location.  it will blindly put it wherever specified.
 SetShipLocFromMem:
 nv_sprite_set_location_from_memory(0, ship_x_loc, ship_y_loc)
 
+// pull in macro routine that sets sprite 1 location from memory locations
+// this routine won't do any checking as far as if the sprite is being put 
+// to a valid location.  it will blindly put it wherever specified.
 SetAsteroidLocFromMem:
 nv_sprite_set_location_from_memory(1, asteroid_x_loc, asteroid_y_loc)
 
