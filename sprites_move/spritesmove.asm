@@ -268,10 +268,10 @@ FinishedUpdate:
 // this routine won't do any checking as far as if the sprite is being put 
 // to a valid location.  it will blindly put it wherever specified.
 SetShipLocFromMem:
-nv_sprite_set_location_from_memory(0, ship_x_loc, ship_y_loc)
+nv_sprite_set_location_from_memory_sr(0, ship_x_loc, ship_y_loc)
 
 // pull in macro routine that sets sprite 1 location from memory locations
 // this routine won't do any checking as far as if the sprite is being put 
 // to a valid location.  it will blindly put it wherever specified.
 SetAsteroidLocFromMem:
-nv_sprite_set_location_from_memory(1, asteroid_x_loc, asteroid_y_loc)
+nv_sprite_set_location_from_memory_sr(1, asteroid_x_loc, asteroid_y_loc)

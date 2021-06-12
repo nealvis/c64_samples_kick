@@ -38,6 +38,44 @@
 .const NV_SPRITE_1_COLOR_REG_ADDR = $d028
 
 
+
+// struct that provides info for a sprite.  this is a construct of the assembler
+// it just provides an easy way to reference all these different compile time values.
+// No actual memory is created when an instance of the struct is created.
+.struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_addr, base_addr}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// macro that creates a block of memory to hold all the extra data for a 
+// sprite such as its velocity and an in memory x and y location.
+// macro parameter:
+//   spt_info: is an instance of the nv_sprite_info_struct.  This contains
+//             all the compile time info needed/known about the strite.
+.macro nv_sprite_extra_data(spt_info)
+{
+    *=spt_info.base_addr                                 // tell assembler where to put this stuff
+    sprite_base_addr:                                    // the address of the first byte
+    sprite_num_addr: .byte spt_info.num                  // the sprite number (0-7 only)
+    sprite_x_addr: .word spt_info.init_x                 // the sprite's x loc
+    sprite_y_addr: .byte spt_info.init_y                 // the sprite's y loc
+    sprite_vel_x_addr: .byte spt_info.init_x_vel         // the sprite's x velocity in pixels
+    sprite_vel_y_addr: .byte spt_info.init_y_vel         // the sprite's y velocity in pixels
+    sprite_data_block_addr_ptr: .byte spt_info.data_addr // mult by 64 to get the real 16bit addr
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// offsets to use to get to the different fields within the nv_sprite block
+.const NV_SPRITE_NUM_OFFSET = 0
+.const NV_SPRITE_X_OFFSET = 1
+.const NV_SPRITE_Y_OFFSET = 3
+.const NV_SPRITE_VEL_X_OFFSET = 4
+.const NV_SPRITE_VEL_Y_OFFSET = 5
+.const NV_SPRITE_DATA_BLOCK_OFFSET = 6
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the shared colors for multi colored sprites
 .macro nv_sprite_set_multicolors(color1, color2) 
 {
     lda #color1 // multicolor sprites global color 1
@@ -47,6 +85,17 @@
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro to set the sprite mode for specified sprite.
+// macro params:
+//  sprite_num: the sprite number, 0-7 are valid values
+//  sprite_data_addr: the address of the 64 bytes of sprite
+//                    data.  The last byte contains the mode
+//                    in its high nibble.  if any of the four
+//                    bits in the high nibble are set then 
+//                    the sprite is multi color (low res).  If
+//                    no bits in the high nibble are set then
+//                    its hi res (single color)
 .macro nv_sprite_set_mode(sprite_num, sprite_data_addr)
 {
     .var sprite_mask = $01 << sprite_num
@@ -71,6 +120,13 @@ skip_multicolor:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the pixel data pointer for the sprite.  
+// macro parameters:
+//   sprite_num: is the sprite number, 0-7 are valid values
+//   sprite_data_addr: is the address where the 64 bytes of data for the
+//                     sprite are stored.  This is the real address it will
+//                     be divided by 64 prior to setting in the sprite register.
 .macro nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
 {
     lda #(sprite_data_addr / 64)            // implied this is multiplied by 64
@@ -79,6 +135,12 @@ skip_multicolor:
 } 
 
 
+//////////////////////////////////////////////////////////////////////////////
+// inline Macro to set the sprite's one color
+//   sprite_num: is the sprite number (0-7 are valid values)
+//   sprite_data_addr: is the address where the 64 bytes of data for the
+//                     sprite are stored.  The last byte contains the sprite 
+//                     color in the low nibble.
 .macro nv_sprite_set_color(sprite_num, sprite_data_addr)
 {
     lda sprite_data_addr + 63       // The color is the low nibble of the
@@ -89,6 +151,10 @@ skip_multicolor:
     sta NV_SPRITE_0_COLOR_REG_ADDR,x   // store in color reg for this sprite  
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// iline macro to enable the specified sprite.  If a sprite is not enabled it won't
+// be visible on the screen.  
 .macro nv_sprite_enable(sprite_num)
 {
     .var sprite_mask = $01 << sprite_num
@@ -100,12 +166,63 @@ skip_multicolor:
                                        // one bit for each sprite.
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro (no rts) to setup everything for a sprite so its ready to 
+// be enabled and moved.
+.macro nv_sprite_setup(sprite_num, sprite_data_addr)
+{
+    nv_sprite_set_mode(sprite_num, sprite_data_addr)
+    nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
+    nv_sprite_set_color(sprite_num, sprite_data_addr)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro for subroutine (with rts) to setup everything for a sprite such 
+// that its ready to be enabled and moved
+.macro nv_sprite_setup_sr(sprite_num, sprite_data_addr)
+{
+    nv_sprite_setup(sprite_num, sprite_data_addr)
+    rts
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro (no rts) to wait for specific scanline.
+.macro nv_sprite_wait_scan()
+{
+loop:
+    lda $D012
+    cmp #$fa
+    bne loop
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+// subroutine to wait for a specific scan line
+.macro nv_sprite_wait_scan_sr()
+{
+    nv_sprite_wait_scan()
+    rts
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro to set the x and y location of specified sprite
+// based on macro parameters known at assemble time
+// This routine directly updates the sprite registers for the sprite and is
+// not connected to any sprite struct
+// macro params:
+//   sprite_num: the sprite number (0-7 are valid)
+//   sprite_x: the sprite x location (this can be larger than 255)
+//   sprite_y: the sprite y location this is only 0-255
 .macro nv_sprite_set_loc(sprite_num, sprite_x, sprite_y)
 {
     ldx #sprite_num * 2         // sprite number times 2 since location
                                 // regs are in pairs, x loc and y loc
                                 // for each sprite.
-    lda #sprite_x               
+
+    lda #sprite_x               // load LSB for x location 
     sta NV_SPRITE_0_X_ADDR,x    // store in right sprite's x loc
 
     lda #sprite_y
@@ -127,24 +244,17 @@ skip_multicolor:
     }
 }
 
-// Setup everything for a sprite so its ready to be enabled and moved.
-.macro nv_sprite_setup(sprite_num, sprite_data_addr)
-{
-    nv_sprite_set_mode(sprite_num, sprite_data_addr)
-    nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
-    nv_sprite_set_color(sprite_num, sprite_data_addr)
-}
 
-.macro nv_sprite_wait_scan()
-{
-loop:
-    lda $D012
-    cmp #$fa
-    bne loop
-}
-
-
-.macro nv_sprite_set_location_from_memory(sprite_num, sprite_x_addr, sprite_y_addr)
+//////////////////////////////////////////////////////////////////////////////
+// subroutine macro to set sprite's location in the sprite registers based on
+// the values in the sprite_x_addr and sprite_y_addr.
+// macro parmaeters:
+//   sprite_num: the sprite number (0-7 are valid sprite numbers)
+//   sprite_x_addr:  the address of the LSB of the word that holds the 16 bit
+//                   value which is the sprites x location
+//   sprite_y_addr: the address of the byte that holds the sprite's 8 bit 
+//                  y location
+.macro nv_sprite_set_location_from_memory_sr(sprite_num, sprite_x_addr, sprite_y_addr)
 {
     ldx #(sprite_num*2) // load x with offset to sprite location for this sprite
 
@@ -170,5 +280,56 @@ loop:
     ora #sprite_mask
     sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR  
     rts
+}
 
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to move a sprite based on information in the sprite tracker 
+// struct (info) that is passed into the macro.  The sprite x and y location
+// in memory will be updated according to the x and y velocity.
+// Note if the sprite goes off the edge it will be reset to the opposite side
+// of the screen.
+// Note that this only updates the location in memory, it doesn't update the
+// sprite location in sprite registers.  To update sprite location in registers
+// and on the screen, call nv_sprite_set_location_from_memory_sr after this.
+.macro nv_sprite_move_sr(info)
+{
+        lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+        clc
+        adc info.base_addr + NV_SPRITE_Y_OFFSET
+        cmp #250                        // we'll use 250 for bottom of screen
+        bcc DontResetY
+ResetY: 
+        lda #10                         // we'll use 10 for top of scrren
+DontResetY:
+        sta info.base_addr + NV_SPRITE_Y_OFFSET
+
+        lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
+        clc
+        adc info.base_addr + NV_SPRITE_X_OFFSET
+        bcs IncByte2                    // accum (old x loc) > new x loc so inc high byte 
+        jmp SkipByte2 
+IncByte2:
+        sta info.base_addr + NV_SPRITE_X_OFFSET
+        inc info.base_addr + NV_SPRITE_X_OFFSET+1
+SkipByte2:
+        sta info.base_addr + NV_SPRITE_X_OFFSET
+        lda info.base_addr + NV_SPRITE_X_OFFSET+1
+        beq UpdateRegisterLoc           // high byte is zero so don't bother testing right border
+        lda info.base_addr + NV_SPRITE_X_OFFSET
+        cmp #78                         // if x location reaches this AND MSB of x loc isn't zero, then
+        bcs ResetX                      // carry will be set and need to reset X loc to left side
+        jmp UpdateRegisterLoc           // if we didn't branch above the we can update actual 
+                                        // sprite register
+ResetX: 
+        lda #22                         // set sprite x to this location
+        sta info.base_addr + NV_SPRITE_X_OFFSET
+        lda #0                          // also clear the high bit of the x location
+        sta info.base_addr + NV_SPRITE_X_OFFSET + 1
+
+UpdateRegisterLoc:        
+        //jsr SetShipLocFromMem           // Actually update sprite from the x and y loc in memory
+
+FinishedUpdate:
+        rts                // already popped the return address, jump back now
 }
