@@ -203,7 +203,7 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        nv_sprite_move_sr(info)
+        nv_sprite_move_any_direction_sr(info)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -233,7 +233,7 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        nv_sprite_move_sr(info)
+        nv_sprite_move_any_direction_sr(info)
 }
 
 
@@ -264,7 +264,7 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        nv_sprite_move_sr(info)
+        nv_sprite_move_any_direction_sr(info)
 }
 
 
@@ -295,6 +295,6 @@ Setup:
 // this will not update the sprite registers to actually move the sprite, but
 // to do that just call SetShipeLocFromMem
 MoveInExtraData:
-        nv_sprite_move_sr(info)
+        nv_sprite_move_any_direction_sr(info)
 }
 

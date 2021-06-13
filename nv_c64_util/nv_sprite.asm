@@ -37,7 +37,10 @@
 // the hi 4 bits don't seem to be writable
 .const NV_SPRITE_1_COLOR_REG_ADDR = $d028
 
-
+.const NV_SPRITE_LEFT_MIN = 22
+.const NV_SPRITE_RIGHT_MAX = 78  // note this is value of low byte x loc, high bit must also be set
+.const NV_SPRITE_TOP_MIN = 10
+.const NV_SPRITE_BOTTOM_MAX = 250
 
 // struct that provides info for a sprite.  this is a construct of the assembler
 // it just provides an easy way to reference all these different compile time values.
@@ -292,7 +295,9 @@ loop:
 // Note that this only updates the location in memory, it doesn't update the
 // sprite location in sprite registers.  To update sprite location in registers
 // and on the screen, call nv_sprite_set_location_from_memory_sr after this.
-.macro nv_sprite_move_sr(info)
+// note: this is the same as nv_sprite_move_any_direction_sr except that it 
+//       doesn't use separate macros for positive/negative/x/y
+.macro nv_sprite_move_any_direction_all_in_one_sr(info)
 {
         ldx info.base_addr + NV_SPRITE_VEL_Y_OFFSET
         txa         // velocity in x and accum
@@ -378,4 +383,145 @@ AccumHasNewX:               // high byte of X set correctly above, set low byte
 
 FinishedUpdate:
         rts                // already popped the return address, jump back now
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to move a sprite based on information in the sprite tracker 
+// struct (info) that is passed into the macro.  The sprite x and y location
+// in memory will be updated according to the x and y velocity.
+// Note if the sprite goes off the edge it will be reset to the opposite side
+// of the screen.
+// Note that this only updates the location in memory, it doesn't update the
+// sprite location in sprite registers.  To update sprite location in registers
+// and on the screen, call nv_sprite_set_location_from_memory_sr after this.
+.macro nv_sprite_move_any_direction_sr(info)
+{
+    ldx info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+    bpl PosVelY
+
+NegVelY:
+    nv_sprite_move_negative_y(info)
+    jmp DoneY
+
+PosVelY:
+    nv_sprite_move_positive_y(info)
+    
+DoneY:
+// Y location done, now on to X
+    ldx info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    bmi NegVelX
+
+PosVelX:
+// moving right (positive X velocity)
+    nv_sprite_move_positive_x(info)
+    jmp FinishedUpdate
+
+NegVelX:
+// moving left (negative X velocity)
+    nv_sprite_move_negative_x(info)
+
+FinishedUpdate:
+    rts                // already popped the return address, jump back now
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_positive_y(info)
+{
+    lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+    clc
+    adc info.base_addr + NV_SPRITE_Y_OFFSET
+    cmp #NV_SPRITE_BOTTOM_MAX                        // we'll use 250 for bottom of screen
+    bcc AccumHasNewY
+
+SetTopY: 
+    lda #NV_SPRITE_TOP_MIN                         // we'll use 10 for top of scrren
+
+AccumHasNewY:
+    sta info.base_addr + NV_SPRITE_Y_OFFSET
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_negative_y(info)
+{
+    lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+    clc
+    adc info.base_addr + NV_SPRITE_Y_OFFSET
+    cmp #NV_SPRITE_TOP_MIN
+    bcs AccumHasNewY              // branch if accum > min top
+
+    // sprite is less than min top so need to move it to bottom
+    lda #NV_SPRITE_BOTTOM_MAX     // went off top so set to bottom
+
+AccumHasNewY:
+    sta info.base_addr + NV_SPRITE_Y_OFFSET
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_positive_x(info)
+{
+    lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    clc
+    adc info.base_addr + NV_SPRITE_X_OFFSET
+    bcs IncByte2                     // accum (old x loc) > new x loc so inc high byte 
+    jmp SkipByte2 
+IncByte2:
+    sta info.base_addr + NV_SPRITE_X_OFFSET
+    inc info.base_addr + NV_SPRITE_X_OFFSET+1
+SkipByte2:
+    sta info.base_addr + NV_SPRITE_X_OFFSET
+    lda info.base_addr + NV_SPRITE_X_OFFSET+1
+    beq FinishedUpdate              // high byte is zero so don't bother testing right border
+    lda info.base_addr + NV_SPRITE_X_OFFSET
+    cmp #NV_SPRITE_RIGHT_MAX        // if x location reaches this AND MSB of x loc isn't zero, then
+    bcs SetLeftX                    // carry will be set and need to reset X loc to left side
+    jmp FinishedUpdate              // if we didn't branch above the we can update actual 
+                                    // sprite register
+SetLeftX: 
+    lda #NV_SPRITE_LEFT_MIN         // set sprite x to this location
+    sta info.base_addr + NV_SPRITE_X_OFFSET
+    lda #0                          // also clear the high bit of the x location
+    sta info.base_addr + NV_SPRITE_X_OFFSET + 1
+
+FinishedUpdate:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_negative_x(info)
+{
+    lda info.base_addr + NV_SPRITE_X_OFFSET+1
+    bne HiByteNotZero
+
+HiByteZero:
+    lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    clc
+    adc info.base_addr + NV_SPRITE_X_OFFSET
+    cmp #NV_SPRITE_LEFT_MIN
+    bcs AccumHasNewX    /// still on screen good to go
+    ldy #1
+    sty info.base_addr + NV_SPRITE_X_OFFSET+1
+    lda #NV_SPRITE_RIGHT_MAX
+    jmp AccumHasNewX
+
+HiByteNotZero:
+    lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    clc
+    adc info.base_addr + NV_SPRITE_X_OFFSET
+    bpl AccumHasNewX    // Hi byte stays  non zero
+
+    // need to set high byte to zero
+    ldy #0
+    sty info.base_addr + NV_SPRITE_X_OFFSET+1
+
+AccumHasNewX:               // high byte of X set correctly above, set low byte
+    sta info.base_addr + NV_SPRITE_X_OFFSET
+
 }
