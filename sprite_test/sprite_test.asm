@@ -24,7 +24,7 @@
 
 // min and max speed for all sprites
 .const MAX_SPEED = 6
-.const MIN_SPEED = 1
+.const MIN_SPEED = -6
 
 // some loop indices
 loop_index_1: .byte 0
@@ -105,21 +105,20 @@ loop_index_2: .byte 0
         // setup everything for the sprite_asteroid so its ready to enable
         jsr asteroid_1.Setup
         
+        // initialize sprite locations from their extra data blocks 
         jsr ship_1.SetLocationFromExtraData
         jsr asteroid_1.SetLocationFromExtraData
         
-
         // enable both sprites
         nv_sprite_enable($00)
         nv_sprite_enable($01)
 
-        lda #MAX_SPEED
-        sta ship_1.x_vel
+        //lda #MIN_SPEED
+        //sta asteroid_1.y_vel
 
-        lda #MIN_SPEED
-        sta asteroid_1.y_vel
+        //lda #MAX_SPEED
+        //sta ship_1.x_vel
 
-        
         ldy #12                 // outer loops counts down from this number to 0 
         sty loop_index_2
 
@@ -150,10 +149,10 @@ InnerLoop:
         sta ship_1.x_vel          // save the new ship speed (max speed)
 
  SkipShipMax:                   
-        inc asteroid_1.y_vel    // increment asteroid speed 
+        inc asteroid_1.y_vel    // increment asteroid Y velocity 
         lda asteroid_1.y_vel    // load new speed just incremented
         cmp #MAX_SPEED+1        // compare new spead with max +1
-        bne SkipAsteroidMin     // if we haven't reached max + 1 then skip settin to min
+        bne SkipAsteroidMin     // if we haven't reached max + 1 then skip setting to min
         lda #MIN_SPEED          // else, we have reached max+1 so need to reset it back min
         sta asteroid_1.y_vel
 
@@ -172,12 +171,14 @@ SkipAsteroidMin:
 // Namespace with everything related to asteroid 1
 .namespace asteroid_1
 {
-        .var info = nv_sprite_info_struct("asteroid_1", 1, 265, 50, 1, 1, sprite_asteroid_1, sprite_extra)
+        .var info = nv_sprite_info_struct("asteroid_1", 1, 265, 150, -1, -1, sprite_asteroid_1, sprite_extra)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
         .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+
+        //.print ("asteroid sprite_extra: " + sprite_extra)
 
 // sprite extra data
 sprite_extra:
@@ -203,7 +204,7 @@ MoveInExtraData:
 // namespace with everything related to ship sprite
 .namespace ship_1
 {
-        .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 0, sprite_ship, sprite_extra)
+        .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 1, sprite_ship, sprite_extra)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET

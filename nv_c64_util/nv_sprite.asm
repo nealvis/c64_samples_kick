@@ -294,16 +294,35 @@ loop:
 // and on the screen, call nv_sprite_set_location_from_memory_sr after this.
 .macro nv_sprite_move_sr(info)
 {
-        lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+        ldx info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+        txa         // velocity in x and accum
         clc
         adc info.base_addr + NV_SPRITE_Y_OFFSET
-        cmp #250                        // we'll use 250 for bottom of screen
-        bcc DontResetY
-ResetY: 
-        lda #10                         // we'll use 10 for top of scrren
-DontResetY:
-        sta info.base_addr + NV_SPRITE_Y_OFFSET
+        tay         // result in Y and accum
+        cpx #0
+        bpl PosVelY
+NegVelY:
+        cmp #10
+        bcs AccumHasNewY      // branch if accum > 10
 
+SetBottomY:
+        lda #250        // went off top so set to bottom
+        jmp AccumHasNewY
+
+PosVelY:
+        cmp #250                        // we'll use 250 for bottom of screen
+        bcc AccumHasNewY
+
+SetTopY: 
+        lda #10                         // we'll use 10 for top of scrren
+
+AccumHasNewY:
+        sta info.base_addr + NV_SPRITE_Y_OFFSET
+        
+        // Y location done, now on to X
+        ldx info.base_addr + NV_SPRITE_VEL_X_OFFSET
+        bmi NegVelX
+PosVelX:
         lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
         clc
         adc info.base_addr + NV_SPRITE_X_OFFSET
@@ -315,20 +334,47 @@ IncByte2:
 SkipByte2:
         sta info.base_addr + NV_SPRITE_X_OFFSET
         lda info.base_addr + NV_SPRITE_X_OFFSET+1
-        beq UpdateRegisterLoc           // high byte is zero so don't bother testing right border
+        beq FinishedUpdate           // high byte is zero so don't bother testing right border
         lda info.base_addr + NV_SPRITE_X_OFFSET
         cmp #78                         // if x location reaches this AND MSB of x loc isn't zero, then
         bcs ResetX                      // carry will be set and need to reset X loc to left side
-        jmp UpdateRegisterLoc           // if we didn't branch above the we can update actual 
+        jmp FinishedUpdate           // if we didn't branch above the we can update actual 
                                         // sprite register
 ResetX: 
         lda #22                         // set sprite x to this location
         sta info.base_addr + NV_SPRITE_X_OFFSET
         lda #0                          // also clear the high bit of the x location
         sta info.base_addr + NV_SPRITE_X_OFFSET + 1
+        jmp FinishedUpdate
 
-UpdateRegisterLoc:        
-        //jsr SetShipLocFromMem           // Actually update sprite from the x and y loc in memory
+// moving left (negative X velocity)
+NegVelX:
+        lda info.base_addr + NV_SPRITE_X_OFFSET+1
+        bne HiByteNotZero
+
+HiByteZero:
+        lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
+        clc
+        adc info.base_addr + NV_SPRITE_X_OFFSET
+        cmp #22
+        bcs AccumHasNewX    /// still on screen good to go
+        ldy #1
+        sty info.base_addr + NV_SPRITE_X_OFFSET+1
+        lda #78
+        jmp AccumHasNewX
+
+HiByteNotZero:
+        lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
+        clc
+        adc info.base_addr + NV_SPRITE_X_OFFSET
+        bpl AccumHasNewX    // Hi byte stays  non zero
+
+        // need to set high byte to zero
+        ldy #0
+        sty info.base_addr + NV_SPRITE_X_OFFSET+1
+
+AccumHasNewX:
+        sta info.base_addr + NV_SPRITE_X_OFFSET
 
 FinishedUpdate:
         rts                // already popped the return address, jump back now
