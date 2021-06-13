@@ -337,10 +337,10 @@ SkipByte2:
         beq FinishedUpdate           // high byte is zero so don't bother testing right border
         lda info.base_addr + NV_SPRITE_X_OFFSET
         cmp #78                         // if x location reaches this AND MSB of x loc isn't zero, then
-        bcs ResetX                      // carry will be set and need to reset X loc to left side
+        bcs SetLeftX                      // carry will be set and need to reset X loc to left side
         jmp FinishedUpdate           // if we didn't branch above the we can update actual 
                                         // sprite register
-ResetX: 
+SetLeftX: 
         lda #22                         // set sprite x to this location
         sta info.base_addr + NV_SPRITE_X_OFFSET
         lda #0                          // also clear the high bit of the x location
@@ -373,7 +373,7 @@ HiByteNotZero:
         ldy #0
         sty info.base_addr + NV_SPRITE_X_OFFSET+1
 
-AccumHasNewX:
+AccumHasNewX:               // high byte of X set correctly above, set low byte
         sta info.base_addr + NV_SPRITE_X_OFFSET
 
 FinishedUpdate:
