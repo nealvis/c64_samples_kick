@@ -40,10 +40,10 @@
 // constants for left, top, right and bottom of screen.  sprites will go behind the bordes so will cut them off
 // off at these pixel locations.  These coordinates are where the upper left corner of the sprite is when its
 // can be considered off screen.
-.const NV_SPRITE_LEFT_MIN = 22
-.const NV_SPRITE_RIGHT_MAX = 78  // note this is value of low byte x loc, high bit must also be set
-.const NV_SPRITE_TOP_MIN = 10
-.const NV_SPRITE_BOTTOM_MAX = 250
+.const NV_SPRITE_LEFT_MIN = 2
+.const NV_SPRITE_RIGHT_MAX = 83  // note this is value of low byte x loc, high bit must also be set
+.const NV_SPRITE_TOP_MIN = 32
+.const NV_SPRITE_BOTTOM_MAX = 249
 
 // struct that provides info for a sprite.  this is a construct of the assembler
 // it just provides an easy way to reference all these different compile time values.
