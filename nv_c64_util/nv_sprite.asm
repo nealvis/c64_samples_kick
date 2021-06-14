@@ -146,12 +146,33 @@ skip_multicolor:
 //   sprite_data_addr: is the address where the 64 bytes of data for the
 //                     sprite are stored.  The last byte contains the sprite 
 //                     color in the low nibble.
-.macro nv_sprite_set_color(sprite_num, sprite_data_addr)
+.macro nv_sprite_set_color_from_data(sprite_num, sprite_data_addr)
 {
     lda sprite_data_addr + 63       // The color is the low nibble of the
                                     // last byte of sprite. We'll just 
                                     // write the whole byte because the
                                     // only lo 4 bits of reg are writable
+    ldx #sprite_num
+    sta NV_SPRITE_0_COLOR_REG_ADDR,x   // store in color reg for this sprite  
+}
+
+.macro nv_sprite_set_color_immediate(sprite_num, new_color)
+{
+    lda #new_color                  // The color is the low nibble of the
+                                    // byte.  We'll just write the whole 
+                                    // byte because only low 4 bits of 
+                                    // the register are writable
+    ldx #sprite_num
+    sta NV_SPRITE_0_COLOR_REG_ADDR,x   // store in color reg for this sprite  
+}
+
+
+.macro nv_sprite_set_color_from_memory(sprite_num, new_color_addr)
+{
+    lda new_color_addr              // The color is the low nibble of the
+                                    // byte.  We'll just write the whole 
+                                    // byte because only low 4 bits of 
+                                    // the register are writable
     ldx #sprite_num
     sta NV_SPRITE_0_COLOR_REG_ADDR,x   // store in color reg for this sprite  
 }
@@ -179,7 +200,7 @@ skip_multicolor:
 {
     nv_sprite_set_mode(sprite_num, sprite_data_addr)
     nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
-    nv_sprite_set_color(sprite_num, sprite_data_addr)
+    nv_sprite_set_color_from_data(sprite_num, sprite_data_addr)
 }
 
 

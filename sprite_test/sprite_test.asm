@@ -30,6 +30,8 @@
 loop_index_1: .byte 0
 loop_index_2: .byte 0
 
+cycling_color: .byte NV_COLOR_FIRST
+
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -162,7 +164,7 @@ OuterLoop:
 
 InnerLoop:
         nv_sprite_wait_scan()   // update sprites after particular scan line or will be too fast to see.
-        
+
         //// call function to move ship based on X and Y velocity
         jsr ship_1.MoveInExtraData
         jsr ship_1.SetLocationFromExtraData
@@ -192,13 +194,19 @@ InnerLoop:
         dec loop_index_1
         bne InnerLoop
 
-        // inner loop finished change speed of sprites before checking outer loop
+        // inner loop finished change some colors and speeds
+
+        // change some colors
+        jsr cycle_colors
+
+        // change some speeds
         dec ship_1.x_vel          // decrement ship speed
         bne SkipShipMax         // if its not zero yet then skip setting to max
         lda #MAX_SPEED          // if it is zero then set it back to the max speed
         sta ship_1.x_vel          // save the new ship speed (max speed)
 
- SkipShipMax:                   
+
+SkipShipMax:                   
         inc asteroid_1.y_vel    // increment asteroid Y velocity 
         lda asteroid_1.y_vel    // load new speed just incremented
         cmp #MAX_SPEED+1        // compare new spead with max +1
@@ -216,6 +224,25 @@ SkipAsteroidMin:
         nv_screen_plot_cursor(5, 24)
         rts   // program done, return
 
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to cycle the color of a sprite just to show how
+// the nv_sprite_set_color_from_memory macro works.
+cycle_colors:
+        ldx cycling_color
+        inx
+        cpx #NV_COLOR_BLUE // blue is default backgroumd, so skip that one
+        bne NotBlue
+        inx
+NotBlue:
+        cpx #NV_COLOR_LAST + 1
+        bne SetColor
+        ldx #NV_COLOR_FIRST
+        stx cycling_color
+SetColor:
+        stx cycling_color
+        nv_sprite_set_color_from_memory(1, cycling_color)
+        rts
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
