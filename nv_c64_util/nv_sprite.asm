@@ -37,6 +37,9 @@
 // the hi 4 bits don't seem to be writable
 .const NV_SPRITE_1_COLOR_REG_ADDR = $d028
 
+// constants for left, top, right and bottom of screen.  sprites will go behind the bordes so will cut them off
+// off at these pixel locations.  These coordinates are where the upper left corner of the sprite is when its
+// can be considered off screen.
 .const NV_SPRITE_LEFT_MIN = 22
 .const NV_SPRITE_RIGHT_MAX = 78  // note this is value of low byte x loc, high bit must also be set
 .const NV_SPRITE_TOP_MIN = 10
@@ -74,7 +77,6 @@
 .const NV_SPRITE_VEL_X_OFFSET = 4
 .const NV_SPRITE_VEL_Y_OFFSET = 5
 .const NV_SPRITE_DATA_BLOCK_OFFSET = 6
-
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -307,19 +309,19 @@ loop:
         cpx #0
         bpl PosVelY
 NegVelY:
-        cmp #10
+        cmp #NV_SPRITE_TOP_MIN
         bcs AccumHasNewY      // branch if accum > 10
 
 SetBottomY:
-        lda #250        // went off top so set to bottom
+        lda #NV_SPRITE_BOTTOM_MAX        // went off top so set to bottom
         jmp AccumHasNewY
 
 PosVelY:
-        cmp #250                        // we'll use 250 for bottom of screen
+        cmp #NV_SPRITE_BOTTOM_MAX                        // we'll use 250 for bottom of screen
         bcc AccumHasNewY
 
 SetTopY: 
-        lda #10                         // we'll use 10 for top of scrren
+        lda #NV_SPRITE_TOP_MIN                        // we'll use 10 for top of scrren
 
 AccumHasNewY:
         sta info.base_addr + NV_SPRITE_Y_OFFSET
@@ -341,12 +343,12 @@ SkipByte2:
         lda info.base_addr + NV_SPRITE_X_OFFSET+1
         beq FinishedUpdate           // high byte is zero so don't bother testing right border
         lda info.base_addr + NV_SPRITE_X_OFFSET
-        cmp #78                         // if x location reaches this AND MSB of x loc isn't zero, then
+        cmp #NV_SPRITE_RIGHT_MAX                        // if x location reaches this AND MSB of x loc isn't zero, then
         bcs SetLeftX                      // carry will be set and need to reset X loc to left side
         jmp FinishedUpdate           // if we didn't branch above the we can update actual 
                                         // sprite register
 SetLeftX: 
-        lda #22                         // set sprite x to this location
+        lda #NV_SPRITE_LEFT_MIN                        // set sprite x to this location
         sta info.base_addr + NV_SPRITE_X_OFFSET
         lda #0                          // also clear the high bit of the x location
         sta info.base_addr + NV_SPRITE_X_OFFSET + 1
@@ -361,11 +363,11 @@ HiByteZero:
         lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
         clc
         adc info.base_addr + NV_SPRITE_X_OFFSET
-        cmp #22
+        cmp #NV_SPRITE_LEFT_MIN
         bcs AccumHasNewX    /// still on screen good to go
         ldy #1
         sty info.base_addr + NV_SPRITE_X_OFFSET+1
-        lda #78
+        lda #NV_SPRITE_RIGHT_MAX
         jmp AccumHasNewX
 
 HiByteNotZero:

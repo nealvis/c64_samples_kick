@@ -90,6 +90,33 @@ loop_index_2: .byte 0
         .byte $1f,$ff,$f0,$0f,$f1,$c0,$0f,$e0
         .byte $80,$03,$c0,$00,$00,$00,$00,$0c
 
+        sprite_asteroid_4:
+        // saved from spritemate:
+        // sprite 3 / singlecolor / color: $0f
+        sprite_4:
+        .byte $00,$3f,$00,$00,$7f,$80,$00,$ff
+        .byte $c0,$00,$ff,$c0,$1f,$ff,$c0,$3f
+        .byte $ff,$e0,$7f,$ff,$fc,$7f,$ff,$fe
+        .byte $7f,$ff,$fe,$7f,$ff,$fe,$3f,$ff
+        .byte $fe,$1f,$ff,$fe,$1f,$ff,$fc,$1f
+        .byte $ff,$fc,$1f,$ff,$f8,$1f,$ff,$f8
+        .byte $1f,$ff,$f0,$0f,$f1,$c0,$0f,$e0
+        .byte $80,$03,$c0,$00,$00,$00,$00,$0b
+
+        sprite_asteroid_5:
+        // saved from spritemate:
+        // sprite 3 / singlecolor / color: $0f
+        sprite_5:
+        .byte $00,$3f,$00,$00,$7f,$80,$00,$ff
+        .byte $c0,$00,$ff,$c0,$1f,$ff,$c0,$3f
+        .byte $ff,$e0,$7f,$ff,$fc,$7f,$ff,$fe
+        .byte $7f,$ff,$fe,$7f,$ff,$fe,$3f,$ff
+        .byte $fe,$1f,$ff,$fe,$1f,$ff,$fc,$1f
+        .byte $ff,$fc,$1f,$ff,$f8,$1f,$ff,$f8
+        .byte $1f,$ff,$f0,$0f,$f1,$c0,$0f,$e0
+        .byte $80,$03,$c0,$00,$00,$00,$00,$0a
+
+
 // our assembly code will goto this address
 *=$1000 "Main Start"
 
@@ -106,18 +133,25 @@ loop_index_2: .byte 0
         jsr asteroid_1.Setup
         jsr asteroid_2.Setup
         jsr asteroid_3.Setup
+        jsr asteroid_4.Setup
+        jsr asteroid_5.Setup
+
 
         // initialize sprite locations from their extra data blocks 
         jsr ship_1.SetLocationFromExtraData
         jsr asteroid_1.SetLocationFromExtraData
         jsr asteroid_2.SetLocationFromExtraData
         jsr asteroid_3.SetLocationFromExtraData
+        jsr asteroid_4.SetLocationFromExtraData
+        jsr asteroid_5.SetLocationFromExtraData
         
         // enable both sprites
         nv_sprite_enable(0)
         nv_sprite_enable(1)
         nv_sprite_enable(2)
         nv_sprite_enable(3)
+        nv_sprite_enable(4)
+        nv_sprite_enable(5)
 
         ldy #12                 // outer loops counts down from this number to 0 
         sty loop_index_2
@@ -146,6 +180,13 @@ InnerLoop:
         jsr asteroid_3.MoveInExtraData
         jsr asteroid_3.SetLocationFromExtraData
 
+        //// call routine to move asteroid 3 based on x and y velocity
+        jsr asteroid_4.MoveInExtraData
+        jsr asteroid_4.SetLocationFromExtraData
+
+        //// call routine to move asteroid 3 based on x and y velocity
+        jsr asteroid_5.MoveInExtraData
+        jsr asteroid_5.SetLocationFromExtraData
 
         // loop back for inner loop if appropriate
         dec loop_index_1
@@ -180,7 +221,7 @@ SkipAsteroidMin:
 // Namespace with everything related to asteroid 1
 .namespace asteroid_1
 {
-        .var info = nv_sprite_info_struct("asteroid_1", 1, 265, 150, -1, -1, sprite_asteroid_1, sprite_extra)
+        .var info = nv_sprite_info_struct("asteroid_1", 1, 265, 150, 0, -1, sprite_asteroid_1, sprite_extra)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -210,7 +251,7 @@ MoveInExtraData:
 // Namespace with everything related to asteroid 1
 .namespace asteroid_2
 {
-        .var info = nv_sprite_info_struct("asteroid_2", 2, 150, 150, 1, 1, sprite_asteroid_2, sprite_extra)
+        .var info = nv_sprite_info_struct("asteroid_2", 2, 150, 150, -2, -2, sprite_asteroid_2, sprite_extra)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -241,7 +282,69 @@ MoveInExtraData:
 // Namespace with everything related to asteroid 1
 .namespace asteroid_3
 {
-        .var info = nv_sprite_info_struct("asteroid_3", 3, 75, 75, 1, -1, sprite_asteroid_3, sprite_extra)
+        .var info = nv_sprite_info_struct("asteroid_3", 3, 75, 75, -1, -3, sprite_asteroid_3, sprite_extra)
+
+        .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
+        .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
+        .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
+        .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+
+// sprite extra data
+sprite_extra:
+        nv_sprite_extra_data(info)
+
+// subroutine to set sprites location in sprite registers based on the extra data
+SetLocationFromExtraData:
+        nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
+
+// setup sprite so that it ready to be enabled and displayed
+Setup:
+        nv_sprite_setup_sr(info.num, info.data_addr)
+
+// move the sprite x and y location in the extra data only, not in the sprite registers
+// to move in the sprite registsers (and have screen reflect it) call the 
+// SetLocationFromExtraData subroutine.
+MoveInExtraData:
+        nv_sprite_move_any_direction_sr(info)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Namespace with everything related to asteroid 1
+.namespace asteroid_4
+{
+        .var info = nv_sprite_info_struct("asteroid_4", 4, 75, 75, 2, 1, sprite_asteroid_4, sprite_extra)
+
+        .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
+        .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
+        .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
+        .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+
+// sprite extra data
+sprite_extra:
+        nv_sprite_extra_data(info)
+
+// subroutine to set sprites location in sprite registers based on the extra data
+SetLocationFromExtraData:
+        nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
+
+// setup sprite so that it ready to be enabled and displayed
+Setup:
+        nv_sprite_setup_sr(info.num, info.data_addr)
+
+// move the sprite x and y location in the extra data only, not in the sprite registers
+// to move in the sprite registsers (and have screen reflect it) call the 
+// SetLocationFromExtraData subroutine.
+MoveInExtraData:
+        nv_sprite_move_any_direction_sr(info)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Namespace with everything related to asteroid 1
+.namespace asteroid_5
+{
+        .var info = nv_sprite_info_struct("asteroid_5", 5, 85, 175, 1, 2, sprite_asteroid_5, sprite_extra)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
