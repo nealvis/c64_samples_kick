@@ -37,18 +37,25 @@
 // the hi 4 bits don't seem to be writable
 .const NV_SPRITE_1_COLOR_REG_ADDR = $d028
 
-// constants for left, top, right and bottom of screen.  sprites will go behind the bordes so will cut them off
+// constants for left, top, right and bottom of screen.  sprites will go behind the borders so will cut them off
 // off at these pixel locations.  These coordinates are where the upper left corner of the sprite is when its
-// can be considered off screen.
+// can be considered off screen.  Note these positions result in the sprites going mostly through the borders.
+// so would not be good for bouncing
 .const NV_SPRITE_LEFT_MIN = 2
 .const NV_SPRITE_RIGHT_MAX = 83  // note this is value of low byte x loc, high bit must also be set
 .const NV_SPRITE_TOP_MIN = 32
 .const NV_SPRITE_BOTTOM_MAX = 249
 
+// constants for screen edges for bouncing.  These are the values at which the sprite should bounce
+.const NV_SPRITE_LEFT_BOUNCE = 26
+.const NV_SPRITE_RIGHT_BOUNCE = 59
+.const NV_SPRITE_TOP_BOUNCE = 50
+.const NV_SPRITE_BOTTOM_BOUNCE = 234
+
 // struct that provides info for a sprite.  this is a construct of the assembler
 // it just provides an easy way to reference all these different compile time values.
 // No actual memory is created when an instance of the struct is created.
-.struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_addr, base_addr}
+.struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_addr, base_addr, bounce}
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -67,6 +74,7 @@
     sprite_vel_x_addr: .byte spt_info.init_x_vel         // the sprite's x velocity in pixels
     sprite_vel_y_addr: .byte spt_info.init_y_vel         // the sprite's y velocity in pixels
     sprite_data_block_addr_ptr: .byte spt_info.data_addr // mult by 64 to get the real 16bit addr
+    sprite_bounce: .byte spt_info.bounce                 // set to 1 to bounce or 0 not to
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -455,14 +463,28 @@ FinishedUpdate:
     lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET
     clc
     adc info.base_addr + NV_SPRITE_Y_OFFSET
-    cmp #NV_SPRITE_BOTTOM_MAX                        // we'll use 250 for bottom of screen
-    bcc AccumHasNewY
+    .if (info.bounce != 0)
+    {
+        cmp #NV_SPRITE_BOTTOM_BOUNCE
+        bcc AccumHasNewY
+        // reverse the y velocity here to do that we do bitwise not + 1
+        lda #$FF
+        eor info.base_addr+NV_SPRITE_VEL_Y_OFFSET
+        tax
+        inx
+        stx info.base_addr+NV_SPRITE_VEL_Y_OFFSET
+        jmp DoneY
+    }
+    else
+    {
+        cmp #NV_SPRITE_BOTTOM_MAX                      // we'll use 250 for bottom of screen
+        bcc AccumHasNewY
 
-SetTopY: 
-    lda #NV_SPRITE_TOP_MIN                         // we'll use 10 for top of scrren
-
+        lda #NV_SPRITE_TOP_MIN                         // we'll use 10 for top of scrren
+    }
 AccumHasNewY:
     sta info.base_addr + NV_SPRITE_Y_OFFSET
+DoneY:
 }
 
 
@@ -473,15 +495,29 @@ AccumHasNewY:
     lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET
     clc
     adc info.base_addr + NV_SPRITE_Y_OFFSET
-    cmp #NV_SPRITE_TOP_MIN
-    bcs AccumHasNewY              // branch if accum > min top
-
+    .if (info.bounce != 0)
+    {
+        cmp #NV_SPRITE_TOP_BOUNCE
+        bcs AccumHasNewY
+        // reverse the y velocity here to do that we do bitwise not + 1
+        lda #$FF
+        eor info.base_addr+NV_SPRITE_VEL_Y_OFFSET
+        tax
+        inx
+        stx info.base_addr+NV_SPRITE_VEL_Y_OFFSET
+        jmp DoneY
+    }
+    else
+    {
+        cmp #NV_SPRITE_TOP_MIN
+        bcs AccumHasNewY              // branch if accum > min top
+    }
     // sprite is less than min top so need to move it to bottom
     lda #NV_SPRITE_BOTTOM_MAX     // went off top so set to bottom
 
 AccumHasNewY:
     sta info.base_addr + NV_SPRITE_Y_OFFSET
-
+DoneY:
 }
 
 
