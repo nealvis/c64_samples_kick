@@ -55,7 +55,8 @@
 // struct that provides info for a sprite.  this is a construct of the assembler
 // it just provides an easy way to reference all these different compile time values.
 // No actual memory is created when an instance of the struct is created.
-.struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_addr, base_addr, bounce}
+.struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_addr, 
+                              base_addr, bounce_top, bounce_left, bounce_bottom, bounce_right}
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -74,7 +75,10 @@
     sprite_vel_x_addr: .byte spt_info.init_x_vel         // the sprite's x velocity in pixels
     sprite_vel_y_addr: .byte spt_info.init_y_vel         // the sprite's y velocity in pixels
     sprite_data_block_addr_ptr: .byte spt_info.data_addr // mult by 64 to get the real 16bit addr
-    sprite_bounce: .byte spt_info.bounce                 // set to 1 to bounce or 0 not to
+    sprite_bounce_top: .byte spt_info.bounce_top   // set to 1 to bounce bottom or 0 not to
+    sprite_bounce_left: .byte spt_info.bounce_left   // set to 1 to bounce bottom or 0 not to
+    sprite_bounce_bottom: .byte spt_info.bounce_bottom   // set to 1 to bounce bottom or 0 not to
+    sprite_bounce_right: .byte spt_info.bounce_right   // set to 1 to bounce bottom or 0 not to
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -85,6 +89,10 @@
 .const NV_SPRITE_VEL_X_OFFSET = 4
 .const NV_SPRITE_VEL_Y_OFFSET = 5
 .const NV_SPRITE_DATA_BLOCK_OFFSET = 6
+.const NV_SPRITE_BOUNCE_TOP_OFFSET = 7
+.const NV_SPRITE_BOUNCE_LEFT_OFFSET = 8
+.const NV_SPRITE_BOUNCE_BOTTOM_OFFSET = 9
+.const NV_SPRITE_BOUNCE_RIGHT_OFFSET = 10
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -164,6 +172,11 @@ skip_multicolor:
     sta NV_SPRITE_0_COLOR_REG_ADDR,x   // store in color reg for this sprite  
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// set sprite's color to the color to the immediate value specified
+// macro params:
+//   sprite_num: the c64 sprite number (0-7 are valid)
+//   new_color:  a number 0-7 specifying which c64 color to set
 .macro nv_sprite_set_color_immediate(sprite_num, new_color)
 {
     lda #new_color                  // The color is the low nibble of the
@@ -175,6 +188,12 @@ skip_multicolor:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// set sprite's color to the c64 color value stored at an address
+// macro params:
+//   sprite_num:     the c64 sprite number (0-7 are valid)
+//   new_color_addr: The 16bit address of a location that contains a 
+//                   number 0-7 specifying which c64 color to set
 .macro nv_sprite_set_color_from_memory(sprite_num, new_color_addr)
 {
     lda new_color_addr              // The color is the low nibble of the
@@ -326,106 +345,6 @@ loop:
 // Note that this only updates the location in memory, it doesn't update the
 // sprite location in sprite registers.  To update sprite location in registers
 // and on the screen, call nv_sprite_set_location_from_memory_sr after this.
-// note: this is the same as nv_sprite_move_any_direction_sr except that it 
-//       doesn't use separate macros for positive/negative/x/y
-.macro nv_sprite_move_any_direction_all_in_one_sr(info)
-{
-        ldx info.base_addr + NV_SPRITE_VEL_Y_OFFSET
-        txa         // velocity in x and accum
-        clc
-        adc info.base_addr + NV_SPRITE_Y_OFFSET
-        tay         // result in Y and accum
-        cpx #0
-        bpl PosVelY
-NegVelY:
-        cmp #NV_SPRITE_TOP_MIN
-        bcs AccumHasNewY      // branch if accum > 10
-
-SetBottomY:
-        lda #NV_SPRITE_BOTTOM_MAX        // went off top so set to bottom
-        jmp AccumHasNewY
-
-PosVelY:
-        cmp #NV_SPRITE_BOTTOM_MAX                        // we'll use 250 for bottom of screen
-        bcc AccumHasNewY
-
-SetTopY: 
-        lda #NV_SPRITE_TOP_MIN                        // we'll use 10 for top of scrren
-
-AccumHasNewY:
-        sta info.base_addr + NV_SPRITE_Y_OFFSET
-        
-        // Y location done, now on to X
-        ldx info.base_addr + NV_SPRITE_VEL_X_OFFSET
-        bmi NegVelX
-PosVelX:
-        lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
-        clc
-        adc info.base_addr + NV_SPRITE_X_OFFSET
-        bcs IncByte2                    // accum (old x loc) > new x loc so inc high byte 
-        jmp SkipByte2 
-IncByte2:
-        sta info.base_addr + NV_SPRITE_X_OFFSET
-        inc info.base_addr + NV_SPRITE_X_OFFSET+1
-SkipByte2:
-        sta info.base_addr + NV_SPRITE_X_OFFSET
-        lda info.base_addr + NV_SPRITE_X_OFFSET+1
-        beq FinishedUpdate           // high byte is zero so don't bother testing right border
-        lda info.base_addr + NV_SPRITE_X_OFFSET
-        cmp #NV_SPRITE_RIGHT_MAX                        // if x location reaches this AND MSB of x loc isn't zero, then
-        bcs SetLeftX                      // carry will be set and need to reset X loc to left side
-        jmp FinishedUpdate           // if we didn't branch above the we can update actual 
-                                        // sprite register
-SetLeftX: 
-        lda #NV_SPRITE_LEFT_MIN                        // set sprite x to this location
-        sta info.base_addr + NV_SPRITE_X_OFFSET
-        lda #0                          // also clear the high bit of the x location
-        sta info.base_addr + NV_SPRITE_X_OFFSET + 1
-        jmp FinishedUpdate
-
-// moving left (negative X velocity)
-NegVelX:
-        lda info.base_addr + NV_SPRITE_X_OFFSET+1
-        bne HiByteNotZero
-
-HiByteZero:
-        lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
-        clc
-        adc info.base_addr + NV_SPRITE_X_OFFSET
-        cmp #NV_SPRITE_LEFT_MIN
-        bcs AccumHasNewX    /// still on screen good to go
-        ldy #1
-        sty info.base_addr + NV_SPRITE_X_OFFSET+1
-        lda #NV_SPRITE_RIGHT_MAX
-        jmp AccumHasNewX
-
-HiByteNotZero:
-        lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
-        clc
-        adc info.base_addr + NV_SPRITE_X_OFFSET
-        bpl AccumHasNewX    // Hi byte stays  non zero
-
-        // need to set high byte to zero
-        ldy #0
-        sty info.base_addr + NV_SPRITE_X_OFFSET+1
-
-AccumHasNewX:               // high byte of X set correctly above, set low byte
-        sta info.base_addr + NV_SPRITE_X_OFFSET
-
-FinishedUpdate:
-        rts                // already popped the return address, jump back now
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// subroutine to move a sprite based on information in the sprite tracker 
-// struct (info) that is passed into the macro.  The sprite x and y location
-// in memory will be updated according to the x and y velocity.
-// Note if the sprite goes off the edge it will be reset to the opposite side
-// of the screen.
-// Note that this only updates the location in memory, it doesn't update the
-// sprite location in sprite registers.  To update sprite location in registers
-// and on the screen, call nv_sprite_set_location_from_memory_sr after this.
 .macro nv_sprite_move_any_direction_sr(info)
 {
     ldx info.base_addr + NV_SPRITE_VEL_Y_OFFSET
@@ -460,28 +379,37 @@ FinishedUpdate:
 //
 .macro nv_sprite_move_positive_y(info)
 {
-    lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET
-    clc
-    adc info.base_addr + NV_SPRITE_Y_OFFSET
-    .if (info.bounce != 0)
-    {
-        cmp #NV_SPRITE_BOTTOM_BOUNCE
-        bcc AccumHasNewY
-        // reverse the y velocity here to do that we do bitwise not + 1
-        lda #$FF
-        eor info.base_addr+NV_SPRITE_VEL_Y_OFFSET
-        tax
-        inx
-        stx info.base_addr+NV_SPRITE_VEL_Y_OFFSET
-        jmp DoneY
-    }
-    else
-    {
-        cmp #NV_SPRITE_BOTTOM_MAX                      // we'll use 250 for bottom of screen
-        bcc AccumHasNewY
+    
+    lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET         // velocity in accum
 
-        lda #NV_SPRITE_TOP_MIN                         // we'll use 10 for top of scrren
-    }
+    ldx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+    beq NoCheckBounce
+    
+// Do check bounce bottom flag set, must check for bounce
+    clc
+    adc info.base_addr + NV_SPRITE_Y_OFFSET          // add vel to location
+
+    cmp #NV_SPRITE_BOTTOM_BOUNCE                     // check if past bounce loc
+    bcc AccumHasNewY
+    // reverse the y velocity here to do that we do bitwise not + 1 (twos comp)
+    lda #$FF
+    eor info.base_addr+NV_SPRITE_VEL_Y_OFFSET
+    tax
+    inx
+    stx info.base_addr+NV_SPRITE_VEL_Y_OFFSET
+    jmp DoneY                                       // don't actually update y
+                                                    // when bouncing
+    
+// bounce bottom flag not set, Don't need to check for bounce
+ NoCheckBounce:
+    clc
+    adc info.base_addr + NV_SPRITE_Y_OFFSET        // add velocity to location
+    cmp #NV_SPRITE_BOTTOM_MAX                      // compare with the bottom of screen
+    bcc AccumHasNewY                               // if not off bottome then just update
+
+// wrap to top of screen
+    lda #NV_SPRITE_TOP_MIN                         // off the bottom, so wrap to top of screen 
+
 AccumHasNewY:
     sta info.base_addr + NV_SPRITE_Y_OFFSET
 DoneY:
@@ -492,26 +420,30 @@ DoneY:
 //
 .macro nv_sprite_move_negative_y(info)
 {
-    lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+    lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET       // load y vel to accum
+
+    ldx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
+    beq NoCheckBounce
+
+// check bounce top
     clc
     adc info.base_addr + NV_SPRITE_Y_OFFSET
-    .if (info.bounce != 0)
-    {
-        cmp #NV_SPRITE_TOP_BOUNCE
-        bcs AccumHasNewY
-        // reverse the y velocity here to do that we do bitwise not + 1
-        lda #$FF
-        eor info.base_addr+NV_SPRITE_VEL_Y_OFFSET
-        tax
-        inx
-        stx info.base_addr+NV_SPRITE_VEL_Y_OFFSET
-        jmp DoneY
-    }
-    else
-    {
-        cmp #NV_SPRITE_TOP_MIN
-        bcs AccumHasNewY              // branch if accum > min top
-    }
+    cmp #NV_SPRITE_TOP_BOUNCE
+    bcs AccumHasNewY
+    // reverse the y velocity here to do that we do bitwise not + 1
+    lda #$FF
+    eor info.base_addr+NV_SPRITE_VEL_Y_OFFSET
+    tax
+    inx
+    stx info.base_addr+NV_SPRITE_VEL_Y_OFFSET
+    jmp DoneY                                        // don't update Y loc
+
+NoCheckBounce:
+    clc
+    adc info.base_addr + NV_SPRITE_Y_OFFSET
+    cmp #NV_SPRITE_TOP_MIN
+    bcs AccumHasNewY              // branch if accum > min top
+
     // sprite is less than min top so need to move it to bottom
     lda #NV_SPRITE_BOTTOM_MAX     // went off top so set to bottom
 
@@ -539,7 +471,7 @@ NoIncByte2:
     beq ReadyWithNewX  // if high byte is zero then we won't check for bounc or pass through
 
     // now we know the new x location has high bit set.
-    .if (info.bounce != 0)
+    .if (info.bounce_right != 0)
     {   // bouncing
         cmp #NV_SPRITE_RIGHT_BOUNCE
         bcc ReadyWithNewX               // have not reached the bounc epoint yet
@@ -580,7 +512,7 @@ HiByteZero:
     lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
     clc
     adc info.base_addr + NV_SPRITE_X_OFFSET
-    .if (info.bounce != 0)
+    .if (info.bounce_left != 0)
     {
         cmp #NV_SPRITE_LEFT_BOUNCE
         bcs AccumHasNewX
