@@ -468,30 +468,31 @@ NoIncByte2:
     // and accum has potential new low byte
 
     cpy #0
-    beq ReadyWithNewX  // if high byte is zero then we won't check for bounc or pass through
+    beq ReadyWithNewX  // if high byte is zero then we won't check for bounce or pass through
 
     // now we know the new x location has high bit set.
-    .if (info.bounce_right != 0)
-    {   // bouncing
-        cmp #NV_SPRITE_RIGHT_BOUNCE
-        bcc ReadyWithNewX               // have not reached the bounc epoint yet
-        // bounce of right side
-        lda #$FF
-        eor info.base_addr+NV_SPRITE_VEL_X_OFFSET
-        tax
-        inx
-        stx info.base_addr+NV_SPRITE_VEL_X_OFFSET
-        jmp FinishedUpdate              // don't move X when we bounce
-    }
-    else
-    {  // not bouncing so check for pass through
-        cmp #NV_SPRITE_RIGHT_MAX
-        bcc ReadyWithNewX
-        // pass through
-        ldy #0
-        lda #NV_SPRITE_LEFT_MIN
-        // ReadyWithNewX now, but don't need to jmp because its right there
-    }
+    ldx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
+    beq NoCheckBounce 
+
+// Check for bounce
+    cmp #NV_SPRITE_RIGHT_BOUNCE
+    bcc ReadyWithNewX               // have not reached the bounce epoint yet
+    // bounce of right side by changing vel to 2's compliment of vel
+    lda #$FF
+    eor info.base_addr+NV_SPRITE_VEL_X_OFFSET
+    tax
+    inx
+    stx info.base_addr+NV_SPRITE_VEL_X_OFFSET
+    jmp FinishedUpdate              // don't move X when we bounce
+
+// not checking for bouncing so check for pass through
+NoCheckBounce:
+    cmp #NV_SPRITE_RIGHT_MAX
+    bcc ReadyWithNewX
+    // pass through
+    ldy #0
+    lda #NV_SPRITE_LEFT_MIN
+    // ReadyWithNewX now, but don't need to jmp because its right there
 
 ReadyWithNewX:                      // Y reg has high byte and Accum has low byte
     sty info.base_addr + NV_SPRITE_X_OFFSET + 1

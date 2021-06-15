@@ -280,7 +280,7 @@ MoveInExtraData:
 .namespace asteroid_2
 {
         .var info = nv_sprite_info_struct("asteroid_2", 2, 150, 150, 2, 2, sprite_asteroid_2, 
-                                          sprite_extra, 1, 1, 1, 0)
+                                          sprite_extra, 1, 1, 1, 1)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -312,7 +312,7 @@ MoveInExtraData:
 .namespace asteroid_3
 {
         .var info = nv_sprite_info_struct("asteroid_3", 3, 75, 75, 2, -3, sprite_asteroid_3, 
-                                          sprite_extra, 1, 1, 0, 0)
+                                          sprite_extra, 1, 1, 1, 1)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -407,7 +407,7 @@ MoveInExtraData:
 // namespace with everything related to ship sprite
 .namespace ship_1
 {
-        .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 1, sprite_ship, sprite_extra, 0, 0, 0, 0)
+        .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 1, sprite_ship, sprite_extra, 0, 1, 0, 1)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
