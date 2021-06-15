@@ -103,7 +103,7 @@ cycling_color: .byte NV_COLOR_FIRST
         .byte $fe,$1f,$ff,$fe,$1f,$ff,$fc,$1f
         .byte $ff,$fc,$1f,$ff,$f8,$1f,$ff,$f8
         .byte $1f,$ff,$f0,$0f,$f1,$c0,$0f,$e0
-        .byte $80,$03,$c0,$00,$00,$00,$00,$0b
+        .byte $80,$03,$c0,$00,$00,$00,$00,$0e
 
         sprite_asteroid_5:
         // saved from spritemate:
@@ -116,7 +116,7 @@ cycling_color: .byte NV_COLOR_FIRST
         .byte $fe,$1f,$ff,$fe,$1f,$ff,$fc,$1f
         .byte $ff,$fc,$1f,$ff,$f8,$1f,$ff,$f8
         .byte $1f,$ff,$f0,$0f,$f1,$c0,$0f,$e0
-        .byte $80,$03,$c0,$00,$00,$00,$00,$0a
+        .byte $80,$03,$c0,$00,$00,$00,$00,$0e
 
 
 // our assembly code will goto this address
