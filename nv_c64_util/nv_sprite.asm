@@ -47,8 +47,8 @@
 .const NV_SPRITE_BOTTOM_MAX = 249
 
 // constants for screen edges for bouncing.  These are the values at which the sprite should bounce
-.const NV_SPRITE_LEFT_BOUNCE = 26
-.const NV_SPRITE_RIGHT_BOUNCE = 59
+.const NV_SPRITE_LEFT_BOUNCE = 23
+.const NV_SPRITE_RIGHT_BOUNCE = 65
 .const NV_SPRITE_TOP_BOUNCE = 50
 .const NV_SPRITE_BOTTOM_BOUNCE = 234
 
@@ -525,28 +525,45 @@ DoneY:
 //
 .macro nv_sprite_move_positive_x(info)
 {
+    ldy info.base_addr + NV_SPRITE_X_OFFSET + 1 
     lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
     clc
     adc info.base_addr + NV_SPRITE_X_OFFSET
-    bcs IncByte2                     // accum (old x loc) > new x loc so inc high byte 
-    jmp SkipByte2 
-IncByte2:
+    bcc NoIncByte2                     // accum (old x loc) > new x loc so inc high byte 
+    ldy #1
+NoIncByte2:
+    // now Y reg has potential new high byte
+    // and accum has potential new low byte
+
+    cpy #0
+    beq ReadyWithNewX  // if high byte is zero then we won't check for bounc or pass through
+
+    // now we know the new x location has high bit set.
+    .if (info.bounce != 0)
+    {   // bouncing
+        cmp #NV_SPRITE_RIGHT_BOUNCE
+        bcc ReadyWithNewX               // have not reached the bounc epoint yet
+        // bounce of right side
+        lda #$FF
+        eor info.base_addr+NV_SPRITE_VEL_X_OFFSET
+        tax
+        inx
+        stx info.base_addr+NV_SPRITE_VEL_X_OFFSET
+        jmp FinishedUpdate              // don't move X when we bounce
+    }
+    else
+    {  // not bouncing so check for pass through
+        cmp #NV_SPRITE_RIGHT_MAX
+        bcc ReadyWithNewX
+        // pass through
+        ldy #0
+        lda #NV_SPRITE_LEFT_MIN
+        // ReadyWithNewX now, but don't need to jmp because its right there
+    }
+
+ReadyWithNewX:                      // Y reg has high byte and Accum has low byte
+    sty info.base_addr + NV_SPRITE_X_OFFSET + 1
     sta info.base_addr + NV_SPRITE_X_OFFSET
-    inc info.base_addr + NV_SPRITE_X_OFFSET+1
-SkipByte2:
-    sta info.base_addr + NV_SPRITE_X_OFFSET
-    lda info.base_addr + NV_SPRITE_X_OFFSET+1
-    beq FinishedUpdate              // high byte is zero so don't bother testing right border
-    lda info.base_addr + NV_SPRITE_X_OFFSET
-    cmp #NV_SPRITE_RIGHT_MAX        // if x location reaches this AND MSB of x loc isn't zero, then
-    bcs SetLeftX                    // carry will be set and need to reset X loc to left side
-    jmp FinishedUpdate              // if we didn't branch above the we can update actual 
-                                    // sprite register
-SetLeftX: 
-    lda #NV_SPRITE_LEFT_MIN         // set sprite x to this location
-    sta info.base_addr + NV_SPRITE_X_OFFSET
-    lda #0                          // also clear the high bit of the x location
-    sta info.base_addr + NV_SPRITE_X_OFFSET + 1
 
 FinishedUpdate:
 }
@@ -563,13 +580,30 @@ HiByteZero:
     lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
     clc
     adc info.base_addr + NV_SPRITE_X_OFFSET
-    cmp #NV_SPRITE_LEFT_MIN
-    bcs AccumHasNewX    /// still on screen good to go
-    ldy #1
-    sty info.base_addr + NV_SPRITE_X_OFFSET+1
-    lda #NV_SPRITE_RIGHT_MAX
-    jmp AccumHasNewX
+    .if (info.bounce != 0)
+    {
+        cmp #NV_SPRITE_LEFT_BOUNCE
+        bcs AccumHasNewX
 
+        // need to bounce it
+        lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
+        eor #$FF
+        tax
+        inx
+        stx info.base_addr + NV_SPRITE_VEL_X_OFFSET
+        jmp DoneX
+    }
+    else
+    {
+        cmp #NV_SPRITE_LEFT_MIN
+        bcs AccumHasNewX    /// still on screen good to go
+        
+        // need to pass through to right side
+        ldy #1
+        sty info.base_addr + NV_SPRITE_X_OFFSET+1
+        lda #NV_SPRITE_RIGHT_MAX
+        jmp AccumHasNewX
+    }
 HiByteNotZero:
     lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
     clc
@@ -582,5 +616,5 @@ HiByteNotZero:
 
 AccumHasNewX:               // high byte of X set correctly above, set low byte
     sta info.base_addr + NV_SPRITE_X_OFFSET
-
+DoneX:
 }
