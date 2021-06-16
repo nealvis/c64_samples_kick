@@ -477,7 +477,7 @@ NoIncByte2:
 // Check for bounce
     cmp #NV_SPRITE_RIGHT_BOUNCE
     bcc ReadyWithNewX               // have not reached the bounce epoint yet
-    // bounce of right side by changing vel to 2's compliment of vel
+    // bounce off right side by changing vel to 2's compliment of vel
     lda #$FF
     eor info.base_addr+NV_SPRITE_VEL_X_OFFSET
     tax
@@ -511,33 +511,40 @@ FinishedUpdate:
 
 HiByteZero:
     lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
-    clc
-    adc info.base_addr + NV_SPRITE_X_OFFSET
-    .if (info.bounce_left != 0)
-    {
-        cmp #NV_SPRITE_LEFT_BOUNCE
-        bcs AccumHasNewX
 
-        // need to bounce it
-        lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
-        eor #$FF
-        tax
-        inx
-        stx info.base_addr + NV_SPRITE_VEL_X_OFFSET
-        jmp DoneX
-    }
-    else
-    {
-        cmp #NV_SPRITE_LEFT_MIN
-        bcs AccumHasNewX    /// still on screen good to go
-        
-        // need to pass through to right side
-        ldy #1
-        sty info.base_addr + NV_SPRITE_X_OFFSET+1
-        lda #NV_SPRITE_RIGHT_MAX
-        jmp AccumHasNewX
-    }
+    ldx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
+    beq NoCheckBounce 
+
+// check for left bounce because the flag not zero
+    clc
+    adc info.base_addr + NV_SPRITE_X_OFFSET  // add x location and x vel
+    cmp #NV_SPRITE_LEFT_BOUNCE               // compare with left bounce value
+    bcs AccumHasNewX                         // if >= then no bounce needed
+
+    // new x position is left of bounce value so, need to bounce it
+    lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    eor #$FF
+    tax
+    inx
+    stx info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    jmp DoneX
+
+NoCheckBounce:    
+// don't check for left bounce because flag not set, but still check for wrap around
+    clc
+    adc info.base_addr + NV_SPRITE_X_OFFSET  // add x location and x vel
+    cmp #NV_SPRITE_LEFT_MIN
+    bcs AccumHasNewX    /// still on screen good to go
+    
+    // need to pass through to right side
+    ldy #1
+    sty info.base_addr + NV_SPRITE_X_OFFSET+1
+    lda #NV_SPRITE_RIGHT_MAX
+    jmp AccumHasNewX
+    
+
 HiByteNotZero:
+// high bite was set so won't check for bounce or wrap around
     lda info.base_addr + NV_SPRITE_VEL_X_OFFSET
     clc
     adc info.base_addr + NV_SPRITE_X_OFFSET

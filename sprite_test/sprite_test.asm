@@ -242,6 +242,7 @@ NotBlue:
 SetColor:
         stx cycling_color
         nv_sprite_set_color_from_memory(1, cycling_color)
+
         rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -407,7 +408,8 @@ MoveInExtraData:
 // namespace with everything related to ship sprite
 .namespace ship_1
 {
-        .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 1, sprite_ship, sprite_extra, 0, 1, 0, 1)
+        .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 1, sprite_ship, 
+                                          sprite_extra, 0, 0, 0, 0)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
