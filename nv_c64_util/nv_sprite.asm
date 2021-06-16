@@ -95,6 +95,7 @@
 .const NV_SPRITE_BOUNCE_RIGHT_OFFSET = 10
 
 
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to set the shared colors for multi colored sprites
 .macro nv_sprite_set_multicolors(color1, color2) 
@@ -557,4 +558,47 @@ HiByteNotZero:
 AccumHasNewX:               // high byte of X set correctly above, set low byte
     sta info.base_addr + NV_SPRITE_X_OFFSET
 DoneX:
+}
+
+.macro nv_sprite_set_bounce_left(info, value)
+{
+    ldx #value
+    stx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
+}
+
+.macro nv_sprite_set_bounce_right(info, value)
+{
+    ldx #value
+    stx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
+}
+
+.macro nv_sprite_set_bounce_top(info, value)
+{
+    ldx #value
+    stx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
+}
+
+.macro nv_sprite_set_bounce_bottom(info, value)
+{
+    ldx #value
+    stx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+}
+
+.macro nv_sprite_set_bounce_all(info, value)
+{
+    ldx #value
+    stx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
+    stx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
+    stx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
+    stx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+}
+
+.macro nv_sprite_set_bounce_all_sr(info, value)
+{
+    ldx #value
+    stx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
+    stx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
+    stx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
+    stx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+    rts
 }

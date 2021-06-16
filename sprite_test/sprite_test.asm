@@ -243,6 +243,10 @@ SetColor:
         stx cycling_color
         nv_sprite_set_color_from_memory(1, cycling_color)
 
+        jsr asteroid_1.SetBounceAllOff
+        jsr asteroid_2.SetBounceAllOff
+        jsr asteroid_3.SetBounceAllOff
+
         rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -274,6 +278,13 @@ Setup:
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
+
+SetBounceAllOn:
+        nv_sprite_set_bounce_all_sr(info, 1)
+
+SetBounceAllOff:
+        nv_sprite_set_bounce_all_sr(info, 0)
+
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -305,6 +316,13 @@ Setup:
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
+
+SetBounceAllOn:
+        nv_sprite_set_bounce_all_sr(info, 1)
+
+SetBounceAllOff:
+        nv_sprite_set_bounce_all_sr(info, 0)
+        
 }
 
 
@@ -337,6 +355,12 @@ Setup:
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
+
+SetBounceAllOn:
+        nv_sprite_set_bounce_all_sr(info, 1)
+
+SetBounceAllOff:
+        nv_sprite_set_bounce_all_sr(info, 0)
 }
 
 
@@ -369,6 +393,12 @@ Setup:
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
+
+SetBounceAllOn:
+        nv_sprite_set_bounce_all_sr(info, 1)
+
+SetBounceAllOff:
+        nv_sprite_set_bounce_all_sr(info, 0)
 }
 
 
@@ -401,6 +431,12 @@ Setup:
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
+
+SetBounceAllOn:
+        nv_sprite_set_bounce_all_sr(info, 1)
+
+SetBounceAllOff:
+        nv_sprite_set_bounce_all_sr(info, 0)
 }
 
 
