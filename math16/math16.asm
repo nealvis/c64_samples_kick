@@ -27,6 +27,10 @@
 carry_str: .text @"(C) \$00"
 plus_str: .text @" + \$00"
 equal_str: .text@" = \$00"
+not_equal_str: .text@" NOT EQUAL \$00"
+greater_equal_str: .text@" >= \$00" 
+less_than_str: .text@" < \$00"
+greater_than_str: .text@" > \$00"
 str_to_print: .text @"MATH16\$00"  // null terminated string to print
                                             // via the BASIC routine
 
@@ -45,6 +49,12 @@ op1: .word $FFFF
 op2: .word $FFFF
 result: .word $0000
 
+opSmall: .word $0005
+opBig:   .word $747E
+
+op1Beef: .word $beef
+op2Beef: .word $beef
+
 *=$1000 "Main Start"
 
     nv_screen_clear()
@@ -58,7 +68,6 @@ result: .word $0000
     print_hex_byte(true)
 
     nv_screen_plot_cursor(5, 0)
-
 /*
     lda #0
     sta counter
@@ -68,10 +77,13 @@ loop:
     lda counter
     bne loop
 */
+
+    //////////////////////////////
     nv_screen_plot_cursor(2, 0)
     print_hex_word(word_to_print, true)
     print_hex_word(another_word, false)
 
+    /////////////////////////////
     nv_screen_plot_cursor(3, 0)
     print_hex_word(op1, true)
 
@@ -87,7 +99,25 @@ loop:
 NoCarry:
     print_hex_word(result, true)
 
+    /////////////////////////////
+    nv_screen_plot_cursor($4, 0)
+    print_cmp16(op1Beef, op2Beef)
+
+    /////////////////////////////
+    nv_screen_plot_cursor($5, 0)
+    print_cmp16(opSmall, opBig)
+
+    /////////////////////////////
+    nv_screen_plot_cursor($6, 0)
+    print_cmp16(opSmall, opSmall)
+
+    /////////////////////////////
+    nv_screen_plot_cursor($7, 0)
+    print_cmp16(opBig, opSmall)
+
+
     nv_screen_plot_cursor($10, 0)
+
 
     rts
 
@@ -160,4 +190,55 @@ hex_digit_lookup:
     lda addr1+1
     adc addr2+1
     sta result_addr+1
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// compare the contents of two 16 bit words and set flags accordingly.
+// params are:
+//   addr1: 16 bit address of op1
+//   addr2: 16 bit address of op2
+// Carry Flag	Set if addr1 >= addr2
+// Zero Flag	Set if addr1 == addr2
+// Negative Flag is undefined
+.macro cmp16(addr1, addr2)
+{
+    // first compare the MSBs
+    lda addr1+1
+    cmp addr2+1
+    beq Done
+
+    // MSBs are equal so need to compare LSBs
+    lda addr1
+    cmp addr2
+
+Done:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Print a comparison of two 16bit values at two locations in memory. 
+// Prints at the current cursor location via a basic call
+.macro print_cmp16(addr1, addr2)
+{
+    print_hex_word(addr1, true)
+    cmp16(addr1, addr2)
+    bne NotEq
+// Equal here
+    nv_screen_print_string_basic(equal_str)
+    jmp PrintOp2
+
+NotEq:
+    bcs GreaterOrEqual
+// less than here
+    nv_screen_print_string_basic(less_than_str)
+    jmp PrintOp2
+
+// Greater here
+GreaterOrEqual:
+    nv_screen_print_string_basic(greater_than_str)
+
+PrintOp2:
+    print_hex_word(addr2, true)
+
 }
