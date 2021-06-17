@@ -24,6 +24,9 @@
 .const dollar_sign = $24
 
 // program variables
+carry_str: .text @"(C) \$00"
+plus_str: .text @" + \$00"
+equal_str: .text@" = \$00"
 str_to_print: .text @"MATH16\$00"  // null terminated string to print
                                             // via the BASIC routine
 
@@ -37,6 +40,10 @@ word_to_print: .word $DEAD
 another_word:  .word $BEEF
 
 counter: .byte 0
+
+op1: .word $FFFF
+op2: .word $FFFF
+result: .word $0000
 
 *=$1000 "Main Start"
 
@@ -52,6 +59,7 @@ counter: .byte 0
 
     nv_screen_plot_cursor(5, 0)
 
+/*
     lda #0
     sta counter
 loop:
@@ -59,10 +67,25 @@ loop:
     inc counter
     lda counter
     bne loop
-
+*/
     nv_screen_plot_cursor(2, 0)
     print_hex_word(word_to_print, true)
     print_hex_word(another_word, false)
+
+    nv_screen_plot_cursor(3, 0)
+    print_hex_word(op1, true)
+
+    nv_screen_print_string_basic(plus_str)
+
+    print_hex_word(op2, true)
+    //nv_screen_plot_cursor(3, 14)
+    nv_screen_print_string_basic(equal_str)
+
+    adc16(op1, op2, result)
+    bcc NoCarry
+    nv_screen_print_string_basic(carry_str)
+NoCarry:
+    print_hex_word(result, true)
 
     nv_screen_plot_cursor($10, 0)
 
@@ -121,4 +144,20 @@ hex_digit_lookup:
     print_hex_byte(false)
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to add two 16 bit values and store the result in another
+// 16bit value.  carry bit will be set if carry occured
+// params:
+//   addr1 is the address of the low byte of op1
+//   addr2 is the address of the low byte of op2
+//   result_addr is the address to store the result.
+.macro adc16(addr1, addr2, result_addr)
+{
+    lda addr1
+    clc
+    adc addr2
+    sta result_addr
+    lda addr1+1
+    adc addr2+1
+    sta result_addr+1
+}
