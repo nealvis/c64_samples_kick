@@ -36,19 +36,31 @@ temp_hex_str: .byte 0,0,0,0,0,0         // enough bytes for dollor sign, 4
 word_to_print: .word $DEAD
 another_word:  .word $BEEF
 
+counter: .byte 0
+
 *=$1000 "Main Start"
 
     nv_screen_clear()
     nv_screen_plot_cursor(0, 16)
     nv_screen_print_string_basic(str_to_print)
 
-    nv_screen_plot_cursor(4, 0)
+    nv_screen_plot_cursor(1, 0)
     lda #$6d
-    print_hex_byte()
+    print_hex_byte(true)
     lda #$3e
-    print_hex_byte()
+    print_hex_byte(true)
 
-    nv_screen_plot_cursor(6, 0)
+    nv_screen_plot_cursor(5, 0)
+
+    lda #0
+    sta counter
+loop:
+    print_hex_byte(true)
+    inc counter
+    lda counter
+    bne loop
+
+    nv_screen_plot_cursor(2, 0)
     print_hex_word(word_to_print, true)
     print_hex_word(another_word, false)
 
@@ -63,8 +75,15 @@ hex_digit_lookup:
 
 //////////////////////////////////////////////////////////////////////////
 // print a hex number that is in the accum
-.macro print_hex_byte()
+.macro print_hex_byte(include_dollar)
 {
+    .var offset = 0
+    .if (include_dollar)
+    {
+        .eval offset++
+        ldy #$24            // dollar sign
+        sty temp_hex_str
+    }
     tay
     ror 
     ror 
@@ -73,14 +92,14 @@ hex_digit_lookup:
     and #$0f
     tax
     lda hex_digit_lookup, x
-    sta temp_hex_str
+    sta temp_hex_str+offset
     tya
     and #$0f
     tax
     lda hex_digit_lookup, x
-    sta temp_hex_str+1
+    sta temp_hex_str+1+offset
     lda #0
-    sta temp_hex_str + 2
+    sta temp_hex_str + 2 + offset
     nv_screen_print_string_basic(temp_hex_str) 
 }
 
@@ -90,16 +109,16 @@ hex_digit_lookup:
 {
     .if (include_dollar)
     {
-        lda #$24
+        lda #$24                // the $ sign
         sta temp_hex_str
         lda #0
         sta temp_hex_str+1
         nv_screen_print_string_basic(temp_hex_str)
     }
     lda word_low_byte_addr+1
-    print_hex_byte()
+    print_hex_byte(false)
     lda word_low_byte_addr
-    print_hex_byte()
+    print_hex_byte(false)
 }
 
 
