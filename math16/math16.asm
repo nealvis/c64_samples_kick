@@ -27,12 +27,14 @@
 str_to_print: .text @"MATH16\$00"  // null terminated string to print
                                             // via the BASIC routine
 
-str_to_poke: .text  @"hello direct\$00"  // null terminated string to print
-                                         // via copy direct to screen memory
-temp_hex_str: .byte 0,0,0,0,0
+str_to_poke: .text  @"hello direct\$00" // null terminated string to print
+                                        // via copy direct to screen memory
+temp_hex_str: .byte 0,0,0,0,0,0         // enough bytes for dollor sign, 4 
+                                        // hex digits and a trailing null
 // our assembly code will goto this address
 
-word_to_print: .word $BEEF
+word_to_print: .word $DEAD
+another_word:  .word $BEEF
 
 *=$1000 "Main Start"
 
@@ -47,7 +49,8 @@ word_to_print: .word $BEEF
     print_hex_byte()
 
     nv_screen_plot_cursor(6, 0)
-    print_hex_word(word_to_print)
+    print_hex_word(word_to_print, true)
+    print_hex_word(another_word, false)
 
     nv_screen_plot_cursor($10, 0)
 
@@ -55,6 +58,7 @@ word_to_print: .word $BEEF
 
 hex_digit_lookup:
     .byte $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $41, $42, $43, $44, $45, $46
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,8 +86,16 @@ hex_digit_lookup:
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the word value at the address of the low byte given
-.macro print_hex_word(word_low_byte_addr)
+.macro print_hex_word(word_low_byte_addr, include_dollar)
 {
+    .if (include_dollar)
+    {
+        lda #$24
+        sta temp_hex_str
+        lda #0
+        sta temp_hex_str+1
+        nv_screen_print_string_basic(temp_hex_str)
+    }
     lda word_low_byte_addr+1
     print_hex_byte()
     lda word_low_byte_addr
