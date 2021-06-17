@@ -243,10 +243,6 @@ SetColor:
         stx cycling_color
         nv_sprite_set_color_from_memory(1, cycling_color)
 
-        jsr asteroid_1.SetBounceAllOff
-        jsr asteroid_2.SetBounceAllOff
-        jsr asteroid_3.SetBounceAllOff
-
         rts
 
 //////////////////////////////////////////////////////////////////////////////
