@@ -31,14 +31,12 @@ not_equal_str: .text@" != \$00"
 greater_equal_str: .text@" >= \$00" 
 less_than_str: .text@" < \$00"
 greater_than_str: .text@" > \$00"
-str_to_print: .text @"MATH16\$00"  // null terminated string to print
-                                            // via the BASIC routine
+less_equal_str: .text@" <= \$00" 
 
-str_to_poke: .text  @"hello direct\$00" // null terminated string to print
-                                        // via copy direct to screen memory
+title_str: .text @"MATH16\$00"          // null terminated string to print
+                                        // via the BASIC routine
 temp_hex_str: .byte 0,0,0,0,0,0         // enough bytes for dollor sign, 4 
                                         // hex digits and a trailing null
-// our assembly code will goto this address
 
 word_to_print: .word $DEAD
 another_word:  .word $BEEF
@@ -55,85 +53,102 @@ opBig:   .word $747E
 op1Beef: .word $beef
 op2Beef: .word $beef
 
+opZero: .word $0000
+opMax: .word $ffff
+opOne: .word $0001
+opTwo: .word $0002
+
+
 *=$1000 "Main Start"
 
+.var row = 0
+
     nv_screen_clear()
-    nv_screen_plot_cursor(0, 16)
-    nv_screen_print_string_basic(str_to_print)
+    nv_screen_plot_cursor(row++, 16)
+    nv_screen_print_string_basic(title_str)
 
-    nv_screen_plot_cursor(1, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_hex_word_immediate($ABCD, true)
-    //lda #$6d
-    //print_hex_byte(true)
-    //lda #$3e
-    //print_hex_byte(true)
 
-    nv_screen_plot_cursor(5, 0)
-/*
-    lda #0
-    sta counter
-loop:
-    print_hex_byte(true)
-    inc counter
-    lda counter
-    bne loop
-*/
 
     //////////////////////////////
-    nv_screen_plot_cursor(2, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_hex_word(word_to_print, true)
     print_hex_word(another_word, false)
 
     /////////////////////////////
-    nv_screen_plot_cursor(3, 0)
-    print_hex_word(op1, true)
-
-    nv_screen_print_string_basic(plus_str)
-
-    print_hex_word(op2, true)
-    //nv_screen_plot_cursor(3, 14)
-    nv_screen_print_string_basic(equal_str)
-
-    adc16(op1, op2, result)
-    bcc NoCarry
-    nv_screen_print_string_basic(carry_str)
-NoCarry:
-    print_hex_word(result, true)
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16(op1, op2, result)
 
     /////////////////////////////
-    nv_screen_plot_cursor($4, 0)
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16(opOne, opTwo, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16(opOne, opMax, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16(opMax, opZero, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
     print_cmp16(op1Beef, op2Beef)
 
     /////////////////////////////
-    nv_screen_plot_cursor($5, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_cmp16(opSmall, opBig)
 
     /////////////////////////////
-    nv_screen_plot_cursor($6, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_cmp16(opSmall, opSmall)
 
     /////////////////////////////
-    nv_screen_plot_cursor($7, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_cmp16(opBig, opSmall)
 
     ////////////////////////////
-    nv_screen_plot_cursor($8, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_beq16(opBig, op2Beef)
 
     ////////////////////////////
-    nv_screen_plot_cursor($9, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_beq16(opBig, opBig)
 
     ////////////////////////////
-    nv_screen_plot_cursor($A, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_beq16_immediate(opSmall, $BEEF)
 
     ////////////////////////////
-    nv_screen_plot_cursor($B, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_beq16_immediate(op1Beef, $BEEF)
 
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_blt16(opSmall, opBig)
 
-    nv_screen_plot_cursor($15, 0)
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_blt16(opTwo, opOne)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_blt16(op1Beef, op2Beef)
+    
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_ble16(opSmall, opBig)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_ble16(opBig, opSmall)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_ble16(op1Beef, op2Beef)
+
+    nv_screen_plot_cursor(row++, 0)
 
 
     rts
@@ -229,6 +244,22 @@ hex_digit_lookup:
     lda addr1+1
     adc addr2+1
     sta result_addr+1
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+.macro print_adc16(op1, op2, result)
+{
+    print_hex_word(op1, true)
+    nv_screen_print_string_basic(plus_str)
+    print_hex_word(op2, true)
+    nv_screen_print_string_basic(equal_str)
+
+    adc16(op1, op2, result)
+    bcc NoCarry
+    nv_screen_print_string_basic(carry_str)
+NoCarry:
+    print_hex_word(result, true)
 }
 
 
@@ -367,5 +398,65 @@ Done:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if the contents of a word at one memory location  
+// are less than the contents in another memory location 
+//   addr1: the address of the LSB of the word1
+//   addr2: the address of the LSB of the word2 
+//   label: the label to branch to if word1 < word2
+.macro blt16(addr1, addr2, label)
+{
+    cmp16(addr1, addr2)
+    bcc label
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if the contents of a word at one memory location  
+// are less than or equal to the contents in another memory location 
+//   addr1: the address of the LSB of the word1
+//   addr2: the address of the LSB of the word2 
+//   label: the label to branch to if word1 < word2
+.macro ble16(addr1, addr2, label)
+{
+    cmp16(addr1, addr2)
+    bcc label
+    beq label
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Print to current screen location the expression (either < or >= ) 
+// for the relationship of the two word in memorys.  Use blt16 to do it.
+//   addr1: is the address of LSB of word1 (addr1+1 is MSB)
+//   addr2: is the address of LSB of word2 (addr2+1 is MSB)
+.macro print_blt16(addr1, addr2)
+{
+    print_hex_word(addr1, true)
+    blt16(addr1, addr2, LessThan)
+    nv_screen_print_string_basic(greater_equal_str)
+    jmp Done
+LessThan:
+    nv_screen_print_string_basic(less_than_str)
+
+Done:
+    print_hex_word(addr2, true)
+}
 
 
+
+//////////////////////////////////////////////////////////////////////////////
+// Print to current screen location the expression (either <= or >)
+// for the relationship of the two word in memorys.  Use ble16 to do it.
+//   addr1: is the address of LSB of word1 (addr1+1 is MSB)
+//   addr2: is the address of LSB of word2 (addr2+1 is MSB)
+.macro print_ble16(addr1, addr2)
+{
+    print_hex_word(addr1, true)
+    ble16(addr1, addr2, LessThanEqual)
+    nv_screen_print_string_basic(greater_than_str)
+    jmp Done
+LessThanEqual:
+    nv_screen_print_string_basic(less_equal_str)
+
+Done:
+    print_hex_word(addr2, true)
+}
