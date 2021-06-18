@@ -27,7 +27,7 @@
 carry_str: .text @"(C) \$00"
 plus_str: .text @" + \$00"
 equal_str: .text@" = \$00"
-not_equal_str: .text@" NOT EQUAL \$00"
+not_equal_str: .text@" != \$00"
 greater_equal_str: .text@" >= \$00" 
 less_than_str: .text@" < \$00"
 greater_than_str: .text@" > \$00"
@@ -62,10 +62,11 @@ op2Beef: .word $beef
     nv_screen_print_string_basic(str_to_print)
 
     nv_screen_plot_cursor(1, 0)
-    lda #$6d
-    print_hex_byte(true)
-    lda #$3e
-    print_hex_byte(true)
+    print_hex_word_immediate($ABCD, true)
+    //lda #$6d
+    //print_hex_byte(true)
+    //lda #$3e
+    //print_hex_byte(true)
 
     nv_screen_plot_cursor(5, 0)
 /*
@@ -115,8 +116,24 @@ NoCarry:
     nv_screen_plot_cursor($7, 0)
     print_cmp16(opBig, opSmall)
 
+    ////////////////////////////
+    nv_screen_plot_cursor($8, 0)
+    print_beq16(opBig, op2Beef)
 
-    nv_screen_plot_cursor($10, 0)
+    ////////////////////////////
+    nv_screen_plot_cursor($9, 0)
+    print_beq16(opBig, opBig)
+
+    ////////////////////////////
+    nv_screen_plot_cursor($A, 0)
+    print_beq16_immediate(opSmall, $BEEF)
+
+    ////////////////////////////
+    nv_screen_plot_cursor($B, 0)
+    print_beq16_immediate(op1Beef, $BEEF)
+
+
+    nv_screen_plot_cursor($15, 0)
 
 
     rts
@@ -127,7 +144,8 @@ hex_digit_lookup:
 
 
 //////////////////////////////////////////////////////////////////////////
-// print a hex number that is in the accum
+// inline macro to print a hex number that is in the accumulator
+//   include_dollar: pass true to print a '$' before the number
 .macro print_hex_byte(include_dollar)
 {
     .var offset = 0
@@ -174,6 +192,27 @@ hex_digit_lookup:
     print_hex_byte(false)
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the word value at the address of the low byte given
+.macro print_hex_word_immediate(num, include_dollar)
+{
+    .if (include_dollar)
+    {
+        lda #$24                // the $ sign
+        sta temp_hex_str
+        lda #0
+        sta temp_hex_str+1
+        nv_screen_print_string_basic(temp_hex_str)
+    }
+    lda #((num >> 8) & $00ff)
+    print_hex_byte(false)
+    lda #(num & $00ff)
+    print_hex_byte(false)
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to add two 16 bit values and store the result in another
 // 16bit value.  carry bit will be set if carry occured
@@ -215,6 +254,28 @@ hex_digit_lookup:
 Done:
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// compare the contents of two 16 bit words and set flags accordingly.
+// params are:
+//   addr1: 16 bit address of op1
+//   addr2: 16 bit address of op2
+// Carry Flag	Set if addr1 >= addr2
+// Zero Flag	Set if addr1 == addr2
+// Negative Flag is undefined
+.macro cmp16_immediate(addr1, num)
+{
+    // first compare the MSBs
+    lda addr1+1
+    cmp #((num >> 8) & $00FF)
+    beq Done
+
+    // MSBs are equal so need to compare LSBs
+    lda addr1
+    cmp #(num & $00FF)
+
+Done:
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Print a comparison of two 16bit values at two locations in memory. 
@@ -242,3 +303,69 @@ PrintOp2:
     print_hex_word(addr2, true)
 
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// branch if two words in memory have the same contents
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   addr2: is the address of LSB of the other word (addr2+1 is MSB)
+//   label: is the label to branch to
+.macro beq16(addr1, addr2, label)
+{
+    cmp16(addr1, addr2)
+    beq label
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Print to current screen location the expression (either = or != ) 
+// for the relationship of the two word in memorys.  Use beq16 to do it.
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   addr2: is the address of LSB of the other word (addr2+1 is MSB)
+.macro print_beq16(addr1, addr2)
+{
+    print_hex_word(addr1, true)
+    beq16(addr1, addr2, Same)
+    nv_screen_print_string_basic(not_equal_str)
+    jmp Done
+Same:
+    nv_screen_print_string_basic(equal_str)
+
+Done:
+    print_hex_word(addr2, true)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if one word in memory has the same content as 
+// an immediate 16 bit value
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   num: is the immediate 16 bit value to compare with the contents of addr1
+//   label: is the label to branch to
+.macro beq16_immediate(addr1, num, label)
+{
+    cmp16_immediate(addr1, num)
+    beq label
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Print to current screen location the expression (either = or != ) 
+// for the relationship of one word in memory with an immediate 16 bit value
+// Also use beq16 to do it.
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   num: is the immediate value
+.macro print_beq16_immediate(addr1, num)
+{
+    print_hex_word(addr1, true)
+    beq16_immediate(addr1, num, Same)
+    nv_screen_print_string_basic(not_equal_str)
+    jmp Done
+Same:
+    nv_screen_print_string_basic(equal_str)
+
+Done:
+    print_hex_word_immediate(num, true)
+}
+
+
+
+
