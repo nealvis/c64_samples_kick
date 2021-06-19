@@ -579,23 +579,6 @@ opTwo: .word $0002
 
 /////////////////////////////////////////////////////////////////////////////
 // wait for key then clear screen when its detected
-// todo: remove
-.macro wait_and_clear()
-{
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
-
-    nv_screen_wait_anykey()
-
-    nv_screen_clear()
-    .eval row=0
-    nv_screen_plot_cursor(row++, 33)
-    nv_screen_print_string_basic(title_str)
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// wait for key then clear screen when its detected
 .macro wait_and_clear_at_row(init_row)
 {
     .var row = init_row
@@ -612,26 +595,6 @@ opTwo: .word $0002
 }
 
 
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to add two 16 bit values and store the result in another
-// 16bit value.  carry bit will be set if carry occured
-// params:
-//   addr1 is the address of the low byte of op1
-//   addr2 is the address of the low byte of op2
-//   result_addr is the address to store the result.
-.macro adc16(addr1, addr2, result_addr)
-{
-    lda addr1
-    clc
-    adc addr2
-    sta result_addr
-    lda addr1+1
-    adc addr2+1
-    sta result_addr+1
-}
-
-
 //////////////////////////////////////////////////////////////////////////////
 //                          Print macros 
 //////////////////////////////////////////////////////////////////////////////
@@ -639,7 +602,7 @@ opTwo: .word $0002
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the specified addition at the current curor location
-// adc16 us used to do the addition.  
+// nv_adc16 us used to do the addition.  
 // it will look like this with no carry:
 //    $2222 + $3333 = $5555
 // or look like this if there is a carry:
@@ -651,7 +614,7 @@ opTwo: .word $0002
     nv_screen_print_hex_word(op2, true)
     nv_screen_print_string_basic(equal_str)
 
-    adc16(op1, op2, result)
+    nv_adc16(op1, op2, result)
     bcc NoCarry
     nv_screen_print_string_basic(carry_str)
 NoCarry:
@@ -831,7 +794,7 @@ Done:
 }
 
 
-
+//////////////////////////////////////////////////////////////////////////////
 .macro print_blt16_immediate(addr1, num)
 {
     nv_screen_print_hex_word(addr1, true)
@@ -847,6 +810,7 @@ Done:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
 .macro print_ble16_immediate(addr1, num)
 {
     nv_screen_print_hex_word(addr1, true)
@@ -861,7 +825,7 @@ Done:
 
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
 .macro print_bgt16_immediate(addr1, num)
 {
     nv_screen_print_hex_word(addr1, true)
@@ -876,6 +840,7 @@ Done:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
 .macro print_bge16_immediate(addr1, num)
 {
     nv_screen_print_hex_word(addr1, true)
@@ -887,6 +852,4 @@ GreaterEqual:
 
 Done:
     nv_screen_print_hex_word_immediate(num, true)
-
-
 }
