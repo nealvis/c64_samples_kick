@@ -113,6 +113,24 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_blt16(opSmall, opBig)
 
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_blt16_immediate(opSmall, $8580)
+ 
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_ble16_immediate(opSmall, $0005)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bgt16_immediate(opSmall, $0000)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bge16_immediate(opBig, $dead)
+
+
+
 
     // second column
 
@@ -166,8 +184,11 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 24)
     print_cmp16(opTwo, opOne)
 
+
+
+
     // back to column 1 for longer strings
-    .eval row = 13
+    .eval row = 17
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -246,7 +267,7 @@ Done:
     // first compare the MSBs
     lda addr1+1
     cmp #((num >> 8) & $00FF)
-    beq Done
+    bne Done
 
     // MSBs are equal so need to compare LSBs
     lda addr1
@@ -292,6 +313,21 @@ Done:
     bcc label
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if one word in memory is less than 
+// an immediate 16 bit value
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   num: is the immediate 16 bit value to compare with the contents of addr1
+//   label: is the label to branch to
+// todo: print macro
+.macro blt16_immediate(addr1, num, label)
+{
+    cmp16_immediate(addr1, num)
+    bcc label
+}
+
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to branch if the contents of a word at one memory location  
 // are less than or equal to the contents in another memory location 
@@ -307,6 +343,24 @@ Done:
     bcc label
     beq label
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if one word in memory is less than or equal to
+// an immediate 16 bit value
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   num: is the immediate 16 bit value to compare with the contents of addr1
+//   label: is the label to branch to
+// todo: print macro
+.macro ble16_immediate(addr1, num, label)
+{
+    cmp16_immediate(addr1, num)
+    // Carry Flag	Set if addr1 >= addr2
+    // Zero Flag	Set if addr1 == addr2
+
+    bcc label
+    beq label
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to branch if the contents of a word at one memory location  
@@ -326,6 +380,24 @@ Done:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if one word in memory is greater than
+// an immediate 16 bit value
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   num: is the immediate 16 bit value to compare with the contents of addr1
+//   label: is the label to branch to
+// todo print macro
+.macro bgt16_immediate(addr1, num, label)
+{
+    cmp16_immediate(addr1, num)
+    // Carry Flag	Set if addr1 >= addr2
+    // Zero Flag	Set if addr1 == addr2
+
+    beq Done    // equal so not greater than, we're done
+    bcs label   // >= but we already tested for == so must be greater than
+Done:
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to branch if the contents of a word at one memory location  
@@ -340,6 +412,23 @@ Done:
 
     bcs label
 }
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if one word in memory is greater or equal tothan
+// an immediate 16 bit value
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   num: is the immediate 16 bit value to compare with the contents of addr1
+//   label: is the label to branch to
+// todo print macro
+.macro bge16_immediate(addr1, num, label)
+{
+    cmp16_immediate(addr1, num)
+    // Carry Flag	Set if addr1 >= num
+
+    bcs label
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -586,3 +675,63 @@ Done:
     print_hex_word(addr2, true)
 }
 
+
+
+.macro print_blt16_immediate(addr1, num)
+{
+    print_hex_word(addr1, true)
+    blt16_immediate(addr1, num, LessThan)
+    nv_screen_print_string_basic(greater_equal_str)
+    jmp Done
+LessThan:
+    nv_screen_print_string_basic(less_than_str)
+
+Done:
+    print_hex_word_immediate(num, true)
+
+}
+
+
+.macro print_ble16_immediate(addr1, num)
+{
+    print_hex_word(addr1, true)
+    ble16_immediate(addr1, num, LessEqual)
+    nv_screen_print_string_basic(greater_than_str)
+    jmp Done
+LessEqual:
+    nv_screen_print_string_basic(less_equal_str)
+
+Done:
+    print_hex_word_immediate(num, true)
+
+}
+
+
+.macro print_bgt16_immediate(addr1, num)
+{
+    print_hex_word(addr1, true)
+    bgt16_immediate(addr1, num, GreaterThan)
+    nv_screen_print_string_basic(less_equal_str)
+    jmp Done
+GreaterThan:
+    nv_screen_print_string_basic(greater_than_str)
+
+Done:
+    print_hex_word_immediate(num, true)
+}
+
+
+.macro print_bge16_immediate(addr1, num)
+{
+    print_hex_word(addr1, true)
+    bge16_immediate(addr1, num, GreaterEqual)
+    nv_screen_print_string_basic(less_than_str)
+    jmp Done
+GreaterEqual:
+    nv_screen_print_string_basic(greater_equal_str)
+
+Done:
+    print_hex_word_immediate(num, true)
+
+
+}
