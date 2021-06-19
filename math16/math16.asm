@@ -3,7 +3,9 @@
 
 #import "../nv_c64_util/nv_c64_util.asm"
 
-*=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
+*=$0800 "BASIC Start"
+.byte 0 // first byte should be 0
+        // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
         // will just call assembled program at correct location
         //    10 SYS (4096)
@@ -35,28 +37,25 @@ less_equal_str: .text@" <= \$00"
 
 title_str: .text @"MATH16\$00"          // null terminated string to print
                                         // via the BASIC routine
-title_hex_word_str: .text @"TESTING PRINT HEX WORD...\$00"
-title_hex_word_immediate_str: .text @"TESTING PRINT HEX WORD IMMEDIATE...\$00"
-title_cmp16_str: .text @"TESTING CMP16 \$00"
-title_cmp16_immediate_str: .text @"TESTING CMP16 IMMEDIATE... \$00"
-title_beq16_str: .text @"TESTING BEQ16 \$00"
-title_beq16_immediate_str: .text @"TESTING BEQ16 IMMEDIATE... \$00"
-title_bne16_str: .text @"TESTING BNE16 \$00"
-title_bne16_immediate_str: .text @"TESTING BNE16 IMMEDIATE... \$00"
-title_blt16_str: .text @"TESTING BLT16 \$00"
-title_blt16_immediate_str: .text @"TESTING BLT16 IMMEDIATE... \$00"
-title_ble16_str: .text @"TESTING BLE16 \$00"
-title_ble16_immediate_str: .text @"TESTING BLE16 IMMEDIATE... \$00"
-title_bgt16_str: .text @"TESTING BGT16 \$00"
-title_bgt16_immediate_str: .text @"TESTING BGT16 IMMEDIATE... \$00"
-title_bge16_str: .text @"TESTING BGE16 \$00"
-title_bge16_immediate_str: .text @"TESTING BGE16 IMMEDIATE... \$00"
-title_adc16_str: .text @"TESTING ADC16 \$00"
+title_hex_word_str: .text @"TEST PRINT HEX WORD...\$00"
+title_hex_word_immediate_str: .text @"TEST PRINT HEX WORD IMMED\$00"
+title_cmp16_str: .text @"TEST CMP16 \$00"
+title_cmp16_immediate_str: .text @"TEST CMP16 IMMED\$00"
+title_beq16_str: .text @"TEST BEQ16 \$00"
+title_beq16_immediate_str: .text @"TEST BEQ16 IMMED\$00"
+title_bne16_str: .text @"TEST BNE16 \$00"
+title_bne16_immediate_str: .text @"TEST BNE16 IMMED\$00"
+title_blt16_str: .text @"TEST BLT16 \$00"
+title_blt16_immediate_str: .text @"TEST BLT16 IMMED\$00"
+title_ble16_str: .text @"TEST BLE16 \$00"
+title_ble16_immediate_str: .text @"TEST BLE16 IMMED\$00"
+title_bgt16_str: .text @"TEST BGT16 \$00"
+title_bgt16_immediate_str: .text @"TEST BGT16 IMMED\$00"
+title_bge16_str: .text @"TEST BGE16 \$00"
+title_bge16_immediate_str: .text @"TEST BGE16 IMMED\$00"
+title_adc16_str: .text @"TEST ADC16 \$00"
 
 hit_anykey_str: .text @"HIT ANY KEY ...\$00"
-
-temp_hex_str: .byte 0,0,0,0,0,0         // enough bytes for dollor sign, 4 
-                                        // hex digits and a trailing null
 
 word_to_print: .word $DEAD
 another_word:  .word $BEEF
@@ -84,73 +83,121 @@ opTwo: .word $0002
 .var row = 0
 
     nv_screen_clear()
-    nv_screen_plot_cursor(row++, 28)
+    nv_screen_plot_cursor(row++, 33)
     nv_screen_print_string_basic(title_str)
 
+    test_hex_word(0)
+
+    test_hex_word_immediate(0)
+
+    test_cmp16(0)
+
+    test_cmp16_immediate(0)
+
+    test_beq16(0)
+
+    test_beq16_immediate(0)
+
+    test_blt16(0)
+
+    test_blt16_immediate(0)
+
+    test_ble16(0)
+
+    test_ble16_immediate(0)
+
+    test_bgt16(0)
+
+    test_bgt16_immediate(0)
+
+    test_bge16(0)
+
+    test_bge16_immediate(0)
+
+    test_adc16(0)
+
+    rts
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// test converting word to hex
+.macro test_hex_word(init_row)
+{
+    .var row = init_row
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_hex_word_str)
     //////////////////////////////////////////////////////////////////////////
+    .eval row++
     nv_screen_plot_cursor(row++, 0)
-    print_hex_word(word_to_print, true)
+    nv_screen_print_hex_word(word_to_print, true)
 
     nv_screen_plot_cursor(row++, 0)
-    print_hex_word(another_word, false)
+    nv_screen_print_hex_word(another_word, false)
 
     nv_screen_plot_cursor(row++, 0)
-    print_hex_word(op1Beef, true)
+    nv_screen_print_hex_word(op1Beef, true)
 
     nv_screen_plot_cursor(row++, 0)
-    print_hex_word(opSmall, true)
+    nv_screen_print_hex_word(opSmall, true)
 
     nv_screen_plot_cursor(row++, 0)
-    print_hex_word(opBig, true)
+    nv_screen_print_hex_word(opBig, true)
 
+    wait_and_clear_at_row(row)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+.macro test_hex_word_immediate(init_row)
+{
+    .var row = init_row
 
     //////////////////////////////////////////////////////////////////////////
-    .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_hex_word_immediate_str)
     //////////////////////////////////////////////////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_hex_word_immediate($ABCD, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    print_hex_word_immediate($FFFF, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    print_hex_word_immediate($0000, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    print_hex_word_immediate($DEAD, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    print_hex_word_immediate($BEEF, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    print_hex_word_immediate($fedc, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    print_hex_word_immediate($1234, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    print_hex_word_immediate($0001, true)
 
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
-    wait_anykey()
-    nv_screen_clear()
-    .eval row=0
-    nv_screen_plot_cursor(row++, 28)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_hex_word_immediate($ABCD, true)
 
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_hex_word_immediate($FFFF, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_hex_word_immediate($0000, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_hex_word_immediate($DEAD, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_hex_word_immediate($BEEF, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_hex_word_immediate($fedc, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_hex_word_immediate($1234, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_hex_word_immediate($0001, true)
+
+    wait_and_clear_at_row(row)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Test the cmp_16 macro
+.macro test_cmp16(init_row)
+{
+    .var row = init_row
 
     //////////////////////////////////////////////////////////////////////////
-    .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_cmp16_str)
     //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -172,23 +219,77 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_cmp16(opTwo, opOne)
 
+    wait_and_clear_at_row(row)
+}
 
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
-    wait_anykey()
-    nv_screen_clear()
-    .eval row=0
-    nv_screen_plot_cursor(row++, 28)
-    nv_screen_print_string_basic(title_str)
 
+//////////////////////////////////////////////////////////////////////////////
+// Test the cmp_16 macro
+.macro test_cmp16_immediate(init_row)
+{
+    .var row = init_row
 
     //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_cmp16_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
     .eval row++
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(op1Beef, $BEEF)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opSmall, $D3B0)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opZero, $0000)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opMax, $FFFF)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opTwo, $0001)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opTwo, $0002)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opOne, $0002)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opOne, $0001)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opMax, $0000)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16_immediate(opMax, $FFFE)
+
+    wait_and_clear_at_row(row)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_beq16(init_row)
+{
+    .var row = init_row
+
+    //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_beq16_str)
     //////////////////////////////////////////////////////////////////////////
-
+    .eval row++
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -198,13 +299,20 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_beq16(opBig, opBig)
 
+    wait_and_clear_at_row(row)
+}
 
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_beq16_immediate(init_row)
+{
+    .var row = init_row
 
     //////////////////////////////////////////////////////////////////////////
-    .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_beq16_immediate_str)
     //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -214,61 +322,152 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_beq16_immediate(op1Beef, $BEEF)
 
+    wait_and_clear_at_row(row)
+}
 
 
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_blt16(init_row)
+{
+    .var row = init_row
+        
     //////////////////////////////////////////////////////////////////////////
-    .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_blt16_str)
     //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_blt16(opSmall, opBig)
 
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_blt16(opTwo, opOne)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_blt16(op1Beef, op2Beef)
+
+
+    wait_and_clear_at_row(row)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_blt16_immediate(init_row)
+{
+    .var row = init_row
+
     //////////////////////////////////////////////////////////////////////////
-    .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_blt16_immediate_str)
     //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_blt16_immediate(opSmall, $8580)
- 
 
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
-    wait_anykey()
-    nv_screen_clear()
-    .eval row=0
-    nv_screen_plot_cursor(row++, 28)
-    nv_screen_print_string_basic(title_str)
+    wait_and_clear_at_row(row)
+}
 
 
-
+.macro test_ble16(init_row)
+{
+    .var row = init_row
 
     //////////////////////////////////////////////////////////////////////////
-    .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_ble16_str)
     //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_ble16(opSmall, opBig)
 
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_ble16(opSmall, opBig)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_ble16(opBig, opSmall)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_ble16(op1Beef, op2Beef)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++,0)
+    print_ble16(op1Beef, opMax)
+
+    wait_and_clear_at_row(row)
+}
+
+
+.macro test_ble16_immediate(init_row)
+{
+    .var row = init_row
 
     //////////////////////////////////////////////////////////////////////////
-    .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_ble16_immediate_str)
     //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_ble16_immediate(opSmall, $0005)
+
+    wait_and_clear_at_row(row)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_bgt16(init_row)
+{
+    .var row = init_row
+
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_bgt16_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bgt16(opSmall, opBig)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bgt16(opTwo, opOne)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bgt16(op1Beef, op2Beef)
+    
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bgt16(opOne, opZero)
+
+    wait_and_clear_at_row(row)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_bgt16_immediate(init_row)
+{
+    .var row = init_row
+
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_bgt16_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -278,125 +477,85 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_bge16_immediate(opBig, $dead)
 
+    wait_and_clear_at_row(row)
+}
 
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
-    wait_anykey()
-    nv_screen_clear()
-    .eval row=0
-    nv_screen_plot_cursor(row++, 28)
-    nv_screen_print_string_basic(title_str)
-
-
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_bge16(init_row)
+{
+    .var row = init_row
 
     //////////////////////////////////////////////////////////////////////////
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_blt16_str)
-    //////////////////////////////////////////////////////////////////////////    
-    
-    ////////////////////////////
-    nv_screen_plot_cursor(row, 0)
-    print_blt16(opTwo, opOne)
-
-    ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
-    print_blt16(op1Beef, op2Beef)
-    
-
-    //////////////////////////////////////////////////////////////////////////
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_ble16_str)
-    //////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////
-    nv_screen_plot_cursor(row, 0)
-    print_ble16(opSmall, opBig)
-
-    ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
-    print_ble16(opBig, opSmall)
-
-    ////////////////////////////
-    nv_screen_plot_cursor(row, 0)
-    print_ble16(op1Beef, op2Beef)
-
-    ////////////////////////////
-    nv_screen_plot_cursor(row,24)
-    print_ble16(op1Beef, opMax)
-
-    //////////////////////////////////////////////////////////////////////////
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_bgt16_str)
-    //////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////
-    nv_screen_plot_cursor(row, 0)
-    print_bgt16(opSmall, opBig)
-
-    ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
-    print_bgt16(opTwo, opOne)
-
-    ////////////////////////////
-    nv_screen_plot_cursor(row, 0)
-    print_bgt16(op1Beef, op2Beef)
-    
-    ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
-    print_bgt16(opOne, opZero)
-
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
-    wait_anykey()
-    nv_screen_clear()
-    .eval row=0
-    nv_screen_plot_cursor(row++, 28)
-    nv_screen_print_string_basic(title_str)
-
-    //////////////////////////////////////////////////////////////////////////
-    .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_bge16_str)
     //////////////////////////////////////////////////////////////////////////
-
+    .eval row++
 
     ////////////////////////////
-    nv_screen_plot_cursor(row, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_bge16(opSmall, opBig)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
+    nv_screen_plot_cursor(row++, 0)
     print_bge16(opBig, opSmall)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row, 0)
+    nv_screen_plot_cursor(row++, 0)
     print_bge16(op1Beef, op2Beef)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
+    nv_screen_plot_cursor(row++, 0)
     print_bge16(opZero, opMax)
 
+    wait_and_clear_at_row(row)
+}
 
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
-    wait_anykey()
-    nv_screen_clear()
-    .eval row=0
-    nv_screen_plot_cursor(row++, 28)
-    nv_screen_print_string_basic(title_str)
 
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_bge16_immediate(init_row)
+{
+    .var row = init_row
 
     //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_bge16_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
     .eval row++
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bge16_immediate(op1Beef, $BEEF)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bge16_immediate(op1Beef, $0000)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bge16_immediate(op1Beef, $BEF0)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_bge16_immediate(op1Beef, $BFEF)
+
+
+    wait_and_clear_at_row(row)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_adc16(init_row)
+{
+    .var row = init_row
+    
+    //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(title_adc16_str)
     //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -414,13 +573,43 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_adc16(opMax, opZero, result)
 
+    wait_and_clear_at_row(row)
+}
 
+
+/////////////////////////////////////////////////////////////////////////////
+// wait for key then clear screen when its detected
+// todo: remove
+.macro wait_and_clear()
+{
     .eval row++
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_string_basic(hit_anykey_str)
-    wait_anykey()
 
-    rts
+    nv_screen_wait_anykey()
+
+    nv_screen_clear()
+    .eval row=0
+    nv_screen_plot_cursor(row++, 33)
+    nv_screen_print_string_basic(title_str)
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// wait for key then clear screen when its detected
+.macro wait_and_clear_at_row(init_row)
+{
+    .var row = init_row
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(hit_anykey_str)
+
+    nv_screen_wait_anykey()
+
+    nv_screen_clear()
+    .eval row=0
+    nv_screen_plot_cursor(row++, 33)
+    nv_screen_print_string_basic(title_str)
+}
 
 
 
@@ -444,281 +633,8 @@ opTwo: .word $0002
 
 
 //////////////////////////////////////////////////////////////////////////////
-// compare the contents of two 16 bit words and set flags accordingly.
-// params are:
-//   addr1: 16 bit address of op1
-//   addr2: 16 bit address of op2
-// Carry Flag	Set if addr1 >= addr2
-// Zero Flag	Set if addr1 == addr2
-// Negative Flag is undefined
-.macro cmp16(addr1, addr2)
-{
-    // first compare the MSBs
-    lda addr1+1
-    cmp addr2+1
-    bne Done
-
-    // MSBs are equal so need to compare LSBs
-    lda addr1
-    cmp addr2
-
-Done:
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// compare the contents of two 16 bit words and set flags accordingly.
-// params are:
-//   addr1: 16 bit address of op1
-//   addr2: 16 bit address of op2
-// Carry Flag	Set if addr1 >= addr2
-// Zero Flag	Set if addr1 == addr2
-// Negative Flag is undefined
-.macro cmp16_immediate(addr1, num)
-{
-    // first compare the MSBs
-    lda addr1+1
-    cmp #((num >> 8) & $00FF)
-    bne Done
-
-    // MSBs are equal so need to compare LSBs
-    lda addr1
-    cmp #(num & $00FF)
-
-Done:
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// branch if two words in memory have the same contents
-//   addr1: is the address of LSB of one word (addr1+1 is MSB)
-//   addr2: is the address of LSB of the other word (addr2+1 is MSB)
-//   label: is the label to branch to
-.macro beq16(addr1, addr2, label)
-{
-    cmp16(addr1, addr2)
-    beq label
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if one word in memory has the same content as 
-// an immediate 16 bit value
-//   addr1: is the address of LSB of one word (addr1+1 is MSB)
-//   num: is the immediate 16 bit value to compare with the contents of addr1
-//   label: is the label to branch to
-.macro beq16_immediate(addr1, num, label)
-{
-    cmp16_immediate(addr1, num)
-    beq label
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if the contents of a word at one memory location  
-// are less than the contents in another memory location 
-//   addr1: the address of the LSB of the word1
-//   addr2: the address of the LSB of the word2 
-//   label: the label to branch to if word1 < word2
-.macro blt16(addr1, addr2, label)
-{
-    cmp16(addr1, addr2)
-    bcc label
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if one word in memory is less than 
-// an immediate 16 bit value
-//   addr1: is the address of LSB of one word (addr1+1 is MSB)
-//   num: is the immediate 16 bit value to compare with the contents of addr1
-//   label: is the label to branch to
-// todo: print macro
-.macro blt16_immediate(addr1, num, label)
-{
-    cmp16_immediate(addr1, num)
-    bcc label
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if the contents of a word at one memory location  
-// are less than or equal to the contents in another memory location 
-//   addr1: the address of the LSB of the word1
-//   addr2: the address of the LSB of the word2 
-//   label: the label to branch to if word1 < word2
-.macro ble16(addr1, addr2, label)
-{
-    cmp16(addr1, addr2)
-    // Carry Flag	Set if addr1 >= addr2
-    // Zero Flag	Set if addr1 == addr2
-
-    bcc label
-    beq label
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if one word in memory is less than or equal to
-// an immediate 16 bit value
-//   addr1: is the address of LSB of one word (addr1+1 is MSB)
-//   num: is the immediate 16 bit value to compare with the contents of addr1
-//   label: is the label to branch to
-// todo: print macro
-.macro ble16_immediate(addr1, num, label)
-{
-    cmp16_immediate(addr1, num)
-    // Carry Flag	Set if addr1 >= addr2
-    // Zero Flag	Set if addr1 == addr2
-
-    bcc label
-    beq label
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if the contents of a word at one memory location  
-// are greater than the contents in another memory location 
-//   addr1: the address of the LSB of the word1
-//   addr2: the address of the LSB of the word2 
-//   label: the label to branch to if word1 > word2
-.macro bgt16(addr1, addr2, label)
-{
-    cmp16(addr1, addr2)
-    // Carry Flag	Set if addr1 >= addr2
-    // Zero Flag	Set if addr1 == addr2
-
-    beq Done    // equal so not greater than, we're done
-    bcs label   // >= but we already tested for == so must be greater than
-Done:
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if one word in memory is greater than
-// an immediate 16 bit value
-//   addr1: is the address of LSB of one word (addr1+1 is MSB)
-//   num: is the immediate 16 bit value to compare with the contents of addr1
-//   label: is the label to branch to
-// todo print macro
-.macro bgt16_immediate(addr1, num, label)
-{
-    cmp16_immediate(addr1, num)
-    // Carry Flag	Set if addr1 >= addr2
-    // Zero Flag	Set if addr1 == addr2
-
-    beq Done    // equal so not greater than, we're done
-    bcs label   // >= but we already tested for == so must be greater than
-Done:
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if the contents of a word at one memory location  
-// are greater than or equal to the contents in another memory location 
-//   addr1: the address of the LSB of the word1
-//   addr2: the address of the LSB of the word2 
-//   label: the label to branch to if word1 >= word2
-.macro bge16(addr1, addr2, label)
-{
-    cmp16(addr1, addr2)
-    // Carry Flag	Set if addr1 >= addr2
-
-    bcs label
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if one word in memory is greater or equal tothan
-// an immediate 16 bit value
-//   addr1: is the address of LSB of one word (addr1+1 is MSB)
-//   num: is the immediate 16 bit value to compare with the contents of addr1
-//   label: is the label to branch to
-// todo print macro
-.macro bge16_immediate(addr1, num, label)
-{
-    cmp16_immediate(addr1, num)
-    // Carry Flag	Set if addr1 >= num
-
-    bcs label
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////////
 //                          Print macros 
 //////////////////////////////////////////////////////////////////////////////
-
-
-hex_digit_lookup:
-    .byte $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $41, $42, $43, $44, $45, $46
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// inline macro to print a hex number that is in the accumulator
-//   include_dollar: pass true to print a '$' before the number
-.macro print_hex_byte(include_dollar)
-{
-    .var offset = 0
-    .if (include_dollar)
-    {
-        .eval offset++
-        ldy #$24            // dollar sign
-        sty temp_hex_str
-    }
-    tay
-    ror 
-    ror 
-    ror 
-    ror  
-    and #$0f
-    tax
-    lda hex_digit_lookup, x
-    sta temp_hex_str+offset
-    tya
-    and #$0f
-    tax
-    lda hex_digit_lookup, x
-    sta temp_hex_str+1+offset
-    lda #0
-    sta temp_hex_str + 2 + offset
-    nv_screen_print_string_basic(temp_hex_str) 
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to print the word value at the address of the low byte given
-.macro print_hex_word(word_low_byte_addr, include_dollar)
-{
-    .if (include_dollar)
-    {
-        lda #$24                // the $ sign
-        sta temp_hex_str
-        lda #0
-        sta temp_hex_str+1
-        nv_screen_print_string_basic(temp_hex_str)
-    }
-    lda word_low_byte_addr+1
-    print_hex_byte(false)
-    lda word_low_byte_addr
-    print_hex_byte(false)
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to print the word value at the address of the low byte given
-.macro print_hex_word_immediate(num, include_dollar)
-{
-    .if (include_dollar)
-    {
-        lda #$24                // the $ sign
-        sta temp_hex_str
-        lda #0
-        sta temp_hex_str+1
-        nv_screen_print_string_basic(temp_hex_str)
-    }
-    lda #((num >> 8) & $00ff)
-    print_hex_byte(false)
-    lda #(num & $00ff)
-    print_hex_byte(false)
-}
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -730,16 +646,16 @@ hex_digit_lookup:
 //    $FFFF + $0001 = (C) $0000
 .macro print_adc16(op1, op2, result)
 {
-    print_hex_word(op1, true)
+    nv_screen_print_hex_word(op1, true)
     nv_screen_print_string_basic(plus_str)
-    print_hex_word(op2, true)
+    nv_screen_print_hex_word(op2, true)
     nv_screen_print_string_basic(equal_str)
 
     adc16(op1, op2, result)
     bcc NoCarry
     nv_screen_print_string_basic(carry_str)
 NoCarry:
-    print_hex_word(result, true)
+    nv_screen_print_hex_word(result, true)
 }
 
 
@@ -748,8 +664,8 @@ NoCarry:
 // Prints at the current cursor location via a basic call
 .macro print_cmp16(addr1, addr2)
 {
-    print_hex_word(addr1, true)
-    cmp16(addr1, addr2)
+    nv_screen_print_hex_word(addr1, true)
+    nv_cmp16(addr1, addr2)
     bne NotEq
 // Equal here
     nv_screen_print_string_basic(equal_str)
@@ -766,7 +682,35 @@ GreaterOrEqual:
     nv_screen_print_string_basic(greater_than_str)
 
 PrintOp2:
-    print_hex_word(addr2, true)
+    nv_screen_print_hex_word(addr2, true)
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Print a comparison of a 16bit value in memory and an immediate value. 
+// Prints at the current cursor location via a basic call
+.macro print_cmp16_immediate(addr1, num)
+{
+    nv_screen_print_hex_word(addr1, true)
+    nv_cmp16_immediate(addr1, num)
+    bne NotEq
+// Equal here
+    nv_screen_print_string_basic(equal_str)
+    jmp PrintOp2
+
+NotEq:
+    bcs GreaterOrEqual
+// less than here
+    nv_screen_print_string_basic(less_than_str)
+    jmp PrintOp2
+
+// Greater here
+GreaterOrEqual:
+    nv_screen_print_string_basic(greater_than_str)
+
+PrintOp2:
+    nv_screen_print_hex_word_immediate(num, true)
 
 }
 
@@ -778,15 +722,15 @@ PrintOp2:
 //   addr2: is the address of LSB of the other word (addr2+1 is MSB)
 .macro print_beq16(addr1, addr2)
 {
-    print_hex_word(addr1, true)
-    beq16(addr1, addr2, Same)
+    nv_screen_print_hex_word(addr1, true)
+    nv_beq16(addr1, addr2, Same)
     nv_screen_print_string_basic(not_equal_str)
     jmp Done
 Same:
     nv_screen_print_string_basic(equal_str)
 
 Done:
-    print_hex_word(addr2, true)
+    nv_screen_print_hex_word(addr2, true)
 }
 
 
@@ -798,15 +742,15 @@ Done:
 //   num: is the immediate value
 .macro print_beq16_immediate(addr1, num)
 {
-    print_hex_word(addr1, true)
-    beq16_immediate(addr1, num, Same)
+    nv_screen_print_hex_word(addr1, true)
+    nv_beq16_immediate(addr1, num, Same)
     nv_screen_print_string_basic(not_equal_str)
     jmp Done
 Same:
     nv_screen_print_string_basic(equal_str)
 
 Done:
-    print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immediate(num, true)
 }
 
 
@@ -817,15 +761,15 @@ Done:
 //   addr2: is the address of LSB of word2 (addr2+1 is MSB)
 .macro print_blt16(addr1, addr2)
 {
-    print_hex_word(addr1, true)
-    blt16(addr1, addr2, LessThan)
+    nv_screen_print_hex_word(addr1, true)
+    nv_blt16(addr1, addr2, LessThan)
     nv_screen_print_string_basic(greater_equal_str)
     jmp Done
 LessThan:
     nv_screen_print_string_basic(less_than_str)
 
 Done:
-    print_hex_word(addr2, true)
+    nv_screen_print_hex_word(addr2, true)
 }
 
 
@@ -837,15 +781,15 @@ Done:
 //   addr2: is the address of LSB of word2 (addr2+1 is MSB)
 .macro print_ble16(addr1, addr2)
 {
-    print_hex_word(addr1, true)
-    ble16(addr1, addr2, LessThanEqual)
+    nv_screen_print_hex_word(addr1, true)
+    nv_ble16(addr1, addr2, LessThanEqual)
     nv_screen_print_string_basic(greater_than_str)
     jmp Done
 LessThanEqual:
     nv_screen_print_string_basic(less_equal_str)
 
 Done:
-    print_hex_word(addr2, true)
+    nv_screen_print_hex_word(addr2, true)
 }
 
 
@@ -856,15 +800,15 @@ Done:
 //   addr2: is the address of LSB of word2 (addr2+1 is MSB)
 .macro print_bgt16(addr1, addr2)
 {
-    print_hex_word(addr1, true)
-    bgt16(addr1, addr2, GreaterThan)
+    nv_screen_print_hex_word(addr1, true)
+    nv_bgt16(addr1, addr2, GreaterThan)
     nv_screen_print_string_basic(less_equal_str)
     jmp Done
 GreaterThan:
     nv_screen_print_string_basic(greater_than_str)
 
 Done:
-    print_hex_word(addr2, true)
+    nv_screen_print_hex_word(addr2, true)
 }
 
 
@@ -875,90 +819,74 @@ Done:
 //   addr2: is the address of LSB of word2 (addr2+1 is MSB)
 .macro print_bge16(addr1, addr2)
 {
-    print_hex_word(addr1, true)
-    bge16(addr1, addr2, GreaterThanEqual)
+    nv_screen_print_hex_word(addr1, true)
+    nv_bge16(addr1, addr2, GreaterThanEqual)
     nv_screen_print_string_basic(less_than_str)
     jmp Done
 GreaterThanEqual:
     nv_screen_print_string_basic(greater_equal_str)
 
 Done:
-    print_hex_word(addr2, true)
+    nv_screen_print_hex_word(addr2, true)
 }
 
 
 
 .macro print_blt16_immediate(addr1, num)
 {
-    print_hex_word(addr1, true)
-    blt16_immediate(addr1, num, LessThan)
+    nv_screen_print_hex_word(addr1, true)
+    nv_blt16_immediate(addr1, num, LessThan)
     nv_screen_print_string_basic(greater_equal_str)
     jmp Done
 LessThan:
     nv_screen_print_string_basic(less_than_str)
 
 Done:
-    print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immediate(num, true)
 
 }
 
 
 .macro print_ble16_immediate(addr1, num)
 {
-    print_hex_word(addr1, true)
-    ble16_immediate(addr1, num, LessEqual)
+    nv_screen_print_hex_word(addr1, true)
+    nv_ble16_immediate(addr1, num, LessEqual)
     nv_screen_print_string_basic(greater_than_str)
     jmp Done
 LessEqual:
     nv_screen_print_string_basic(less_equal_str)
 
 Done:
-    print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immediate(num, true)
 
 }
 
 
 .macro print_bgt16_immediate(addr1, num)
 {
-    print_hex_word(addr1, true)
-    bgt16_immediate(addr1, num, GreaterThan)
+    nv_screen_print_hex_word(addr1, true)
+    nv_bgt16_immediate(addr1, num, GreaterThan)
     nv_screen_print_string_basic(less_equal_str)
     jmp Done
 GreaterThan:
     nv_screen_print_string_basic(greater_than_str)
 
 Done:
-    print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immediate(num, true)
 }
 
 
 .macro print_bge16_immediate(addr1, num)
 {
-    print_hex_word(addr1, true)
-    bge16_immediate(addr1, num, GreaterEqual)
+    nv_screen_print_hex_word(addr1, true)
+    nv_bge16_immediate(addr1, num, GreaterEqual)
     nv_screen_print_string_basic(less_than_str)
     jmp Done
 GreaterEqual:
     nv_screen_print_string_basic(greater_equal_str)
 
 Done:
-    print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immediate(num, true)
 
 
-}
-
-wait_counter: .byte 0
-.macro wait_anykey()
-{
-Loop:
-    ldx #10
-    stx wait_counter
-Inner:
-    nv_sprite_wait_scan()
-    dex
-    bne Inner
-
-    lda 203
-    cmp #64
-    beq Loop
 }
