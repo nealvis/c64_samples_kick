@@ -140,6 +140,42 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_cmp16(opTwo, opOne)
 
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opOne, opZero)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opOne, opMax)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opZero, opMax)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opZero, opOne)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opMax, opOne)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opMax, opZero)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opMax, opMax)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opOne, opOne)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opZero, opZero)
+
     wait_and_clear_at_row(row)
 }
 
