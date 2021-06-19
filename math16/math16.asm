@@ -76,21 +76,6 @@ opTwo: .word $0002
     print_hex_word(word_to_print, true)
     print_hex_word(another_word, false)
 
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_adc16(op1, op2, result)
-
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_adc16(opOne, opTwo, result)
-
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_adc16(opOne, opMax, result)
-
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_adc16(opMax, opZero, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -128,30 +113,239 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_blt16(opSmall, opBig)
 
+
+    // second column
+
+    .eval row = 1       
+    
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
+    nv_screen_plot_cursor(row++, 24)
     print_blt16(opTwo, opOne)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
+    nv_screen_plot_cursor(row++, 24)
     print_blt16(op1Beef, op2Beef)
     
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
+    nv_screen_plot_cursor(row++, 24)
     print_ble16(opSmall, opBig)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
+    nv_screen_plot_cursor(row++, 24)
     print_ble16(opBig, opSmall)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
+    nv_screen_plot_cursor(row++, 24)
     print_ble16(op1Beef, op2Beef)
 
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 24)
+    print_bgt16(opSmall, opBig)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 24)
+    print_bgt16(opTwo, opOne)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 24)
+    print_bgt16(op1Beef, op2Beef)
+    
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 24)
+    print_bge16(opSmall, opBig)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 24)
+    print_bge16(opBig, opSmall)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 24)
+    print_bge16(op1Beef, op2Beef)
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 24)
+    print_cmp16(opTwo, opOne)
+
+    // back to column 1 for longer strings
+    .eval row = 13
+
+    /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
+    print_adc16(op1, op2, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16(opOne, opTwo, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16(opOne, opMax, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16(opMax, opZero, result)
+
+    nv_screen_plot_cursor(20, 0)
 
 
     rts
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to add two 16 bit values and store the result in another
+// 16bit value.  carry bit will be set if carry occured
+// params:
+//   addr1 is the address of the low byte of op1
+//   addr2 is the address of the low byte of op2
+//   result_addr is the address to store the result.
+.macro adc16(addr1, addr2, result_addr)
+{
+    lda addr1
+    clc
+    adc addr2
+    sta result_addr
+    lda addr1+1
+    adc addr2+1
+    sta result_addr+1
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// compare the contents of two 16 bit words and set flags accordingly.
+// params are:
+//   addr1: 16 bit address of op1
+//   addr2: 16 bit address of op2
+// Carry Flag	Set if addr1 >= addr2
+// Zero Flag	Set if addr1 == addr2
+// Negative Flag is undefined
+.macro cmp16(addr1, addr2)
+{
+    // first compare the MSBs
+    lda addr1+1
+    cmp addr2+1
+    bne Done
+
+    // MSBs are equal so need to compare LSBs
+    lda addr1
+    cmp addr2
+
+Done:
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// compare the contents of two 16 bit words and set flags accordingly.
+// params are:
+//   addr1: 16 bit address of op1
+//   addr2: 16 bit address of op2
+// Carry Flag	Set if addr1 >= addr2
+// Zero Flag	Set if addr1 == addr2
+// Negative Flag is undefined
+.macro cmp16_immediate(addr1, num)
+{
+    // first compare the MSBs
+    lda addr1+1
+    cmp #((num >> 8) & $00FF)
+    beq Done
+
+    // MSBs are equal so need to compare LSBs
+    lda addr1
+    cmp #(num & $00FF)
+
+Done:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// branch if two words in memory have the same contents
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   addr2: is the address of LSB of the other word (addr2+1 is MSB)
+//   label: is the label to branch to
+.macro beq16(addr1, addr2, label)
+{
+    cmp16(addr1, addr2)
+    beq label
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if one word in memory has the same content as 
+// an immediate 16 bit value
+//   addr1: is the address of LSB of one word (addr1+1 is MSB)
+//   num: is the immediate 16 bit value to compare with the contents of addr1
+//   label: is the label to branch to
+.macro beq16_immediate(addr1, num, label)
+{
+    cmp16_immediate(addr1, num)
+    beq label
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if the contents of a word at one memory location  
+// are less than the contents in another memory location 
+//   addr1: the address of the LSB of the word1
+//   addr2: the address of the LSB of the word2 
+//   label: the label to branch to if word1 < word2
+.macro blt16(addr1, addr2, label)
+{
+    cmp16(addr1, addr2)
+    bcc label
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if the contents of a word at one memory location  
+// are less than or equal to the contents in another memory location 
+//   addr1: the address of the LSB of the word1
+//   addr2: the address of the LSB of the word2 
+//   label: the label to branch to if word1 < word2
+.macro ble16(addr1, addr2, label)
+{
+    cmp16(addr1, addr2)
+    // Carry Flag	Set if addr1 >= addr2
+    // Zero Flag	Set if addr1 == addr2
+
+    bcc label
+    beq label
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if the contents of a word at one memory location  
+// are greater than the contents in another memory location 
+//   addr1: the address of the LSB of the word1
+//   addr2: the address of the LSB of the word2 
+//   label: the label to branch to if word1 > word2
+.macro bgt16(addr1, addr2, label)
+{
+    cmp16(addr1, addr2)
+    // Carry Flag	Set if addr1 >= addr2
+    // Zero Flag	Set if addr1 == addr2
+
+    beq Done    // equal so not greater than, we're done
+    bcs label   // >= but we already tested for == so must be greater than
+Done:
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to branch if the contents of a word at one memory location  
+// are greater than or equal to the contents in another memory location 
+//   addr1: the address of the LSB of the word1
+//   addr2: the address of the LSB of the word2 
+//   label: the label to branch to if word1 >= word2
+.macro bge16(addr1, addr2, label)
+{
+    cmp16(addr1, addr2)
+    // Carry Flag	Set if addr1 >= addr2
+
+    bcs label
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//                          Print macros 
+//////////////////////////////////////////////////////////////////////////////
+
 
 hex_digit_lookup:
     .byte $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $41, $42, $43, $44, $45, $46
@@ -227,27 +421,13 @@ hex_digit_lookup:
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////////
-// inline macro to add two 16 bit values and store the result in another
-// 16bit value.  carry bit will be set if carry occured
-// params:
-//   addr1 is the address of the low byte of op1
-//   addr2 is the address of the low byte of op2
-//   result_addr is the address to store the result.
-.macro adc16(addr1, addr2, result_addr)
-{
-    lda addr1
-    clc
-    adc addr2
-    sta result_addr
-    lda addr1+1
-    adc addr2+1
-    sta result_addr+1
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the specified addition at the current curor location
+// adc16 us used to do the addition.  
+// it will look like this with no carry:
+//    $2222 + $3333 = $5555
+// or look like this if there is a carry:
+//    $FFFF + $0001 = (C) $0000
 .macro print_adc16(op1, op2, result)
 {
     print_hex_word(op1, true)
@@ -260,51 +440,6 @@ hex_digit_lookup:
     nv_screen_print_string_basic(carry_str)
 NoCarry:
     print_hex_word(result, true)
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// compare the contents of two 16 bit words and set flags accordingly.
-// params are:
-//   addr1: 16 bit address of op1
-//   addr2: 16 bit address of op2
-// Carry Flag	Set if addr1 >= addr2
-// Zero Flag	Set if addr1 == addr2
-// Negative Flag is undefined
-.macro cmp16(addr1, addr2)
-{
-    // first compare the MSBs
-    lda addr1+1
-    cmp addr2+1
-    beq Done
-
-    // MSBs are equal so need to compare LSBs
-    lda addr1
-    cmp addr2
-
-Done:
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// compare the contents of two 16 bit words and set flags accordingly.
-// params are:
-//   addr1: 16 bit address of op1
-//   addr2: 16 bit address of op2
-// Carry Flag	Set if addr1 >= addr2
-// Zero Flag	Set if addr1 == addr2
-// Negative Flag is undefined
-.macro cmp16_immediate(addr1, num)
-{
-    // first compare the MSBs
-    lda addr1+1
-    cmp #((num >> 8) & $00FF)
-    beq Done
-
-    // MSBs are equal so need to compare LSBs
-    lda addr1
-    cmp #(num & $00FF)
-
-Done:
 }
 
 
@@ -335,16 +470,6 @@ PrintOp2:
 
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// branch if two words in memory have the same contents
-//   addr1: is the address of LSB of one word (addr1+1 is MSB)
-//   addr2: is the address of LSB of the other word (addr2+1 is MSB)
-//   label: is the label to branch to
-.macro beq16(addr1, addr2, label)
-{
-    cmp16(addr1, addr2)
-    beq label
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // Print to current screen location the expression (either = or != ) 
@@ -362,19 +487,6 @@ Same:
 
 Done:
     print_hex_word(addr2, true)
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if one word in memory has the same content as 
-// an immediate 16 bit value
-//   addr1: is the address of LSB of one word (addr1+1 is MSB)
-//   num: is the immediate 16 bit value to compare with the contents of addr1
-//   label: is the label to branch to
-.macro beq16_immediate(addr1, num, label)
-{
-    cmp16_immediate(addr1, num)
-    beq label
 }
 
 
@@ -397,31 +509,6 @@ Done:
     print_hex_word_immediate(num, true)
 }
 
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if the contents of a word at one memory location  
-// are less than the contents in another memory location 
-//   addr1: the address of the LSB of the word1
-//   addr2: the address of the LSB of the word2 
-//   label: the label to branch to if word1 < word2
-.macro blt16(addr1, addr2, label)
-{
-    cmp16(addr1, addr2)
-    bcc label
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to branch if the contents of a word at one memory location  
-// are less than or equal to the contents in another memory location 
-//   addr1: the address of the LSB of the word1
-//   addr2: the address of the LSB of the word2 
-//   label: the label to branch to if word1 < word2
-.macro ble16(addr1, addr2, label)
-{
-    cmp16(addr1, addr2)
-    bcc label
-    beq label
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // Print to current screen location the expression (either < or >= ) 
@@ -460,3 +547,42 @@ LessThanEqual:
 Done:
     print_hex_word(addr2, true)
 }
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Print to current screen location the expression (either > or <= ) 
+// for the relationship of the two word in memorys.  Use bgt16 to do it.
+//   addr1: is the address of LSB of word1 (addr1+1 is MSB)
+//   addr2: is the address of LSB of word2 (addr2+1 is MSB)
+.macro print_bgt16(addr1, addr2)
+{
+    print_hex_word(addr1, true)
+    bgt16(addr1, addr2, GreaterThan)
+    nv_screen_print_string_basic(less_equal_str)
+    jmp Done
+GreaterThan:
+    nv_screen_print_string_basic(greater_than_str)
+
+Done:
+    print_hex_word(addr2, true)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Print to current screen location the expression (either >= or <)
+// for the relationship of the two word in memorys.  Use bge16 to do it.
+//   addr1: is the address of LSB of word1 (addr1+1 is MSB)
+//   addr2: is the address of LSB of word2 (addr2+1 is MSB)
+.macro print_bge16(addr1, addr2)
+{
+    print_hex_word(addr1, true)
+    bge16(addr1, addr2, GreaterThanEqual)
+    nv_screen_print_string_basic(less_than_str)
+    jmp Done
+GreaterThanEqual:
+    nv_screen_print_string_basic(greater_equal_str)
+
+Done:
+    print_hex_word(addr2, true)
+}
+
