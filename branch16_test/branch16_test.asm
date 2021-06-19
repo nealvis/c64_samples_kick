@@ -26,8 +26,6 @@
 .const dollar_sign = $24
 
 // program variables
-carry_str: .text @"(C) \$00"
-plus_str: .text @" + \$00"
 equal_str: .text@" = \$00"
 not_equal_str: .text@" != \$00"
 greater_equal_str: .text@" >= \$00" 
@@ -35,10 +33,8 @@ less_than_str: .text@" < \$00"
 greater_than_str: .text@" > \$00"
 less_equal_str: .text@" <= \$00" 
 
-title_str: .text @"MATH16\$00"          // null terminated string to print
+title_str: .text @"BRANCH16\$00"          // null terminated string to print
                                         // via the BASIC routine
-title_hex_word_str: .text @"TEST PRINT HEX WORD...\$00"
-title_hex_word_immediate_str: .text @"TEST PRINT HEX WORD IMMED\$00"
 title_cmp16_str: .text @"TEST CMP16 \$00"
 title_cmp16_immediate_str: .text @"TEST CMP16 IMMED\$00"
 title_beq16_str: .text @"TEST BEQ16 \$00"
@@ -53,7 +49,6 @@ title_bgt16_str: .text @"TEST BGT16 \$00"
 title_bgt16_immediate_str: .text @"TEST BGT16 IMMED\$00"
 title_bge16_str: .text @"TEST BGE16 \$00"
 title_bge16_immediate_str: .text @"TEST BGE16 IMMED\$00"
-title_adc16_str: .text @"TEST ADC16 \$00"
 
 hit_anykey_str: .text @"HIT ANY KEY ...\$00"
 
@@ -83,12 +78,8 @@ opTwo: .word $0002
 .var row = 0
 
     nv_screen_clear()
-    nv_screen_plot_cursor(row++, 33)
+    nv_screen_plot_cursor(row++, 31)
     nv_screen_print_string_basic(title_str)
-
-    test_hex_word(0)
-
-    test_hex_word_immediate(0)
 
     test_cmp16(0)
 
@@ -114,78 +105,8 @@ opTwo: .word $0002
 
     test_bge16_immediate(0)
 
-    test_adc16(0)
-
     rts
 
-
-
-//////////////////////////////////////////////////////////////////////////////
-// test converting word to hex
-.macro test_hex_word(init_row)
-{
-    .var row = init_row
-    //////////////////////////////////////////////////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_hex_word_str)
-    //////////////////////////////////////////////////////////////////////////
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(word_to_print, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(another_word, false)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(op1Beef, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(opSmall, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(opBig, true)
-
-    wait_and_clear_at_row(row)
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-.macro test_hex_word_immediate(init_row)
-{
-    .var row = init_row
-
-    //////////////////////////////////////////////////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_hex_word_immediate_str)
-    //////////////////////////////////////////////////////////////////////////
-
-    .eval row++
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($ABCD, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($FFFF, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($0000, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($DEAD, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($BEEF, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($fedc, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($1234, true)
-
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($0001, true)
-
-    wait_and_clear_at_row(row)
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // Test the cmp_16 macro
@@ -408,7 +329,8 @@ opTwo: .word $0002
     wait_and_clear_at_row(row)
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
+//
 .macro test_ble16_immediate(init_row)
 {
     .var row = init_row
@@ -545,38 +467,6 @@ opTwo: .word $0002
 }
 
 
-//////////////////////////////////////////////////////////////////////////////
-//
-.macro test_adc16(init_row)
-{
-    .var row = init_row
-    
-    //////////////////////////////////////////////////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_adc16_str)
-    //////////////////////////////////////////////////////////////////////////
-    .eval row++
-
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_adc16(op1, op2, result)
-
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_adc16(opOne, opTwo, result)
-
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_adc16(opOne, opMax, result)
-
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_adc16(opMax, opZero, result)
-
-    wait_and_clear_at_row(row)
-}
-
-
 /////////////////////////////////////////////////////////////////////////////
 // wait for key then clear screen when its detected
 .macro wait_and_clear_at_row(init_row)
@@ -590,7 +480,7 @@ opTwo: .word $0002
 
     nv_screen_clear()
     .eval row=0
-    nv_screen_plot_cursor(row++, 33)
+    nv_screen_plot_cursor(row++, 31)
     nv_screen_print_string_basic(title_str)
 }
 
@@ -598,28 +488,6 @@ opTwo: .word $0002
 //////////////////////////////////////////////////////////////////////////////
 //                          Print macros 
 //////////////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to print the specified addition at the current curor location
-// nv_adc16 us used to do the addition.  
-// it will look like this with no carry:
-//    $2222 + $3333 = $5555
-// or look like this if there is a carry:
-//    $FFFF + $0001 = (C) $0000
-.macro print_adc16(op1, op2, result)
-{
-    nv_screen_print_hex_word(op1, true)
-    nv_screen_print_string_basic(plus_str)
-    nv_screen_print_hex_word(op2, true)
-    nv_screen_print_string_basic(equal_str)
-
-    nv_adc16(op1, op2, result)
-    bcc NoCarry
-    nv_screen_print_string_basic(carry_str)
-NoCarry:
-    nv_screen_print_hex_word(result, true)
-}
 
 
 //////////////////////////////////////////////////////////////////////////////
