@@ -35,6 +35,26 @@ less_equal_str: .text@" <= \$00"
 
 title_str: .text @"MATH16\$00"          // null terminated string to print
                                         // via the BASIC routine
+title_hex_word_str: .text @"TESTING PRINT HEX WORD...\$00"
+title_hex_word_immediate_str: .text @"TESTING PRINT HEX WORD IMMEDIATE...\$00"
+title_cmp16_str: .text @"TESTING CMP16 \$00"
+title_cmp16_immediate_str: .text @"TESTING CMP16 IMMEDIATE... \$00"
+title_beq16_str: .text @"TESTING BEQ16 \$00"
+title_beq16_immediate_str: .text @"TESTING BEQ16 IMMEDIATE... \$00"
+title_bne16_str: .text @"TESTING BNE16 \$00"
+title_bne16_immediate_str: .text @"TESTING BNE16 IMMEDIATE... \$00"
+title_blt16_str: .text @"TESTING BLT16 \$00"
+title_blt16_immediate_str: .text @"TESTING BLT16 IMMEDIATE... \$00"
+title_ble16_str: .text @"TESTING BLE16 \$00"
+title_ble16_immediate_str: .text @"TESTING BLE16 IMMEDIATE... \$00"
+title_bgt16_str: .text @"TESTING BGT16 \$00"
+title_bgt16_immediate_str: .text @"TESTING BGT16 IMMEDIATE... \$00"
+title_bge16_str: .text @"TESTING BGE16 \$00"
+title_bge16_immediate_str: .text @"TESTING BGE16 IMMEDIATE... \$00"
+title_adc16_str: .text @"TESTING ADC16 \$00"
+
+hit_anykey_str: .text @"HIT ANY KEY ...\$00"
+
 temp_hex_str: .byte 0,0,0,0,0,0         // enough bytes for dollor sign, 4 
                                         // hex digits and a trailing null
 
@@ -64,18 +84,73 @@ opTwo: .word $0002
 .var row = 0
 
     nv_screen_clear()
-    nv_screen_plot_cursor(row++, 16)
+    nv_screen_plot_cursor(row++, 28)
     nv_screen_print_string_basic(title_str)
 
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_hex_word_str)
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word(word_to_print, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word(another_word, false)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word(op1Beef, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word(opSmall, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word(opBig, true)
+
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_hex_word_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_hex_word_immediate($ABCD, true)
 
-
-    //////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_hex_word(word_to_print, true)
-    print_hex_word(another_word, false)
+    print_hex_word_immediate($FFFF, true)
 
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word_immediate($0000, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word_immediate($DEAD, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word_immediate($BEEF, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word_immediate($fedc, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word_immediate($1234, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    print_hex_word_immediate($0001, true)
+
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(hit_anykey_str)
+    wait_anykey()
+    nv_screen_clear()
+    .eval row=0
+    nv_screen_plot_cursor(row++, 28)
+    nv_screen_print_string_basic(title_str)
+
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_cmp16_str)
+    //////////////////////////////////////////////////////////////////////////
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -95,11 +170,41 @@ opTwo: .word $0002
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
+    print_cmp16(opTwo, opOne)
+
+
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(hit_anykey_str)
+    wait_anykey()
+    nv_screen_clear()
+    .eval row=0
+    nv_screen_plot_cursor(row++, 28)
+    nv_screen_print_string_basic(title_str)
+
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_beq16_str)
+    //////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
     print_beq16(opBig, op2Beef)
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_beq16(opBig, opBig)
+
+
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_beq16_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -109,14 +214,58 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_beq16_immediate(op1Beef, $BEEF)
 
+
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_blt16_str)
+    //////////////////////////////////////////////////////////////////////////
+
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_blt16(opSmall, opBig)
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_blt16_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_blt16_immediate(opSmall, $8580)
  
+
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(hit_anykey_str)
+    wait_anykey()
+    nv_screen_clear()
+    .eval row=0
+    nv_screen_plot_cursor(row++, 28)
+    nv_screen_print_string_basic(title_str)
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_ble16_str)
+    //////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_ble16(opSmall, opBig)
+
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_ble16_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
+
     ////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_ble16_immediate(opSmall, $0005)
@@ -130,22 +279,40 @@ opTwo: .word $0002
     print_bge16_immediate(opBig, $dead)
 
 
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(hit_anykey_str)
+    wait_anykey()
+    nv_screen_clear()
+    .eval row=0
+    nv_screen_plot_cursor(row++, 28)
+    nv_screen_print_string_basic(title_str)
 
 
-    // second column
 
-    .eval row = 1       
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_blt16_str)
+    //////////////////////////////////////////////////////////////////////////    
     
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
+    nv_screen_plot_cursor(row, 0)
     print_blt16(opTwo, opOne)
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 24)
     print_blt16(op1Beef, op2Beef)
     
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_ble16_str)
+    //////////////////////////////////////////////////////////////////////////
+
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
+    nv_screen_plot_cursor(row, 0)
     print_ble16(opSmall, opBig)
 
     ////////////////////////////
@@ -153,11 +320,21 @@ opTwo: .word $0002
     print_ble16(opBig, opSmall)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
+    nv_screen_plot_cursor(row, 0)
     print_ble16(op1Beef, op2Beef)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
+    nv_screen_plot_cursor(row,24)
+    print_ble16(op1Beef, opMax)
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_bgt16_str)
+    //////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row, 0)
     print_bgt16(opSmall, opBig)
 
     ////////////////////////////
@@ -165,11 +342,31 @@ opTwo: .word $0002
     print_bgt16(opTwo, opOne)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
+    nv_screen_plot_cursor(row, 0)
     print_bgt16(op1Beef, op2Beef)
     
     ////////////////////////////
     nv_screen_plot_cursor(row++, 24)
+    print_bgt16(opOne, opZero)
+
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(hit_anykey_str)
+    wait_anykey()
+    nv_screen_clear()
+    .eval row=0
+    nv_screen_plot_cursor(row++, 28)
+    nv_screen_print_string_basic(title_str)
+
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_bge16_str)
+    //////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////
+    nv_screen_plot_cursor(row, 0)
     print_bge16(opSmall, opBig)
 
     ////////////////////////////
@@ -177,18 +374,29 @@ opTwo: .word $0002
     print_bge16(opBig, opSmall)
 
     ////////////////////////////
-    nv_screen_plot_cursor(row++, 24)
+    nv_screen_plot_cursor(row, 0)
     print_bge16(op1Beef, op2Beef)
 
     ////////////////////////////
     nv_screen_plot_cursor(row++, 24)
-    print_cmp16(opTwo, opOne)
+    print_bge16(opZero, opMax)
 
 
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(hit_anykey_str)
+    wait_anykey()
+    nv_screen_clear()
+    .eval row=0
+    nv_screen_plot_cursor(row++, 28)
+    nv_screen_print_string_basic(title_str)
 
 
-    // back to column 1 for longer strings
-    .eval row = 17
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_adc16_str)
+    //////////////////////////////////////////////////////////////////////////
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -206,8 +414,11 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 0)
     print_adc16(opMax, opZero, result)
 
-    nv_screen_plot_cursor(20, 0)
 
+    .eval row++
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(hit_anykey_str)
+    wait_anykey()
 
     rts
 
@@ -734,4 +945,20 @@ Done:
     print_hex_word_immediate(num, true)
 
 
+}
+
+wait_counter: .byte 0
+.macro wait_anykey()
+{
+Loop:
+    ldx #10
+    stx wait_counter
+Inner:
+    nv_sprite_wait_scan()
+    dex
+    bne Inner
+
+    lda 203
+    cmp #64
+    beq Loop
 }
