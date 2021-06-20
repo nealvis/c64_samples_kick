@@ -95,6 +95,12 @@
     nv_screen_print_string_basic(temp_hex_str) 
 }
 
+.macro nv_screen_print_hex_byte_at_addr(addr, include_dollar)
+{
+    lda addr
+    nv_screen_print_hex_byte(include_dollar)
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the word value at the address of the low byte given
 .macro nv_screen_print_hex_word(word_low_byte_addr, include_dollar)
