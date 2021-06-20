@@ -13,3 +13,7 @@ hex_digit_lookup:
     .byte $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $41, $42, $43, $44, $45, $46
 
 wait_counter: .byte 0
+
+scratch_byte: .byte 0
+
+scratch_word: .word 0
