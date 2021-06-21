@@ -289,9 +289,9 @@ SetBounceAllOff:
 // Namespace with everything related to asteroid 1
 .namespace asteroid_2
 {
-        .var info = nv_sprite_info_struct("asteroid_2", 2, 150, 150, 1, -2, sprite_asteroid_2, 
+        .var info = nv_sprite_info_struct("asteroid_2", 2, 150, 150, -1, -2, sprite_asteroid_2, 
                                           sprite_extra, 1, 1, 1, 1,  
-                                          0, 0, 170, 170)
+                                          0, 0, 0, 0)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -447,8 +447,8 @@ SetBounceAllOff:
 .namespace ship_1
 {
         .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 1, sprite_ship, 
-                                          sprite_extra, 0, 0, 0, 0,  
-                                          0, 0, 0, 0)
+                                          sprite_extra, 1, 0, 1, 0,  
+                                          0, 0, 75, 0)
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
