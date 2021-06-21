@@ -33,7 +33,8 @@ equal_str: .text@" = \$00"
 title_str: .text @"MATH16\$00"          // null terminated string to print
                                         // via the BASIC routine
 title_adc16_str: .text @"TEST ADC16 \$00"
-title_adc16_8_str: .text @"TEST ADC16 8 \$00"
+title_adc16_8u_str: .text @"TEST ADC16 8U \$00"
+title_adc16_8s_str: .text @"TEST ADC16 8S \$00"
 title_adc16_immediate_str: .text @"TEST ADC16 IMMED\$00"
 
 hit_anykey_str: .text @"HIT ANY KEY ...\$00"
@@ -62,11 +63,16 @@ opHighOnes: .word $FF00
 opLowOnes: .word $00FF
 op_7FFF: .word $7FFF
 op_FFFE: .word $FFFE
+op_0080: .word $0080 // 128
+op_0081: .word $0081 // 129
 
 op8_7F: .byte $7F
 op8_FF: .byte $FF
 op8_0F: .byte $0F
 op8_F0: .byte $F0
+op8_80: .byte $80  // -128
+op8_81: .byte $81  // -127
+
 
 *=$1000 "Main Start"
 
@@ -78,7 +84,8 @@ op8_F0: .byte $F0
 
     test_adc16(0)
     test_adc16_immediate(0)
-    test_adc16_8(0)
+    test_adc16_8u(0)
+    test_adc16_8s(0)
 
     rts
 
@@ -153,87 +160,183 @@ op8_F0: .byte $F0
 
 //////////////////////////////////////////////////////////////////////////////
 //
-.macro test_adc16_8(init_row)
+.macro test_adc16_8u(init_row)
 {
     .var row = init_row
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_adc16_8_str)
+    nv_screen_print_string_basic(title_adc16_8u_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op1, op2, result)
+    print_adc16_8u(op1, op2, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opOne, opTwo, result)
+    print_adc16_8u(opOne, opTwo, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opOne, opMax, result)
+    print_adc16_8u(opOne, opMax, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opMax, opZero, result)
+    print_adc16_8u(opMax, opZero, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opOne, opMax, result)
+    print_adc16_8u(opOne, opMax, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opLowOnes, opOne, result)
+    print_adc16_8u(opLowOnes, opOne, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opLowOnes, op8_7F, result)
+    print_adc16_8u(opLowOnes, op8_7F, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opHighOnes, opMax, result)
+    print_adc16_8u(opHighOnes, opMax, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op_7FFF, opOne, result)
+    print_adc16_8u(op_7FFF, opOne, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op1Beef, op8_0F, result)
+    print_adc16_8u(op1Beef, op8_0F, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op1Beef, op8_F0, result)
+    print_adc16_8u(op1Beef, op8_F0, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opMax, op8_F0, result)
+    print_adc16_8u(opMax, op8_F0, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(opMax, op8_FF, result)
+    print_adc16_8u(opMax, op8_FF, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op_7FFF, op8_FF, result)
+    print_adc16_8u(op_7FFF, op8_FF, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op_7FFF, opOne, result)
+    print_adc16_8u(op_7FFF, opOne, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op_7FFF, opTwo, result)
+    print_adc16_8u(op_7FFF, opTwo, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op_FFFE, opTwo, result)
+    print_adc16_8u(op_FFFE, opTwo, result)
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    print_adc16_8(op_FFFE, opOne, result)
+    print_adc16_8u(op_FFFE, opOne, result)
+
+    wait_and_clear_at_row(row)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_adc16_8s(init_row)
+{
+    .var row = init_row
+    
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_adc16_8s_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op1, op2, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opOne, opTwo, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opOne, opMax, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opMax, opZero, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opOne, op8_80, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op_0080, op8_80, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op_0081, op8_80, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opLowOnes, opOne, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opLowOnes, op8_7F, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opHighOnes, opMax, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op_7FFF, opOne, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op1Beef, op8_0F, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op1Beef, op8_F0, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opMax, op8_F0, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(opMax, op8_FF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op_7FFF, op8_FF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op_7FFF, opOne, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op_7FFF, opTwo, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op_FFFE, opTwo, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_adc16_8s(op_FFFE, opOne, result)
 
     wait_and_clear_at_row(row)
 }
@@ -352,26 +455,50 @@ NoCarry:
     nv_screen_print_hex_word(result, true)
 }
 
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the specified addition at the current curor location
-// nv_adc16 us used to do the addition.  
+// nv_adc16_8u us used to do the addition.  
 // it will look like this with no carry:
-//    $2222 + $3333 = $5555
+//    $2222 + $33 = $2255
 // or look like this if there is a carry:
-//    $FFFF + $0001 = (C) $0000
-.macro print_adc16_8(op16, op8, result)
+//    $FFFF + $01 = (C) $0000
+.macro print_adc16_8u(op16, op8, result)
 {
     nv_screen_print_hex_word(op16, true)
     nv_screen_print_string_basic(plus_str)
     nv_screen_print_hex_byte_at_addr(op8, true)
     nv_screen_print_string_basic(equal_str)
 
-    nv_adc16_8(op16, op8, result)
+    nv_adc16_8unsigned(op16, op8, result)
     bcc NoCarry
     nv_screen_print_string_basic(carry_str)
 NoCarry:
     nv_screen_print_hex_word(result, true)
 }
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the specified addition at the current curor location
+// nv_adc16_8s us used to do the addition.  
+// it will look like this with no carry:
+//    $2222 + $33 = $2255
+// or look like this if there is a carry:
+//    $FFFF + $01 = (C) $0000
+.macro print_adc16_8s(op16, op8, result)
+{
+    nv_screen_print_hex_word(op16, true)
+    nv_screen_print_string_basic(plus_str)
+    nv_screen_print_hex_byte_at_addr(op8, true)
+    nv_screen_print_string_basic(equal_str)
+
+    nv_adc16_8signed(op16, op8, result)
+    bcc NoCarry
+    nv_screen_print_string_basic(carry_str)
+NoCarry:
+    nv_screen_print_hex_word(result, true)
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////////
