@@ -103,3 +103,20 @@ Op2Positive:
     adc #((num >> 8) & $00FF)
     sta result_addr+1
 }
+
+// rotate bits right in a 16 bit location in memory
+// addr is the address of the lo byte and addr+1 is the MSB
+// num is the nubmer of rotations to do.
+// zeros will be rotated in to the high bits
+// the carry flag will be set if the last rotation rotated off
+// a one from the low bit 
+.macro nv_lsr16(addr, num)
+{
+    ldy #num
+Loop:
+    clc
+    lsr addr+1
+    ror addr
+    dey
+    bne Loop
+}
