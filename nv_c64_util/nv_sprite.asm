@@ -66,7 +66,7 @@
 // struct that provides info for a sprite.  this is a construct of the assembler
 // it just provides an easy way to reference all these different compile time values.
 // No actual memory is created when an instance of the struct is created.
-.struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_addr, 
+.struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_ptr, 
                               base_addr, bounce_top, bounce_left, bounce_bottom, bounce_right,
                               top_min, left_min, bottom_max, right_max}
 
@@ -86,11 +86,11 @@
     sprite_y_addr: .byte spt_info.init_y                 // the sprite's y loc
     sprite_vel_x_addr: .byte spt_info.init_x_vel         // the sprite's x velocity in pixels
     sprite_vel_y_addr: .byte spt_info.init_y_vel         // the sprite's y velocity in pixels
-    sprite_data_block_addr_ptr: .byte spt_info.data_addr // mult by 64 to get the real 16bit addr
-    sprite_bounce_top: .byte spt_info.bounce_top   // set to 1 to bounce bottom or 0 not to
-    sprite_bounce_left: .byte spt_info.bounce_left   // set to 1 to bounce bottom or 0 not to
+    sprite_data_ptr_addr: .word spt_info.data_ptr       // 16 bit addr of sprite data
+    sprite_bounce_top: .byte spt_info.bounce_top         // set to 1 to bounce bottom or 0 not to
+    sprite_bounce_left: .byte spt_info.bounce_left       // set to 1 to bounce bottom or 0 not to
     sprite_bounce_bottom: .byte spt_info.bounce_bottom   // set to 1 to bounce bottom or 0 not to
-    sprite_bounce_right: .byte spt_info.bounce_right   // set to 1 to bounce bottom or 0 not to
+    sprite_bounce_right: .byte spt_info.bounce_right     // set to 1 to bounce bottom or 0 not to
 
     // top boundry for the sprite
     sprite_top_min_addr: .byte spt_info.top_min == 0 ? (spt_info.bounce_top == 1 ? NV_SPRITE_TOP_BOUNCE_DEFAULT : NV_SPRITE_TOP_WRAP_DEFAULT) : spt_info.top_min
@@ -116,19 +116,19 @@
 .const NV_SPRITE_Y_OFFSET = 3
 .const NV_SPRITE_VEL_X_OFFSET = 4
 .const NV_SPRITE_VEL_Y_OFFSET = 5
-.const NV_SPRITE_DATA_BLOCK_OFFSET = 6
-.const NV_SPRITE_BOUNCE_TOP_OFFSET = 7
-.const NV_SPRITE_BOUNCE_LEFT_OFFSET = 8
-.const NV_SPRITE_BOUNCE_BOTTOM_OFFSET = 9
-.const NV_SPRITE_BOUNCE_RIGHT_OFFSET = 10
+.const NV_SPRITE_DATA_PTR_OFFSET = 6
+.const NV_SPRITE_BOUNCE_TOP_OFFSET = 8
+.const NV_SPRITE_BOUNCE_LEFT_OFFSET = 9
+.const NV_SPRITE_BOUNCE_BOTTOM_OFFSET = 10
+.const NV_SPRITE_BOUNCE_RIGHT_OFFSET = 11
 
-.const NV_SPRITE_TOP_MIN_OFFSET = 11
-.const NV_SPRITE_LEFT_MIN_OFFSET = 12
-.const NV_SPRITE_BOTTOM_MAX_OFFSET = 14
-.const NV_SPRITE_RIGHT_MAX_OFFSET = 15
+.const NV_SPRITE_TOP_MIN_OFFSET = 12
+.const NV_SPRITE_LEFT_MIN_OFFSET = 13
+.const NV_SPRITE_BOTTOM_MAX_OFFSET = 15
+.const NV_SPRITE_RIGHT_MAX_OFFSET = 16
 
-.const NV_SPRITE_SCRATCH1_OFFSET = 17
-.const NV_SPRITE_SCRATCH2_OFFSET = 19
+.const NV_SPRITE_SCRATCH1_OFFSET = 18
+.const NV_SPRITE_SCRATCH2_OFFSET = 20
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -166,7 +166,7 @@
     bit sprite_data_addr + 63     // set Zero flag if the masked bits are all 0s
                                   // if any masked bits in the last byte of sprite_0 are set 
                                   // then its a multi colored sprite
-    beq skip_multicolor           // if Zero is set, ie no masked bits were set, then branch
+    beq skip_multicolor           // if its zero then, ie no masked bits were set, then branch
                                   // to skip multi color mode.
 
     // If we didn't skip the multi color, then set sprite 0 to muli color mode
@@ -207,6 +207,7 @@ skip_multicolor:
     ldx #sprite_num
     sta NV_SPRITE_0_COLOR_REG_ADDR,x   // store in color reg for this sprite  
 }
+
 
 //////////////////////////////////////////////////////////////////////////////
 // set sprite's color to the color to the immediate value specified
@@ -259,7 +260,24 @@ skip_multicolor:
 //////////////////////////////////////////////////////////////////////////////
 // Inline macro (no rts) to setup everything for a sprite so its ready to 
 // be enabled and moved.
-.macro nv_sprite_setup(sprite_num, sprite_data_addr)
+.macro nv_sprite_setup(info)
+{
+    nv_sprite_set_mode(info.num, info.data_ptr)
+    nv_sprite_set_data_ptr(info.num, info.data_ptr)
+    nv_sprite_set_color_from_data(info.num, info.data_ptr)
+}
+
+.macro nv_sprite_setup_sr(info)
+{
+    nv_sprite_setup(info)
+    rts
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro (no rts) to setup everything for a sprite so its ready to 
+// be enabled and moved.
+.macro nv_sprite_setup_old(sprite_num, sprite_data_addr)
 {
     nv_sprite_set_mode(sprite_num, sprite_data_addr)
     nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
@@ -270,9 +288,9 @@ skip_multicolor:
 //////////////////////////////////////////////////////////////////////////////
 // inline macro for subroutine (with rts) to setup everything for a sprite such 
 // that its ready to be enabled and moved
-.macro nv_sprite_setup_sr(sprite_num, sprite_data_addr)
+.macro nv_sprite_setup_old_sr(sprite_num, sprite_data_addr)
 {
-    nv_sprite_setup(sprite_num, sprite_data_addr)
+    nv_sprite_setup_old(sprite_num, sprite_data_addr)
     rts
 }
 

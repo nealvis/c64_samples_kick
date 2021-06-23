@@ -269,7 +269,10 @@ SetLocationFromExtraData:
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
-        nv_sprite_setup_sr(info.num, info.data_addr)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetupFromExtra
+        rts
 
 // move the sprite x and y location in the extra data only, not in the sprite registers
 // to move in the sprite registsers (and have screen reflect it) call the 
@@ -308,7 +311,10 @@ SetLocationFromExtraData:
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
-        nv_sprite_setup_sr(info.num, info.data_addr)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetupFromExtra
+        rts
 
 // move the sprite x and y location in the extra data only, not in the sprite registers
 // to move in the sprite registsers (and have screen reflect it) call the 
@@ -348,7 +354,10 @@ SetLocationFromExtraData:
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
-        nv_sprite_setup_sr(info.num, info.data_addr)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetupFromExtra
+        rts
 
 // move the sprite x and y location in the extra data only, not in the sprite registers
 // to move in the sprite registsers (and have screen reflect it) call the 
@@ -387,7 +396,10 @@ SetLocationFromExtraData:
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
-        nv_sprite_setup_sr(info.num, info.data_addr)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetupFromExtra
+        rts
 
 // move the sprite x and y location in the extra data only, not in the sprite registers
 // to move in the sprite registsers (and have screen reflect it) call the 
@@ -426,7 +438,10 @@ SetLocationFromExtraData:
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
-        nv_sprite_setup_sr(info.num, info.data_addr)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetupFromExtra
+        rts
 
 // move the sprite x and y location in the extra data only, not in the sprite registers
 // to move in the sprite registsers (and have screen reflect it) call the 
@@ -454,6 +469,7 @@ SetBounceAllOff:
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
         .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+        .label base_addr = info.base_addr
 
 // the extra data that goes with the sprite
 sprite_extra:
@@ -465,7 +481,10 @@ SetLocationFromExtraData:
 
 // subroutine to setup the sprite so that its ready to be enabled and displayed
 Setup:
-        nv_sprite_setup_sr(info.num, info.data_addr)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetupFromExtra
+        rts
 
 // subroutine to move the sprite in memory only (the extra data)
 // this will not update the sprite registers to actually move the sprite, but
@@ -474,3 +493,5 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 }
 
+// put the actual sprite subroutines here
+#import "../nv_c64_util/nv_sprite_sr.asm"
