@@ -29,6 +29,7 @@
 carry_str: .text @"(C) \$00"
 plus_str: .text @" + \$00"
 equal_str: .text@" = \$00"
+lsr_str: .text@" >> \$00"
 
 title_str: .text @"MATH16\$00"          // null terminated string to print
                                         // via the BASIC routine
@@ -36,6 +37,7 @@ title_adc16_str: .text @"TEST ADC16 \$00"
 title_adc16_8u_str: .text @"TEST ADC16 8U \$00"
 title_adc16_8s_str: .text @"TEST ADC16 8S \$00"
 title_adc16_immediate_str: .text @"TEST ADC16 IMMED\$00"
+title_lsr16_str: .text @"TEST LSR16 \$00"
 
 hit_anykey_str: .text @"HIT ANY KEY ...\$00"
 
@@ -65,6 +67,8 @@ op_7FFF: .word $7FFF
 op_FFFE: .word $FFFE
 op_0080: .word $0080 // 128
 op_0081: .word $0081 // 129
+op_8000: .word $8000 // high bit only set
+op_FFFF: .word $FFFF // all bits
 
 op8_7F: .byte $7F
 op8_FF: .byte $FF
@@ -72,6 +76,7 @@ op8_0F: .byte $0F
 op8_F0: .byte $F0
 op8_80: .byte $80  // -128
 op8_81: .byte $81  // -127
+
 
 
 *=$1000 "Main Start"
@@ -86,6 +91,7 @@ op8_81: .byte $81  // -127
     test_adc16_immediate(0)
     test_adc16_8u(0)
     test_adc16_8s(0)
+    test_lsr16(0)
 
     rts
 
@@ -409,6 +415,102 @@ op8_81: .byte $81  // -127
     wait_and_clear_at_row(row)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_lsr16(init_row)
+{
+    .var row = init_row
+    
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_lsr16_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 0)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 1)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 2)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 3)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 4)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 5)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 6)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 7)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 8)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 9)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 10)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 11)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 12)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 13)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 14)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 15)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_8000, 16)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_FFFF, 1)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_FFFF, 2)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_lsr16(op_FFFF, 3)
+
+
+
+}
+
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -522,3 +624,27 @@ NoCarry:
     nv_screen_print_hex_word(result, true)
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the specifiied logical shift right at the current 
+// cursor position.  nv_lsr16 will be used to do the operation.
+// it will look like this
+//   $0001 >> 3 = $0004 
+// op1 is the address of the LSB of the 16 bit number to shift
+// num_rots is the number of rotations to do
+.macro print_lsr16(op1, num_rots)
+{
+    lda op1
+    sta temp_lsr16
+    lda op1+1
+    sta temp_lsr16 + 1
+    nv_screen_print_hex_word(temp_lsr16, true)
+    nv_screen_print_string_basic(lsr_str)
+    nv_screen_print_hex_word_immediate(num_rots, true)
+    nv_screen_print_string_basic(equal_str)
+
+    nv_lsr16(temp_lsr16, num_rots)
+    nv_screen_print_hex_word(temp_lsr16, true)
+}
+
+temp_lsr16: .word 0

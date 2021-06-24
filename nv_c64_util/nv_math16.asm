@@ -104,6 +104,7 @@ Op2Positive:
     sta result_addr+1
 }
 
+//////////////////////////////////////////////////////////////////////////////
 // rotate bits right in a 16 bit location in memory
 // addr is the address of the lo byte and addr+1 is the MSB
 // num is the nubmer of rotations to do.
