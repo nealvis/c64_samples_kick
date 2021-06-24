@@ -104,6 +104,32 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
+// store accum contents to the specified offset within the extra data block
+// pointed to by ZERO_PAGE_LO and ZERO_PAGE_HI
+// Y Reg: will be changed
+// Accum: will not be changed, 
+//        but must be set to value to be written before using macro
+// X Reg: will not be changed
+.macro nv_sprite_a_to_extra(offset)
+{
+    // use indirect addressing to get the sprite number
+    ldy #offset       // load Y reg with offset to sprite number
+    sta (ZERO_PAGE_LO),y            // indirect indexed load sprite num to accum
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// store x reg contents to the specified offset within the extra data block
+// pointed to by ZERO_PAGE_LO and ZERO_PAGE_HI
+// Y Reg: will be changed
+// Accum: will be changed  
+// X Reg: set to value to be written before using macro
+.macro nv_sprite_x_to_extra(offset)
+{
+    txa
+    nv_sprite_a_to_extra(offset)
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // Sets a sprites color from the last byte in the sprite data
 // the sprite data is found by getting the address of the first byte
 // of it from the sprite's extra data.
@@ -467,6 +493,176 @@ SaveBlock:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to move a sprite based on information in the sprite extra 
+// struct (info) that is passed into the macro.  The sprite x and y location
+// in memory will be updated according to the x and y velocity.
+// Note if the sprite goes off the edge it will be reset to the opposite side
+// of the screen or bounce based on sprite extra data
+// Note that this only updates the location in memory, it doesn't update the
+// sprite location in sprite registers.  To update sprite location in registers
+// and on the screen, call nv_sprite_set_location_from_memory_sr after this.
+.macro nv_sprite_move_in_extra_sr()
+{
+    // save standard regs and memory values
+    nv_sprite_standard_save(SaveBlock)
+    
+    // load the extra pointer from accum/X reg to zero page location
+    nv_sprite_load_extra_ptr()
+
+    // get sprite Y velocity in accum and branch for pos or negative
+    nv_sprite_extra_byte_to_a(NV_SPRITE_VEL_Y_OFFSET)
+    bpl PosVelY
+NegVelY:
+    jsr NvSpriteMoveInExtraNegY
+    jmp DoneY
+PosVelY:
+    jsr NvSpriteMoveInExtraPosY
+    jmp DoneY
+
+DoneY:
+/*
+    ldx info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+    bpl PosVelY
+
+NegVelY:
+    nv_sprite_move_negative_y(info)
+    jmp DoneY
+
+PosVelY:
+    nv_sprite_move_positive_y(info)
+    
+DoneY:
+// Y location done, now on to X
+    ldx info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    bmi NegVelX
+
+PosVelX:
+// moving right (positive X velocity)
+    nv_sprite_move_positive_x(info)
+    jmp FinishedUpdate
+
+NegVelX:
+// moving left (negative X velocity)
+    nv_sprite_move_negative_x(info)
+*/
+FinishedUpdate:
+    nv_sprite_standard_restore(SaveBlock)
+    rts                // already popped the return address, jump back now
+
+SaveBlock:
+    nv_sprite_standard_alloc()
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// move sprite in negative Y direction and bounce or wrap around
+// Before calling the following must be set
+//   ZERO_PAGE_LO: must have the LSB of the address of the sprite extra data
+//   ZERO_PAGE_HI: must have the MSB of the address of the sprite extra data
+//   Accumulator: must have the sprites Y velocity which must be negative
+.macro nv_sprite_move_in_extra_neg_y_sr()
+{
+    sta velocity            // move y vel to memory
+    
+    nv_sprite_extra_byte_to_a(NV_SPRITE_TOP_MIN_OFFSET)
+    sta min_position
+
+    // get sprite Y position in accum 
+    nv_sprite_extra_byte_to_a(NV_SPRITE_Y_OFFSET)
+    clc
+    adc velocity            // add the velocity to the position
+                            // accum has potential next position
+    cmp min_position        // compare with max y position
+    bcs AccumHasNewY        // if not past max y then we are done
+    
+TooFar:
+    // new position is too far, either bounce or wrap
+    nv_sprite_extra_byte_to_a(NV_SPRITE_BOUNCE_TOP_OFFSET)
+    beq WrapY
+
+BounceY:
+    // bounce by setting y velocity to its twos compliment
+    lda #$ff
+    eor velocity 
+    sec
+    adc #$00
+    nv_sprite_a_to_extra(NV_SPRITE_VEL_Y_OFFSET)
+    jmp DoneY
+
+WrapY:
+    // wrap by setting y to min position
+    // bounce by negating y velocity
+    nv_sprite_extra_byte_to_a(NV_SPRITE_TOP_MIN_OFFSET)
+    nv_sprite_a_to_extra(NV_SPRITE_VEL_Y_OFFSET)
+    // fall through to AccumHasNewY
+
+AccumHasNewY:
+    nv_sprite_a_to_extra(NV_SPRITE_Y_OFFSET)
+
+DoneY:
+    rts
+
+// subroutine variables
+velocity: .byte 0
+min_position: .byte 0
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// move sprite in positive Y direction and bounce or wrap around
+// Before calling the following must be set
+//   ZERO_PAGE_LO: must have the LSB of the address of the sprite extra data
+//   ZERO_PAGE_HI: must have the MSB of the address of the sprite extra data
+//   Accumulator: must have the sprites Y velocity which must be positive
+.macro nv_sprite_move_in_extra_pos_y_sr()
+{
+    sta velocity            // move y vel to memory
+    
+    nv_sprite_extra_byte_to_a(NV_SPRITE_BOTTOM_MAX_OFFSET)
+    sta max_position
+
+    // get sprite Y position in accum 
+    nv_sprite_extra_byte_to_a(NV_SPRITE_Y_OFFSET)
+    clc
+    adc velocity            // add the velocity to the position
+                            // accum has potential next position
+    cmp max_position        // compare with max y position
+    bcc AccumHasNewY        // if not past max y then we are done
+
+TooFar:
+    // new position is too far, either bounce or wrap
+    nv_sprite_extra_byte_to_a(NV_SPRITE_BOUNCE_BOTTOM_OFFSET)
+    beq WrapY
+
+BounceY:
+    // bounce by setting y velocity to its twos compliment
+    lda #$ff
+    eor velocity 
+    sec
+    adc #$00
+    nv_sprite_a_to_extra(NV_SPRITE_VEL_Y_OFFSET)
+    jmp DoneY
+
+WrapY:
+    // wrap by setting y to min position
+    // bounce by negating y velocity
+    nv_sprite_extra_byte_to_a(NV_SPRITE_TOP_MIN_OFFSET)
+    nv_sprite_a_to_extra(NV_SPRITE_VEL_Y_OFFSET)
+    // fall through to AccumHasNewY
+
+AccumHasNewY:
+    nv_sprite_a_to_extra(NV_SPRITE_Y_OFFSET)
+
+DoneY:
+    rts
+
+// subroutine variables
+velocity: .byte 0
+max_position: .byte 0
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Instantiate macros that need to be instantiated below here
@@ -486,3 +682,13 @@ NvSpriteSetDataPtrFromExtra:
 
 NvSpriteSetLocationFromExtra:
     nv_sprite_set_location_from_extra_sr()
+
+NvSpriteMoveInExtra:
+    nv_sprite_move_in_extra_sr()
+
+NvSpriteMoveInExtraNegY:
+    nv_sprite_move_in_extra_neg_y_sr()
+
+NvSpriteMoveInExtraPosY:
+    nv_sprite_move_in_extra_pos_y_sr()
+

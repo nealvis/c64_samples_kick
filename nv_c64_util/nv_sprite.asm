@@ -391,11 +391,11 @@ loop:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to move a sprite based on information in the sprite tracker 
+// subroutine to move a sprite based on information in the sprite extra 
 // struct (info) that is passed into the macro.  The sprite x and y location
 // in memory will be updated according to the x and y velocity.
 // Note if the sprite goes off the edge it will be reset to the opposite side
-// of the screen.
+// of the screen or bounce based on sprite extra data
 // Note that this only updates the location in memory, it doesn't update the
 // sprite location in sprite registers.  To update sprite location in registers
 // and on the screen, call nv_sprite_set_location_from_memory_sr after this.

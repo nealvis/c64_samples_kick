@@ -507,7 +507,10 @@ Setup:
 // this will not update the sprite registers to actually move the sprite, but
 // to do that just call SetShipeLocFromMem
 MoveInExtraData:
-        nv_sprite_move_any_direction_sr(info)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteMoveInExtra
+        //nv_sprite_move_any_direction_sr(info)
 }
 
 // put the actual sprite subroutines here
