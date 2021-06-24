@@ -265,7 +265,10 @@ sprite_extra:
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
-        nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetLocationFromExtra
+        //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
@@ -307,7 +310,10 @@ sprite_extra:
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
-        nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetLocationFromExtra
+        //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
@@ -350,7 +356,10 @@ sprite_extra:
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
-        nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetLocationFromExtra
+        //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
@@ -392,7 +401,10 @@ sprite_extra:
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
-        nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetLocationFromExtra
+        //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
@@ -434,7 +446,10 @@ sprite_extra:
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
-        nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetLocationFromExtra
+        //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
 Setup:
@@ -477,7 +492,9 @@ sprite_extra:
 
 // subroutine to set the sprites location based on its address in extra block 
 SetLocationFromExtraData:
-        nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetLocationFromExtra
 
 // subroutine to setup the sprite so that its ready to be enabled and displayed
 Setup:
