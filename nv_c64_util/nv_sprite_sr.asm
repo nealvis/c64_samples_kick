@@ -104,6 +104,45 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
+// copy a 16 bit word from offset within sprite extra memory to somewhere
+// else in memory.  Assumes that the pointer to the extra data block is
+// already in ZERO_PAGE_LO and ZERO_PAGE_HI
+// macro parameters:
+//   offset: the offset within the sprite extra block of low byte of word
+//   mem_lo: the low byte of detination memory location
+// Y changes
+// A changes
+// X unchanged
+.macro nv_sprite_extra_word_to_mem(offset, mem_lo)
+{
+    nv_sprite_extra_byte_to_a(offset)
+    sta mem_lo
+    nv_sprite_extra_byte_to_a(offset+1)
+    sta mem_lo+1
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// copy a 16 bit word from memory to an offset within sprite extra block.
+// Assumes that the pointer to the extra data block is
+// already in ZERO_PAGE_LO and ZERO_PAGE_HI
+// macro parameters:
+//   mem_lo: the LSB of source memory location to copy to the extra block
+//   offset: the offset of LSB to of the destination word to write within 
+//           the sprite extra block 
+// Y changes
+// A changes
+// X unchanged
+.macro nv_sprite_mem_word_to_extra(mem_lo, offset)
+{
+    lda mem_lo
+    nv_sprite_a_to_extra(offset)
+    lda mem_lo+1
+    nv_sprite_a_to_extra(offset+1)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
 // store accum contents to the specified offset within the extra data block
 // pointed to by ZERO_PAGE_LO and ZERO_PAGE_HI
 // Y Reg: will be changed
@@ -521,31 +560,23 @@ PosVelY:
     jmp DoneY
 
 DoneY:
-/*
-    ldx info.base_addr + NV_SPRITE_VEL_Y_OFFSET
-    bpl PosVelY
+    // Y location done, now on to X
 
-NegVelY:
-    nv_sprite_move_negative_y(info)
-    jmp DoneY
-
-PosVelY:
-    nv_sprite_move_positive_y(info)
-    
-DoneY:
-// Y location done, now on to X
-    ldx info.base_addr + NV_SPRITE_VEL_X_OFFSET
-    bmi NegVelX
-
-PosVelX:
-// moving right (positive X velocity)
-    nv_sprite_move_positive_x(info)
-    jmp FinishedUpdate
+    // get sprite x velocity in accum and branch for pos or negative
+    nv_sprite_extra_byte_to_a(NV_SPRITE_VEL_X_OFFSET)
+    bpl PosVelX
 
 NegVelX:
-// moving left (negative X velocity)
-    nv_sprite_move_negative_x(info)
-*/
+    jsr NvSpriteMoveInExtraNegX
+    jmp DoneX
+
+PosVelX:
+    jsr NvSpriteMoveInExtraPosX
+    //jmp DoneX
+
+DoneX:
+
+
 FinishedUpdate:
     nv_sprite_standard_restore(SaveBlock)
     rts                // already popped the return address, jump back now
@@ -554,6 +585,121 @@ SaveBlock:
     nv_sprite_standard_alloc()
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// move sprite in positive X direction and bounce or wrap around
+// Before calling the following must be set
+//   ZERO_PAGE_LO: must have the LSB of the address of the sprite extra data
+//   ZERO_PAGE_HI: must have the MSB of the address of the sprite extra data
+//   Accumulator: must have the sprites X velocity which must be positive
+.macro nv_sprite_move_in_extra_pos_x_sr()
+{
+    sta velocity            // move x vel to memory
+    
+    nv_sprite_extra_word_to_mem(NV_SPRITE_RIGHT_MAX_OFFSET, max_x)
+
+    nv_sprite_extra_byte_to_a(NV_SPRITE_VEL_X_OFFSET)
+    sta velocity
+
+    nv_sprite_extra_word_to_mem(NV_SPRITE_X_OFFSET, cur_x)
+
+    nv_adc16_8signed(cur_x, velocity, potential_new_x)
+
+    // potential_new_x has the new x if not bouncing or wrapping
+    nv_ble16(potential_new_x, max_x, UsePotentialX)
+
+TooFar:
+    // if didn't branch above then trying to move too far.  Need
+    // to bounce or wrap to the other side
+    nv_sprite_extra_byte_to_a(NV_SPRITE_BOUNCE_RIGHT_OFFSET)
+    beq WrapX
+
+BounceX:
+    // didn't branch so bounce by setting X vel to twos compliement
+    lda #$ff
+    eor velocity 
+    sec
+    adc #$00
+    nv_sprite_a_to_extra(NV_SPRITE_VEL_X_OFFSET)
+    jmp DoneX
+
+WrapX:
+    // wrap by setting x to min position
+    nv_sprite_extra_word_to_mem(NV_SPRITE_LEFT_MIN_OFFSET, potential_new_x)
+    // fall through to UsePotentialX
+
+UsePotentialX:
+    nv_sprite_mem_word_to_extra(potential_new_x, NV_SPRITE_X_OFFSET)
+
+DoneX:
+    rts
+
+// subroutine variables
+velocity: .byte 0
+potential_new_x: .word 0
+cur_x: .word 0
+max_x: .word 0
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// move sprite in negative X direction and bounce or wrap around
+// Before calling the following must be set
+//   ZERO_PAGE_LO: must have the LSB of the address of the sprite extra data
+//   ZERO_PAGE_HI: must have the MSB of the address of the sprite extra data
+//   Accumulator: must have the sprites X velocity which must be positive
+.macro nv_sprite_move_in_extra_neg_x_sr()
+{
+    sta velocity            // move x vel to memory
+    
+    nv_sprite_extra_word_to_mem(NV_SPRITE_LEFT_MIN_OFFSET, min_x)
+    nv_sprite_extra_word_to_mem(NV_SPRITE_RIGHT_MAX_OFFSET, max_x)
+
+    nv_sprite_extra_byte_to_a(NV_SPRITE_VEL_X_OFFSET)
+    sta velocity
+
+    nv_sprite_extra_word_to_mem(NV_SPRITE_X_OFFSET, cur_x)
+
+    nv_adc16_8signed(cur_x, velocity, potential_new_x)
+
+    // potential_new_x has the new x if not off left edge
+
+    nv_bgt16(potential_new_x, max_x, TooFar)
+    nv_bgt16(potential_new_x, min_x, UsePotentialX)
+
+TooFar:
+    // if didn't branch above then trying to move too far.  Need
+    // to bounce or wrap to the other side
+    nv_sprite_extra_byte_to_a(NV_SPRITE_BOUNCE_LEFT_OFFSET)
+    beq WrapX
+
+BounceX:
+    // didn't branch above, so bounce by setting X vel to twos compliement
+    lda #$ff
+    eor velocity 
+    sec
+    adc #$00
+    nv_sprite_a_to_extra(NV_SPRITE_VEL_X_OFFSET)
+    jmp DoneX
+
+WrapX:
+    // wrap by setting x to max position
+    nv_sprite_extra_word_to_mem(NV_SPRITE_RIGHT_MAX_OFFSET, potential_new_x)
+    // fall through to UsePotentialX
+
+UsePotentialX:
+    nv_sprite_mem_word_to_extra(potential_new_x, NV_SPRITE_X_OFFSET)
+
+DoneX:
+    rts
+
+// subroutine variables
+velocity: .byte 0
+potential_new_x: .word 0
+cur_x: .word 0
+min_x: .word 0
+max_x: .word 0
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // move sprite in negative Y direction and bounce or wrap around
@@ -593,8 +739,8 @@ BounceY:
 WrapY:
     // wrap by setting y to min position
     // bounce by negating y velocity
-    nv_sprite_extra_byte_to_a(NV_SPRITE_TOP_MIN_OFFSET)
-    nv_sprite_a_to_extra(NV_SPRITE_VEL_Y_OFFSET)
+    nv_sprite_extra_byte_to_a(NV_SPRITE_BOTTOM_MAX_OFFSET)
+    nv_sprite_a_to_extra(NV_SPRITE_Y_OFFSET)
     // fall through to AccumHasNewY
 
 AccumHasNewY:
@@ -648,7 +794,7 @@ WrapY:
     // wrap by setting y to min position
     // bounce by negating y velocity
     nv_sprite_extra_byte_to_a(NV_SPRITE_TOP_MIN_OFFSET)
-    nv_sprite_a_to_extra(NV_SPRITE_VEL_Y_OFFSET)
+    nv_sprite_a_to_extra(NV_SPRITE_Y_OFFSET)
     // fall through to AccumHasNewY
 
 AccumHasNewY:
@@ -692,3 +838,8 @@ NvSpriteMoveInExtraNegY:
 NvSpriteMoveInExtraPosY:
     nv_sprite_move_in_extra_pos_y_sr()
 
+NvSpriteMoveInExtraNegX:
+    nv_sprite_move_in_extra_neg_x_sr()
+
+NvSpriteMoveInExtraPosX:
+    nv_sprite_move_in_extra_pos_x_sr()

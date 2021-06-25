@@ -169,7 +169,6 @@ InnerLoop:
         jsr ship_1.MoveInExtraData
         jsr ship_1.SetLocationFromExtraData
 
-
         //// call routine to move asteroid based on x and y velocity
         jsr asteroid_1.MoveInExtraData
         jsr asteroid_1.SetLocationFromExtraData
@@ -251,8 +250,9 @@ SetColor:
 .namespace asteroid_1
 {
         .var info = nv_sprite_info_struct("asteroid_1", 1, 30, 80, -1, 0, sprite_asteroid_1, 
-                                          sprite_extra, 1, 1, 1, 1,  
-                                          0, 0, 0, 0)
+                                          sprite_extra, 
+                                          1, 1, 1, 1, // bounce on top, left, bottom, right  
+                                          0, 0, 0, 0) // min/max top, left, bottom, right
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -268,6 +268,7 @@ SetLocationFromExtraData:
         lda #>info.base_addr
         ldx #<info.base_addr
         jsr NvSpriteSetLocationFromExtra
+        rts
         //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
@@ -281,7 +282,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        nv_sprite_move_any_direction_sr(info)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteMoveInExtra
+        rts
+//        nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -292,12 +297,13 @@ SetBounceAllOff:
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Namespace with everything related to asteroid 1
+// Namespace with everything related to asteroid 2
 .namespace asteroid_2
 {
         .var info = nv_sprite_info_struct("asteroid_2", 2, 150, 150, -1, -2, sprite_asteroid_2, 
-                                          sprite_extra, 1, 1, 1, 1,  
-                                          0, 0, 0, 0)
+                                          sprite_extra, 
+                                          1, 1, 1, 1, // bounce on top, left, bottom, right  
+                                          0, 0, 0, 0) // min/max top, left, bottom, right
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -313,6 +319,7 @@ SetLocationFromExtraData:
         lda #>info.base_addr
         ldx #<info.base_addr
         jsr NvSpriteSetLocationFromExtra
+        rts
         //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
@@ -326,7 +333,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        nv_sprite_move_any_direction_sr(info)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteMoveInExtra
+        rts
+//        nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -338,12 +349,13 @@ SetBounceAllOff:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Namespace with everything related to asteroid 1
+// Namespace with everything related to asteroid 3
 .namespace asteroid_3
 {
         .var info = nv_sprite_info_struct("asteroid_3", 3, 75, 75, 2, -3, sprite_asteroid_3, 
-                                          sprite_extra, 1, 1, 1, 1,  
-                                          0, 0, 0, 0)
+                                          sprite_extra, 
+                                          1, 1, 1, 1, // bounce on top, left, bottom, right  
+                                          0, 0, 0, 0) // min/max top, left, bottom, right
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -359,6 +371,7 @@ SetLocationFromExtraData:
         lda #>info.base_addr
         ldx #<info.base_addr
         jsr NvSpriteSetLocationFromExtra
+        rts
         //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
@@ -372,7 +385,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        nv_sprite_move_any_direction_sr(info)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteMoveInExtra
+        rts
+        //nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -383,12 +400,13 @@ SetBounceAllOff:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Namespace with everything related to asteroid 1
+// Namespace with everything related to asteroid 4
 .namespace asteroid_4
 {
         .var info = nv_sprite_info_struct("asteroid_4", 4, 255, 75, 1, 1, sprite_asteroid_4, 
-                                          sprite_extra, 0, 0, 0, 0,  
-                                          0, 0, 0, 0)
+                                          sprite_extra, 
+                                          0, 0, 0, 0, // bounce on top, left, bottom, right  
+                                          0, 0, 0, 0) // min/max top, left, bottom, right
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -404,6 +422,7 @@ SetLocationFromExtraData:
         lda #>info.base_addr
         ldx #<info.base_addr
         jsr NvSpriteSetLocationFromExtra
+        rts
         //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
@@ -417,7 +436,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        nv_sprite_move_any_direction_sr(info)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteMoveInExtra
+        rts
+        //nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -428,12 +451,13 @@ SetBounceAllOff:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Namespace with everything related to asteroid 1
+// Namespace with everything related to asteroid 5
 .namespace asteroid_5
 {
-        .var info = nv_sprite_info_struct("asteroid_5", 5, 85, 76, -2, -2, sprite_asteroid_5, 
-                                          sprite_extra, 0, 0, 0, 0,  
-                                          0, 0, 0, 0)
+        .var info = nv_sprite_info_struct("asteroid_5", 5, 85, 76, -2, -1, sprite_asteroid_5, 
+                                          sprite_extra, 
+                                          0, 0, 0, 0, // bounce on top, left, bottom, right  
+                                          0, 0, 0, 0) // min/max top, left, bottom, right
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -449,6 +473,7 @@ SetLocationFromExtraData:
         lda #>info.base_addr
         ldx #<info.base_addr
         jsr NvSpriteSetLocationFromExtra
+        rts
         //nv_sprite_set_location_from_memory_sr(info.num, info.base_addr+NV_SPRITE_X_OFFSET, info.base_addr+NV_SPRITE_Y_OFFSET)
 
 // setup sprite so that it ready to be enabled and displayed
@@ -462,7 +487,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        nv_sprite_move_any_direction_sr(info)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteMoveInExtra
+        //nv_sprite_move_any_direction_sr(info)
+        rts
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -477,8 +506,9 @@ SetBounceAllOff:
 .namespace ship_1
 {
         .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 1, sprite_ship, 
-                                          sprite_extra, 1, 0, 1, 0,  
-                                          0, 0, 75, 0)
+                                          sprite_extra, 
+                                          1, 0, 1, 0, // bounce on top, left, bottom, right  
+                                          0, 0, 75, 0) // min/max top, left, bottom, right
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -495,6 +525,7 @@ SetLocationFromExtraData:
         lda #>info.base_addr
         ldx #<info.base_addr
         jsr NvSpriteSetLocationFromExtra
+        rts
 
 // subroutine to setup the sprite so that its ready to be enabled and displayed
 Setup:
@@ -511,6 +542,7 @@ MoveInExtraData:
         ldx #<info.base_addr
         jsr NvSpriteMoveInExtra
         //nv_sprite_move_any_direction_sr(info)
+        rts
 }
 
 // put the actual sprite subroutines here
