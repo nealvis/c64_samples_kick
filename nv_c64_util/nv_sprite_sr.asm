@@ -6,13 +6,9 @@
 #importonce
 
 #import "nv_sprite.asm"
+#import "nv_sprite_extra.asm"
 #import "nv_util_data.asm"
 #import "nv_math16.asm"
-
-// zero page pointer to use whenever a zero page pointer is needed
-// usually used to store and load to and from the sprite extra pointer
-.const ZERO_PAGE_LO = $FB
-.const ZERO_PAGE_HI = $FC
 
 .macro nv_sprite_load_extra_ptr()
 {
@@ -25,148 +21,6 @@
     sta ZERO_PAGE_HI   // store hi byte of addr of caller's param block 
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// move the sprite's data pointer to the zero page for some indirection
-// assume that when this macro is used that the address of the sprite's 
-// extra data is in ZERO_PAGE_LO and ZERO_PAGE_HI already.
-// after this macro is executed the ZERO_PAGE_LO and ZERO_PAGE_HI 
-// will contain the address of the sprite's data (the 64 bytes that
-// define the sprite's shape and color)
-.macro nv_sprite_data_ptr_to_zero_page()
-{
-    // use indirect addressing to get the sprite number
-    ldy #NV_SPRITE_NUM_OFFSET       // load Y reg with offset to sprite number
-    lda (ZERO_PAGE_LO),y            // indirect indexed load sprite num to accum
-    tax                             // keep sprite number in X reg
-    
-    ldy #NV_SPRITE_DATA_PTR_OFFSET
-    lda (ZERO_PAGE_LO), y           // get low byte of data ptr in accum
-    sta scratch_word                // store in LSB of scratch_word
-
-    iny                             // inc y for high byte of data ptr
-    lda (ZERO_PAGE_LO), y           // get MSB of data ptr in accum
-    sta scratch_word+1              // store in MSB of scratch_word
-    
-    //scratch_word now has the data ptr in it
-
-    // store sprite data pointer in scratch word
-    lda scratch_word
-    sta ZERO_PAGE_LO
-
-    lda scratch_word+1
-    sta ZERO_PAGE_HI
-
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to get a byte from the sprite extra data bloc assuming
-// that the pointer to the extra data block is already in ZERO_PAGE_LO
-// and ZERO_PAGE_HI.  byte from the extra data will be put in Accumulator
-// macro parameters:
-//  offset: is the byte offset within the extra data block for the byte
-//          to get. 
-// Y will be changed,
-// X not changed
-// A will contain the bye from the extra data 
-.macro nv_sprite_extra_byte_to_a(offset)
-{
-    // use indirect addressing to get the sprite number
-    ldy #offset       // load Y reg with offset to sprite number
-    lda (ZERO_PAGE_LO),y            // indirect indexed load sprite num to accum
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to get a byte from the sprite extra data bloc assuming
-// that the pointer to the extra data block is already in ZERO_PAGE_LO
-// and ZERO_PAGE_HI.  Byte from the extra data will be put in X register
-// macro parameters:
-//  offset: is the byte offset within the extra data block for the byte
-//          to get.  
-.macro nv_sprite_extra_byte_to_x(offset)
-{
-    nv_sprite_extra_byte_to_a(offset)
-    tax
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to get a byte from the sprite extra data bloc assuming
-// that the pointer to the extra data block is already in ZERO_PAGE_LO
-// and ZERO_PAGE_HI.  Byte from the extra data will be put in Y register
-// macro parameters:
-//  offset: is the byte offset within the extra data block for the byte
-//          to get.  
-.macro nv_sprite_extra_byte_to_y(offset)
-{
-    nv_sprite_extra_byte_to_a(offset)
-    tay
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// copy a 16 bit word from offset within sprite extra memory to somewhere
-// else in memory.  Assumes that the pointer to the extra data block is
-// already in ZERO_PAGE_LO and ZERO_PAGE_HI
-// macro parameters:
-//   offset: the offset within the sprite extra block of low byte of word
-//   mem_lo: the low byte of detination memory location
-// Y changes
-// A changes
-// X unchanged
-.macro nv_sprite_extra_word_to_mem(offset, mem_lo)
-{
-    nv_sprite_extra_byte_to_a(offset)
-    sta mem_lo
-    nv_sprite_extra_byte_to_a(offset+1)
-    sta mem_lo+1
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// copy a 16 bit word from memory to an offset within sprite extra block.
-// Assumes that the pointer to the extra data block is
-// already in ZERO_PAGE_LO and ZERO_PAGE_HI
-// macro parameters:
-//   mem_lo: the LSB of source memory location to copy to the extra block
-//   offset: the offset of LSB to of the destination word to write within 
-//           the sprite extra block 
-// Y changes
-// A changes
-// X unchanged
-.macro nv_sprite_mem_word_to_extra(mem_lo, offset)
-{
-    lda mem_lo
-    nv_sprite_a_to_extra(offset)
-    lda mem_lo+1
-    nv_sprite_a_to_extra(offset+1)
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// store accum contents to the specified offset within the extra data block
-// pointed to by ZERO_PAGE_LO and ZERO_PAGE_HI
-// Y Reg: will be changed
-// Accum: will not be changed, 
-//        but must be set to value to be written before using macro
-// X Reg: will not be changed
-.macro nv_sprite_a_to_extra(offset)
-{
-    // use indirect addressing to get the sprite number
-    ldy #offset       // load Y reg with offset to sprite number
-    sta (ZERO_PAGE_LO),y            // indirect indexed load sprite num to accum
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// store x reg contents to the specified offset within the extra data block
-// pointed to by ZERO_PAGE_LO and ZERO_PAGE_HI
-// Y Reg: will be changed
-// Accum: will be changed  
-// X Reg: set to value to be written before using macro
-.macro nv_sprite_x_to_extra(offset)
-{
-    txa
-    nv_sprite_a_to_extra(offset)
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // Sets a sprites color from the last byte in the sprite data
@@ -182,18 +36,13 @@
     // load ZERO_PAGE_LO and ZERO_PAGE_HI with addr of sprite extra data
     nv_sprite_load_extra_ptr()
 
-    // use indirect addressing to get the sprite number
-    ldy #NV_SPRITE_NUM_OFFSET       // load Y reg with offset to sprite number
-    lda (ZERO_PAGE_LO),y            // indirect indexed load sprite num to accum
-    tax                             // keep sprite number in X reg
+    // get the sprite number in X reg
+    nv_sprite_extra_byte_to_x(NV_SPRITE_NUM_OFFSET)
+    //ldy #NV_SPRITE_NUM_OFFSET       // load Y reg with offset to sprite number
+    //lda (ZERO_PAGE_LO),y            // indirect indexed load sprite num to accum
+    //tax                             // keep sprite number in X reg
     
-    ldy #NV_SPRITE_DATA_PTR_OFFSET
-    lda (ZERO_PAGE_LO), y           // get low byte of data ptr in accum
-    sta scratch_word                // store in LSB of scratch_word
-
-    iny                             // inc y for high byte of data ptr
-    lda (ZERO_PAGE_LO), y           // get MSB of data ptr in accum
-    sta scratch_word+1              // store in MSB of scratch_word
+    nv_sprite_extra_word_to_mem(NV_SPRITE_DATA_PTR_OFFSET, scratch_word)
     
     //scratch_word now has the data ptr in it
 
@@ -235,18 +84,13 @@ SaveBlock:
     // load ZERO_PAGE_LO and ZERO_PAGE_HI with addr of sprite extra data
     nv_sprite_load_extra_ptr()
 
-    // use indirect addressing to get the sprite number
-    ldy #NV_SPRITE_NUM_OFFSET       // load Y reg with offset to sprite number
-    lda (ZERO_PAGE_LO),y            // indirect indexed load sprite num to accum
-    tax
-    lda #0
-    sec
- Loop:
-    rol                             // rotate until we get to our sprite's bit
-    dex
-    bpl Loop
-    pha                             // keep mask on stack
+    // get the sprite number in X reg then mask for it in Accum
+    nv_sprite_extra_byte_to_x(NV_SPRITE_NUM_OFFSET)
+    nv_sprite_get_mask_in_a()
+    pha                             // push mask on to stack
 
+    // replace zero page pointer that was pointing to extra block to 
+    // instead point to the 64 bytes of sprite data
     nv_sprite_data_ptr_to_zero_page()
 
     // our zero page pointer now points to the sprite data
@@ -290,9 +134,11 @@ SaveBlock:
 
 
 //////////////////////////////////////////////////////////////////////////////
+// Set the sprite hardware register for the sprite data "pointer" 
+// for a specific sprite (0-7)
 // To call subroutine setup the following then JSR
-// Accum: MSB of address of nv_sprite_extra_data
-// X Reg: LSB of address of the nv_sprite_extra_data
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 .macro nv_sprite_set_data_ptr_from_extra_sr()
 {   
     nv_sprite_standard_save(SaveBlock)
@@ -300,13 +146,8 @@ SaveBlock:
     // load ZERO_PAGE_LO and ZERO_PAGE_HI with addr of sprite extra data
     nv_sprite_load_extra_ptr()
 
-    ldy #NV_SPRITE_DATA_PTR_OFFSET
-    lda (ZERO_PAGE_LO), y           // get low byte of data ptr in accum
-    sta scratch_word                // store in LSB of scratch_word
-
-    iny                             // inc y for high byte of data ptr
-    lda (ZERO_PAGE_LO), y           // get MSB of data ptr in accum
-    sta scratch_word+1              // store in MSB of scratch_word
+    // copy sprite data pointer to scratch_word
+    nv_sprite_extra_word_to_mem(NV_SPRITE_DATA_PTR_OFFSET, scratch_word)
     
     //scratch_word now has the data ptr in it
     nv_lsr16(scratch_word, 6)       // dividing by 64 (more or less)
@@ -315,13 +156,11 @@ SaveBlock:
                                     // the posible remaining 2 high bits
                                     // are ignored.
  
-     // use indirect addressing to get the sprite number
-    ldy #NV_SPRITE_NUM_OFFSET       // load Y reg with offset to sprite number
-    lda (ZERO_PAGE_LO),y            // indirect indexed load sprite num to accum
-    tax                             // move sprite number to X reg
+     // get the sprite number in X reg
+     nv_sprite_extra_byte_to_x(NV_SPRITE_NUM_OFFSET)
 
-    lda scratch_word                // implied this is multiplied by 64 by system
-    sta NV_SPRITE_0_DATA_PTR_ADDR,x         // store in ptr for this sprite
+    lda scratch_word                  // implied this is multiplied by 64 by system
+    sta NV_SPRITE_0_DATA_PTR_ADDR,x   // store in ptr for this sprite
 
     nv_sprite_standard_restore(SaveBlock)
     rts
@@ -419,21 +258,15 @@ SaveBlock:
 {
     sta save_hi
     stx save_lo
-    //nv_sprite_push_extra_ptr()
     jsr NvSpriteSetModeFromExtra
-    //nv_sprite_pop_extra_ptr()
 
     lda save_hi
     ldx save_lo
-    //nv_sprite_push_extra_ptr()
     jsr NvSpriteSetDataPtrFromExtra
-    //nv_sprite_pop_extra_ptr()
     
     lda save_hi
     ldx save_lo
-    //nv_sprite_push_extra_ptr()
     jsr NvSpriteSetColorFromExtra
-    //nv_sprite_pop_extra_ptr()
 
     rts
 

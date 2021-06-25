@@ -7,6 +7,12 @@
 #import "nv_math16.asm"
 #import "nv_branch16.asm"
 
+
+// zero page pointer to use whenever a zero page pointer is needed
+// usually used to store and load to and from the sprite extra pointer
+.const ZERO_PAGE_LO = $FB
+.const ZERO_PAGE_HI = $FC
+
 .const NV_SPRITE_ENABLE_REG_ADDR = $d015 // each bit turns on one of the sprites lsb is sprite 0, msb is sprite 7
 .const NV_SPRITE_COLOR_1_ADDR = $D025 // address of color for sprite bits that are binary 01
 .const NV_SPRITE_COLOR_2_ADDR = $D026 // address of color for sprite bits that are binary 11
