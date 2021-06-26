@@ -282,11 +282,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-//        nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -333,11 +333,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-//        nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -385,11 +385,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -436,11 +436,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -487,11 +487,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        //nv_sprite_move_any_direction_sr(info)
-        rts
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 SetBounceAllOn:
         nv_sprite_set_bounce_all_sr(info, 1)
@@ -541,8 +541,9 @@ MoveInExtraData:
         lda #>info.base_addr
         ldx #<info.base_addr
         jsr NvSpriteMoveInExtra
-        //nv_sprite_move_any_direction_sr(info)
         rts
+        //nv_sprite_move_any_direction_sr(info)
+        
 }
 
 // put the actual sprite subroutines here
