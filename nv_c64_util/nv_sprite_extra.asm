@@ -186,10 +186,19 @@
     .return info.base_addr + NV_SPRITE_BOTTOM_MAX_OFFSET
 }
 
-.function nv_sprite_right_max_addr(info)
+//.function nv_sprite_right_max_addr(info)
+//{
+//    .return nv_sprite_right_max_lsb_addr(info)
+//}
+.function nv_sprite_right_max_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET
 }
+.function nv_sprite_right_max_msb_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET+1
+}
+
 
 .function nv_sprite_scratch1_word_addr(info)
 {

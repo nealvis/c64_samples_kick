@@ -311,7 +311,6 @@ loop:
 // and on the screen, call nv_sprite_set_location_from_memory_sr after this.
 .macro nv_sprite_move_any_direction_sr(info)
 {
-    //ldx info.base_addr + NV_SPRITE_VEL_Y_OFFSET
     ldx nv_sprite_vel_y_addr(info)
     bpl PosVelY
 
@@ -324,7 +323,6 @@ PosVelY:
     
 DoneY:
 // Y location done, now on to X
-    //ldx info.base_addr + NV_SPRITE_VEL_X_OFFSET
     ldx nv_sprite_vel_x_addr(info)
     bmi NegVelX
 
@@ -346,28 +344,22 @@ FinishedUpdate:
 .macro nv_sprite_move_positive_y(info)
 {
     
-    //lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET         // velocity in accum
     lda nv_sprite_vel_y_addr(info)
 
-    //ldx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
     ldx nv_sprite_bottom_action_addr(info)
     beq DoWrap                                          // 0 = wrap, 1 = bounce
 
 DoBounce:   
     clc
-    //adc info.base_addr + NV_SPRITE_Y_OFFSET          // add vel to location
     adc nv_sprite_y_addr(info)
 
-    //cmp info.base_addr + NV_SPRITE_BOTTOM_MAX_OFFSET // check if past bounce loc
     cmp nv_sprite_bottom_max_addr(info)
     bcc AccumHasNewY
     // reverse the y velocity here to do that we do bitwise not + 1 (twos comp)
     lda #$FF
-    //eor info.base_addr+NV_SPRITE_VEL_Y_OFFSET
     eor nv_sprite_vel_y_addr(info)
     tax
     inx
-    //stx info.base_addr+NV_SPRITE_VEL_Y_OFFSET
     stx nv_sprite_vel_y_addr(info)
     jmp DoneY                                       // don't actually update y
                                                     // when bouncing
@@ -375,17 +367,13 @@ DoBounce:
 // bounce bottom flag not set, Don't need to check for bounce
 DoWrap:
     clc
-    // adc info.base_addr + NV_SPRITE_Y_OFFSET           // add velocity to location
     adc nv_sprite_y_addr(info)
-    // cmp info.base_addr + NV_SPRITE_BOTTOM_MAX_OFFSET  // compare with the bottom of screen
     cmp nv_sprite_bottom_max_addr(info)
     bcc AccumHasNewY                                  // if not off bottome then just update
 
 // wrap to top of screen
-    // lda info.base_addr + NV_SPRITE_TOP_MIN_OFFSET     // off the bottom, so wrap to top of screen 
     lda nv_sprite_top_min_addr(info)
 AccumHasNewY:
-    // sta info.base_addr + NV_SPRITE_Y_OFFSET
     sta nv_sprite_y_addr(info)
 DoneY:
 }
@@ -395,27 +383,21 @@ DoneY:
 //
 .macro nv_sprite_move_negative_y(info)
 {
-    //lda info.base_addr + NV_SPRITE_VEL_Y_OFFSET       // load y vel to accum
     lda nv_sprite_vel_y_addr(info)                    // load y vel to accum
 
-    //ldx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
     ldx nv_sprite_top_action_addr(info)               // load x with top action
     beq DoWrap                                        // 0 = wrap, 1 = bounce
 
 DoBounce:
     clc
-    //adc info.base_addr + NV_SPRITE_Y_OFFSET
     adc nv_sprite_y_addr(info)
-    //cmp info.base_addr + NV_SPRITE_TOP_MIN_OFFSET
     cmp nv_sprite_top_min_addr(info)
     bcs AccumHasNewY
     // reverse the y velocity here to do that we do bitwise not + 1
     lda #$FF
-    //eor info.base_addr+NV_SPRITE_VEL_Y_OFFSET
     eor nv_sprite_vel_y_addr(info)
     tax
     inx
-    //stx info.base_addr+NV_SPRITE_VEL_Y_OFFSET
     stx nv_sprite_vel_y_addr(info)
     jmp DoneY                                        // don't update Y loc
 
@@ -423,18 +405,14 @@ DoWrap:
 
     // wrap to other side of screen
     clc
-    //adc info.base_addr + NV_SPRITE_Y_OFFSET
     adc nv_sprite_y_addr(info)
-    //cmp info.base_addr + NV_SPRITE_TOP_MIN_OFFSET
     cmp nv_sprite_top_min_addr(info)
     bcs AccumHasNewY              // branch if accum > min top
 
     // sprite is less than min top so need to move it to bottom
-    //lda info.base_addr + NV_SPRITE_BOTTOM_MAX_OFFSET
     lda nv_sprite_bottom_max_addr(info)
 
 AccumHasNewY:
-    //sta info.base_addr + NV_SPRITE_Y_OFFSET
     sta nv_sprite_y_addr(info)
 DoneY:
 }
@@ -445,44 +423,86 @@ DoneY:
 .macro nv_sprite_move_positive_x(info)
 {
     // add x offset + x velocity and put in scratch1
-    //nv_adc16_8((info.base_addr + NV_SPRITE_X_OFFSET), 
-    //         (info.base_addr + NV_SPRITE_VEL_X_OFFSET), 
-    //         (info.base_addr + NV_SPRITE_SCRATCH1_OFFSET))
     nv_adc16_8((nv_sprite_x_addr(info)), 
                (nv_sprite_vel_x_addr(info)), 
                (nv_sprite_scratch1_word_addr(info)))
 
 
     // scratch1 now has potential new X location
-    //nv_ble16(info.base_addr + NV_SPRITE_SCRATCH1_OFFSET, info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET, NewLocInScratch1)
-    nv_ble16(nv_sprite_scratch1_word_addr(info), nv_sprite_right_max_addr(info), NewLocInScratch1)
+    nv_ble16(nv_sprite_scratch1_word_lsb_addr(info), nv_sprite_right_max_lsb_addr(info), NewLocInScratch1)
 
     // New X is too far since didn't branch above
-    //ldx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
     ldx nv_sprite_right_action_addr(info)
     beq DoWrap                                              // 0 = wrap, 1 = bounce
 
 DoBounce:
     // bounce off right side by changing vel to 2's compliment of vel
     lda #$FF
-    //eor info.base_addr+NV_SPRITE_VEL_X_OFFSET
     eor nv_sprite_vel_x_addr(info)
     tax
     inx
-    //stx info.base_addr+NV_SPRITE_VEL_X_OFFSET
     stx nv_sprite_vel_x_addr(info)
     jmp Done
 
 DoWrap:
     // this sprite not set to bounce, so wrap it around
-    //lda info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET
     lda nv_sprite_left_min_addr(info)
+    sta nv_sprite_x_addr(info)
+    lda nv_sprite_left_min_addr(info)
+    sta nv_sprite_x_addr(info)
+    jmp Done
+
+NewLocInScratch1:
+    lda nv_sprite_scratch1_word_lsb_addr(info)
+    sta nv_sprite_x_lsb_addr(info)
+    lda nv_sprite_scratch1_word_msb_addr(info)
+    sta nv_sprite_x_msb_addr(info)
+Done:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_negative_x(info)
+{
+    // add x offset + x velocity and put in scratch1
+    //nv_adc16_8signed((info.base_addr + NV_SPRITE_X_OFFSET), 
+    //                 (info.base_addr + NV_SPRITE_VEL_X_OFFSET), 
+    //                 (info.base_addr + NV_SPRITE_SCRATCH1_OFFSET))
+    nv_adc16_8signed((nv_sprite_x_addr(info)), 
+                     (nv_sprite_vel_x_addr(info)), 
+                     (nv_sprite_scratch1_word_lsb_addr(info)))
+
+    // scratch1 now has potential new X location
+    //nv_bgt16(info.base_addr + NV_SPRITE_SCRATCH1_OFFSET, info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET, NewLocInScratch1)
+    nv_bgt16(nv_sprite_scratch1_word_lsb_addr(info), nv_sprite_left_min_addr(info), NewLocInScratch1)
+
+    // moved too far left, either bounce or wrap
+    //ldx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
+    ldx nv_sprite_left_action_addr(info)
+    beq DoWrap
+
+DoBounce:
+// Bounce here, went off left side.  Change vel to 2's compliment of vel
+    lda #$FF
+    //eor info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    eor nv_sprite_vel_x_addr(info)
+    tax
+    inx
+    //stx info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    stx nv_sprite_vel_x_addr(info)
+    jmp Done    // don't update location this frame, just change vel
+
+DoWrap: 
+// Wrap from left edge to right edge
+    //lda info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET
+    lda nv_sprite_right_max_lsb_addr(info)
     //sta info.base_addr + NV_SPRITE_X_OFFSET
-    sta nv_sprite_x_addr(info)
-    //lda info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET + 1
-    lda nv_sprite_left_min_addr(info)
+    sta nv_sprite_x_lsb_addr(info)
+    //lda info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET + 1
+    lda nv_sprite_right_max_msb_addr(info)
     //sta info.base_addr + NV_SPRITE_X_OFFSET + 1
-    sta nv_sprite_x_addr(info)
+    sta nv_sprite_x_msb_addr(info)
     jmp Done
 
 NewLocInScratch1:
@@ -494,48 +514,6 @@ NewLocInScratch1:
     lda nv_sprite_scratch1_word_msb_addr(info)
     //sta info.base_addr + NV_SPRITE_X_OFFSET + 1
     sta nv_sprite_x_msb_addr(info)
-Done:
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-//
-.macro nv_sprite_move_negative_x(info)
-{
-    // add x offset + x velocity and put in scratch1
-    nv_adc16_8signed((info.base_addr + NV_SPRITE_X_OFFSET), 
-                     (info.base_addr + NV_SPRITE_VEL_X_OFFSET), 
-                     (info.base_addr + NV_SPRITE_SCRATCH1_OFFSET))
-
-    // scratch1 now has potential new X location
-    nv_bgt16(info.base_addr + NV_SPRITE_SCRATCH1_OFFSET, info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET, NewLocInScratch1)
-
-    // moved too far left, either bounce or wrap
-    ldx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
-    beq Wrap
-
-// Bounce here, went off left side.  Change vel to 2's compliment of vel
-    lda #$FF
-    eor info.base_addr + NV_SPRITE_VEL_X_OFFSET
-    tax
-    inx
-    stx info.base_addr + NV_SPRITE_VEL_X_OFFSET
-    jmp Done    // don't update location this frame, just change vel
-
-Wrap: 
-// Wrap from left edge to right edge
-    lda info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET
-    sta info.base_addr + NV_SPRITE_X_OFFSET
-    lda info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET + 1
-    sta info.base_addr + NV_SPRITE_X_OFFSET + 1
-    jmp Done
-
-
-NewLocInScratch1:
-    lda info.base_addr + NV_SPRITE_SCRATCH1_OFFSET
-    sta info.base_addr + NV_SPRITE_X_OFFSET
-    lda info.base_addr + NV_SPRITE_SCRATCH1_OFFSET + 1
-    sta info.base_addr + NV_SPRITE_X_OFFSET + 1
 Done:
 }
 

@@ -538,11 +538,11 @@ Setup:
 // this will not update the sprite registers to actually move the sprite, but
 // to do that just call SetShipeLocFromMem
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
         
 }
 
