@@ -163,9 +163,14 @@ OuterLoop:
         sty loop_index_1
 
 InnerLoop:
+        //lda #254
+        //sta $D020
         nv_sprite_wait_scan()   // update sprites after particular scan line or will be too fast to see.
+        //lda #NV_COLOR_GREEN
+        //sta $D020
 
         //// call function to move ship based on X and Y velocity
+
         jsr ship_1.MoveInExtraData
         jsr ship_1.SetLocationFromExtraData
 
