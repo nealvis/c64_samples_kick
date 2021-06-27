@@ -126,7 +126,7 @@ cycling_color: .byte NV_COLOR_FIRST
         nv_screen_clear()
 
         // set the global sprite multi colors        
-        nv_sprite_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
+        nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
 
         // setup everything for the sprite_ship so its ready to enable
         jsr ship_1.Setup
@@ -148,12 +148,12 @@ cycling_color: .byte NV_COLOR_FIRST
         jsr asteroid_5.SetLocationFromExtraData
         
         // enable both sprites
-        nv_sprite_enable(0)
-        nv_sprite_enable(1)
-        nv_sprite_enable(2)
-        nv_sprite_enable(3)
-        nv_sprite_enable(4)
-        nv_sprite_enable(5)
+        nv_sprite_raw_enable(0)
+        nv_sprite_raw_enable(1)
+        nv_sprite_raw_enable(2)
+        nv_sprite_raw_enable(3)
+        nv_sprite_raw_enable(4)
+        nv_sprite_raw_enable(5)
 
         ldy #12                 // outer loops counts down from this number to 0 
         sty loop_index_2
@@ -252,7 +252,7 @@ NotBlue:
         stx cycling_color
 SetColor:
         stx cycling_color
-        nv_sprite_set_color_from_memory(1, cycling_color)
+        nv_sprite_raw_set_color_from_memory(1, cycling_color)
 
         rts
 

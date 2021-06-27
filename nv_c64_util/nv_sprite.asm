@@ -43,7 +43,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to set the shared colors for multi colored sprites
-.macro nv_sprite_set_multicolors(color1, color2) 
+.macro nv_sprite_raw_set_multicolors(color1, color2) 
 {
     lda #color1 // multicolor sprites global color 1
     sta NV_SPRITE_COLOR_1_ADDR   // can also get this from spritemate
@@ -63,7 +63,7 @@
 //                    the sprite is multi color (low res).  If
 //                    no bits in the high nibble are set then
 //                    its hi res (single color)
-.macro nv_sprite_set_mode(sprite_num, sprite_data_addr)
+.macro nv_sprite_raw_set_mode(sprite_num, sprite_data_addr)
 {
     .var sprite_mask = $01 << sprite_num
     .var not_sprite_mask = ~sprite_mask
@@ -94,7 +94,7 @@ skip_multicolor:
 //   sprite_data_addr: is the address where the 64 bytes of data for the
 //                     sprite are stored.  This is the real address it will
 //                     be divided by 64 prior to setting in the sprite register.
-.macro nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
+.macro nv_sprite_raw_set_data_ptr(sprite_num, sprite_data_addr)
 {
     lda #(sprite_data_addr / 64)            // implied this is multiplied by 64
     ldx #sprite_num
@@ -108,7 +108,7 @@ skip_multicolor:
 //   sprite_data_addr: is the address where the 64 bytes of data for the
 //                     sprite are stored.  The last byte contains the sprite 
 //                     color in the low nibble.
-.macro nv_sprite_set_color_from_data(sprite_num, sprite_data_addr)
+.macro nv_sprite_raw_set_color_from_data(sprite_num, sprite_data_addr)
 {
     lda sprite_data_addr + 63       // The color is the low nibble of the
                                     // last byte of sprite. We'll just 
@@ -124,7 +124,7 @@ skip_multicolor:
 // macro params:
 //   sprite_num: the c64 sprite number (0-7 are valid)
 //   new_color:  a number 0-7 specifying which c64 color to set
-.macro nv_sprite_set_color_immediate(sprite_num, new_color)
+.macro nv_sprite_set_raw_color_immediate(sprite_num, new_color)
 {
     lda #new_color                  // The color is the low nibble of the
                                     // byte.  We'll just write the whole 
@@ -141,7 +141,7 @@ skip_multicolor:
 //   sprite_num:     the c64 sprite number (0-7 are valid)
 //   new_color_addr: The 16bit address of a location that contains a 
 //                   number 0-7 specifying which c64 color to set
-.macro nv_sprite_set_color_from_memory(sprite_num, new_color_addr)
+.macro nv_sprite_raw_set_color_from_memory(sprite_num, new_color_addr)
 {
     lda new_color_addr              // The color is the low nibble of the
                                     // byte.  We'll just write the whole 
@@ -155,7 +155,7 @@ skip_multicolor:
 //////////////////////////////////////////////////////////////////////////////
 // iline macro to enable the specified sprite.  If a sprite is not enabled it won't
 // be visible on the screen.  
-.macro nv_sprite_enable(sprite_num)
+.macro nv_sprite_raw_enable(sprite_num)
 {
     .var sprite_mask = $01 << sprite_num
 
@@ -172,9 +172,9 @@ skip_multicolor:
 // be enabled and moved.
 .macro nv_sprite_setup(info)
 {
-    nv_sprite_set_mode(info.num, info.data_ptr)
-    nv_sprite_set_data_ptr(info.num, info.data_ptr)
-    nv_sprite_set_color_from_data(info.num, info.data_ptr)
+    nv_sprite_raw_set_mode(info.num, info.data_ptr)
+    nv_sprite_raw_set_data_ptr(info.num, info.data_ptr)
+    nv_sprite_raw_set_color_from_data(info.num, info.data_ptr)
 }
 
 .macro nv_sprite_setup_sr(info)
@@ -189,9 +189,9 @@ skip_multicolor:
 // be enabled and moved.
 .macro nv_sprite_raw_setup(sprite_num, sprite_data_addr)
 {
-    nv_sprite_set_mode(sprite_num, sprite_data_addr)
-    nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
-    nv_sprite_set_color_from_data(sprite_num, sprite_data_addr)
+    nv_sprite_raw_set_mode(sprite_num, sprite_data_addr)
+    nv_sprite_raw_set_data_ptr(sprite_num, sprite_data_addr)
+    nv_sprite_raw_set_color_from_data(sprite_num, sprite_data_addr)
 }
 
 
@@ -259,7 +259,7 @@ loop:
 //   sprite_num: the sprite number (0-7 are valid)
 //   sprite_x: the sprite x location (this can be larger than 255)
 //   sprite_y: the sprite y location this is only 0-255
-.macro nv_sprite_set_loc(sprite_num, sprite_x, sprite_y)
+.macro nv_sprite_raw_set_loc(sprite_num, sprite_x, sprite_y)
 {
     ldx #sprite_num * 2         // sprite number times 2 since location
                                 // regs are in pairs, x loc and y loc
@@ -297,7 +297,7 @@ loop:
 //                   value which is the sprites x location
 //   sprite_y_addr: the address of the byte that holds the sprite's 8 bit 
 //                  y location
-.macro nv_sprite_set_location_from_memory_sr(sprite_num, sprite_x_addr, sprite_y_addr)
+.macro nv_sprite_raw_set_location_from_memory_sr(sprite_num, sprite_x_addr, sprite_y_addr)
 {
     ldx #(sprite_num*2) // load x with offset to sprite location for this sprite
 

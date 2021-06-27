@@ -101,7 +101,7 @@ temp_rts_msb:
         nv_screen_clear()
 
         // set the global sprite multi colors        
-        nv_sprite_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
+        nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
 
         // setup everything for the sprite_ship so its ready to enable
         nv_sprite_raw_setup($00, sprite_ship)
@@ -121,8 +121,8 @@ temp_rts_msb:
         jsr SetAsteroidLocFromMem
 
         // enable both sprites
-        nv_sprite_enable($00)
-        nv_sprite_enable($01)
+        nv_sprite_raw_enable($00)
+        nv_sprite_raw_enable($01)
 
         lda #MAX_SPEED
         sta ship_speed
@@ -268,10 +268,10 @@ FinishedUpdate:
 // this routine won't do any checking as far as if the sprite is being put 
 // to a valid location.  it will blindly put it wherever specified.
 SetShipLocFromMem:
-nv_sprite_set_location_from_memory_sr(0, ship_x_loc, ship_y_loc)
+nv_sprite_raw_set_location_from_memory_sr(0, ship_x_loc, ship_y_loc)
 
 // pull in macro routine that sets sprite 1 location from memory locations
 // this routine won't do any checking as far as if the sprite is being put 
 // to a valid location.  it will blindly put it wherever specified.
 SetAsteroidLocFromMem:
-nv_sprite_set_location_from_memory_sr(1, asteroid_x_loc, asteroid_y_loc)
+nv_sprite_raw_set_location_from_memory_sr(1, asteroid_x_loc, asteroid_y_loc)
