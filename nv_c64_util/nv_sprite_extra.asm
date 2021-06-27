@@ -98,134 +98,264 @@
 .const NV_SPRITE_SCRATCH1_OFFSET = 18
 .const NV_SPRITE_SCRATCH2_OFFSET = 20
 
-
+//////////////////////////////////////////////////////////////////////////////
+// assembler function to return the address of the sprite number
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_num_addr(info)
 {
     .return info.base_addr + NV_SPRITE_NUM_OFFSET
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// assembler function to return the address of the sprite Y velocity
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_vel_y_addr(info) 
 {
     .return info.base_addr + NV_SPRITE_VEL_Y_OFFSET
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// assembler function to return the address of the sprite X velocity.  
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_vel_x_addr(info)
-{
-    .return nv_sprite_vel_x_lsb_addr(info)
-}
-.function nv_sprite_vel_x_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_VEL_X_OFFSET
 }
-.function nv_sprite_vel_x_msb_addr(info)
-{
-    .return info.base_addr + NV_SPRITE_VEL_X_OFFSET+1
-}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the sprite X position.
+// This is a 16 bit value so the address of the LSB will be returned  
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_x_addr(info)
 {
     .return nv_sprite_x_lsb_addr(info)
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the LSB of sprite X position.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_x_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_X_OFFSET
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the MSB of sprite X position.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_x_msb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_X_OFFSET+1
 }
 
-
-
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the sprite Y position.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_y_addr(info)
 {
     .return info.base_addr + NV_SPRITE_Y_OFFSET
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the sprite's data pointer.
+// This is not the address the data pointer is pointing to but the address
+// of the pointer itself.
+// This is a 16 bit value so the address of the LSB will be returned
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_data_ptr_addr(info)
 {
     .return nv_sprite_data_ptr_lsb_addr(info)
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of LSB of the sprite's data 
+// pointer.  This is not the addr the data pointer is pointing to but the addr
+// of the pointer itself.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_data_ptr_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_DATA_PTR_OFFSET
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of MSB of the sprite's data 
+// pointer.  This is not the addr the data pointer is pointing to but the addr
+// of the pointer itself.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_data_ptr_msb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_DATA_PTR_OFFSET + 1
 }
 
-// 1 means bounce, 0  means wrap
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the sprite top action.
+// this address should contain one of the NV_SPRITE_ACTION_XXX values
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_top_action_addr(info)
 {
     .return info.base_addr + NV_SPRITE_ACTION_TOP_OFFSET
 }
 
-// 1 means bounce, 0  means wrap
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the sprite left action.
+// this address should contain one of the NV_SPRITE_ACTION_XXX values
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_left_action_addr(info)
 {
     .return info.base_addr + NV_SPRITE_ACTION_LEFT_OFFSET
 }
 
-// 1 means bounce, 0  means wrap
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the sprite bottom action.
+// this address should contain one of the NV_SPRITE_ACTION_XXX values
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_bottom_action_addr(info)
 {
     .return info.base_addr + NV_SPRITE_ACTION_BOTTOM_OFFSET
 }
 
-// 1 means bounce, 0  means wrap
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the sprite right action.
+// this address should contain one of the NV_SPRITE_ACTION_XXX values
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_right_action_addr(info)
 {
     .return info.base_addr + NV_SPRITE_ACTION_RIGHT_OFFSET
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the sprite top min
+// position on the screen.  Values beyond this will result in the top action
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_top_min_addr(info)
 {
     .return info.base_addr + NV_SPRITE_TOP_MIN_OFFSET
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the sprite left min
+// position on the screen.  Values beyond this will result in the left action.
+// This is a 16 bit value so the addr of the LSB will be returned
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_left_min_addr(info)
 {
     .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the LSB of sprite left min
+// position on the screen.  Values beyond this will result in the left action.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_left_min_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the MSB of sprite left min
+// position on the screen.  Values beyond this will result in the left action.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_left_min_msb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET+1
 }
- 
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of sprite bottom max
+// position on the screen.  Values beyond this will result in the bottom action.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_bottom_max_addr(info)
 {
     .return info.base_addr + NV_SPRITE_BOTTOM_MAX_OFFSET
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the sprite right max
+// position on the screen.  Values beyond this will result in the right action.
+// This is a 16 bit value so the addr of the LSB will be returned
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_right_max_addr(info)
 {
     .return nv_sprite_right_max_lsb_addr(info)
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the LSB of sprite right max
+// position on the screen.  Values beyond this will result in the right action.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_right_max_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the the MSB of sprite right max
+// position on the screen.  Values beyond this will result in the right action.
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_right_max_msb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET+1
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the scratch1 word for sprite
+// This is 16 bit value so addr of LSB will be returned
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_scratch1_word_addr(info)
 {
     .return nv_sprite_scratch1_word_lsb_addr(info)
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the LSB of scratch1 word 
+// for sprite
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_scratch1_word_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_SCRATCH1_OFFSET
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the MLB of scratch1 word 
+// for sprite
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_scratch1_word_msb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_SCRATCH1_OFFSET+1
 }
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the scratch2 word for sprite
+// This is 16 bit value so addr of LSB will be returned
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
 .function nv_sprite_scratch2_word_addr(info)
 {
     .return info.base_addr + NV_SPRITE_SCRATCH2_OFFSET

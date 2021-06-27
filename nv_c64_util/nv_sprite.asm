@@ -153,8 +153,10 @@ skip_multicolor:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// iline macro to enable the specified sprite.  If a sprite is not enabled it won't
-// be visible on the screen.  
+// inline macro to enable the specified sprite.  If a sprite is not enabled 
+// it won't be visible on the screen.  
+// macro parameters:
+//   sprite_num is the sprite number to enable (value must be 0-7)
 .macro nv_sprite_raw_enable(sprite_num)
 {
     .var sprite_mask = $01 << sprite_num
@@ -168,6 +170,17 @@ skip_multicolor:
 
 
 //////////////////////////////////////////////////////////////////////////////
+// subroutine macro to enable the specified sprite.  if the sprite is not 
+// enabled it won't be visible on the screen
+// macro parameters:
+//   sprite_num is the sprite number to enable (value must be 0-7)
+.macro nv_sprite_raw_enable_sr(sprite_num)
+{
+    nv_sprite_raw_enable(sprite_num)
+    rts
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // Inline macro (no rts) to setup everything for a sprite so its ready to 
 // be enabled and moved.
 .macro nv_sprite_setup(info)
@@ -177,6 +190,9 @@ skip_multicolor:
     nv_sprite_raw_set_color_from_data(info.num, info.data_ptr)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine macro to setup the sprite so that its ready to be enabled 
+// and moved.  
 .macro nv_sprite_setup_sr(info)
 {
     nv_sprite_setup(info)

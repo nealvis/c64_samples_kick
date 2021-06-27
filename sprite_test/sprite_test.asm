@@ -299,8 +299,7 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable(info.num)
-        rts
+        nv_sprite_raw_enable_sr(info.num)
         
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -353,8 +352,7 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable(info.num)
-        rts
+        nv_sprite_raw_enable_sr(info.num)
         
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -409,8 +407,7 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable(info.num)
-        rts
+        nv_sprite_raw_enable_sr(info.num)
 
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -464,8 +461,7 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable(info.num)
-        rts    
+        nv_sprite_raw_enable_sr(info.num)
 
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -519,8 +515,7 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable(info.num)
-        rts
+        nv_sprite_raw_enable_sr(info.num)
         
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -574,8 +569,7 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable(info.num)
-        rts
+        nv_sprite_raw_enable_sr(info.num)
 
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
