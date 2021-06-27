@@ -527,7 +527,14 @@ NewLocInScratch1:
 Done:
 }
 
-/*
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the action for the scenario when the sprite is 
+// attempting to move past its left min position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
 .macro nv_sprite_set_left_action(info, value)
 {
     .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
@@ -538,6 +545,14 @@ Done:
     stx nv_sprite_left_action_addr(info)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro set the action for the scenario when the sprite is 
+// attempting to move past its right max position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
 .macro nv_sprite_set_right_action(info, value)
 {
     .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
@@ -548,6 +563,14 @@ Done:
     stx nv_sprite_right_action_addr(info)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro set the action for the scenario when the sprite is 
+// attempting to move past its top min position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
 .macro nv_sprite_set_top_action(info, value)
 {
     .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
@@ -558,6 +581,14 @@ Done:
     stx nv_sprite_top_action_addr(info)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the action for the scenario when the sprite is 
+// attempting to move past its bottom max position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
 .macro nv_sprite_set_bottom_action(info, value)
 {
     .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
@@ -568,22 +599,33 @@ Done:
     stx nv_sprite_bottom_action_addr(info)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// in line macro set the action for the scenario when the sprite is 
+// attempting to move past any max or min position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
 .macro nv_sprite_set_all_actions(info, value)
 {
     ldx #value
-    //stx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
     stx nv_sprite_left_action_addr(info)
-    //stx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
     stx nv_sprite_top_action_addr(info)
-    //stx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
     stx nv_sprite_right_action_addr(info)
-    //stx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
     stx nv_sprite_bottom_action_addr(info)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine macro to set the action for the scenario when the sprite is 
+// attempting to move past its min or max position in any direction.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
 .macro nv_sprite_set_all_actions_sr(info, value)
 {
     nv_sprite_set_all_actions(info, value)
     rts
 }
-*/

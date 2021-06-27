@@ -253,7 +253,6 @@ NotBlue:
 SetColor:
         stx cycling_color
         nv_sprite_raw_set_color_from_memory(1, cycling_color)
-
         rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -303,14 +302,11 @@ Enable:
         nv_sprite_raw_enable(info.num)
         rts
         
-//SetBounceAllOn:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
-        //nv_sprite_set_bounce_all_sr(info, 1)
+SetBounceAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
-//SetBounceAllOff:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
-        //nv_sprite_set_bounce_all_sr(info, 0)
-
+SetWrapAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -360,14 +356,11 @@ Enable:
         nv_sprite_raw_enable(info.num)
         rts
         
+SetBounceAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
-//SetBounceAllOn:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
-        //nv_sprite_set_bounce_all_sr(info, 1)
-
-//SetBounceAllOff:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
-        //nv_sprite_set_bounce_all_sr(info, 0)
+SetWrapAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
        
 }
 
@@ -418,15 +411,12 @@ MoveInExtraData:
 Enable:
         nv_sprite_raw_enable(info.num)
         rts
-        
 
-//SetBounceAllOn:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
-        //nv_sprite_set_bounce_all_sr(info, 1)
+SetBounceAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
-//SetBounceAllOff:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
-        //nv_sprite_set_bounce_all_sr(info, 0)
+SetWrapAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
 }
 
 
@@ -475,16 +465,13 @@ MoveInExtraData:
 
 Enable:
         nv_sprite_raw_enable(info.num)
-        rts
-        
+        rts    
 
-//SetBounceAllOn:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
-        //nv_sprite_set_bounce_all_sr(info, 1)
+SetBounceAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
-//SetBounceAllOff:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
-        //nv_sprite_set_bounce_all_sr(info, 0)
+SetWrapAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
 }
 
 
@@ -535,14 +522,11 @@ Enable:
         nv_sprite_raw_enable(info.num)
         rts
         
+SetBounceAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
-//SetBounceAllOn:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
-        //nv_sprite_set_bounce_all_sr(info, 1)
-
-//SetBounceAllOff:
-        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
-        //nv_sprite_set_bounce_all_sr(info, 0)
+SetWrapAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
 }
 
 
@@ -592,7 +576,12 @@ MoveInExtraData:
 Enable:
         nv_sprite_raw_enable(info.num)
         rts
-        
+
+SetBounceAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
+
+SetWrapAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
 
 }
 
