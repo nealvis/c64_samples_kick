@@ -288,11 +288,13 @@ MoveInExtraData:
         //rts
         nv_sprite_move_any_direction_sr(info)
 
-SetBounceAllOn:
-        nv_sprite_set_bounce_all_sr(info, 1)
+//SetBounceAllOn:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
+        //nv_sprite_set_bounce_all_sr(info, 1)
 
-SetBounceAllOff:
-        nv_sprite_set_bounce_all_sr(info, 0)
+//SetBounceAllOff:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
+        //nv_sprite_set_bounce_all_sr(info, 0)
 
 }
 
@@ -339,12 +341,14 @@ MoveInExtraData:
         //rts
         nv_sprite_move_any_direction_sr(info)
 
-SetBounceAllOn:
-        nv_sprite_set_bounce_all_sr(info, 1)
+//SetBounceAllOn:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
+        //nv_sprite_set_bounce_all_sr(info, 1)
 
-SetBounceAllOff:
-        nv_sprite_set_bounce_all_sr(info, 0)
-        
+//SetBounceAllOff:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
+        //nv_sprite_set_bounce_all_sr(info, 0)
+       
 }
 
 
@@ -391,11 +395,13 @@ MoveInExtraData:
         //rts
         nv_sprite_move_any_direction_sr(info)
 
-SetBounceAllOn:
-        nv_sprite_set_bounce_all_sr(info, 1)
+//SetBounceAllOn:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
+        //nv_sprite_set_bounce_all_sr(info, 1)
 
-SetBounceAllOff:
-        nv_sprite_set_bounce_all_sr(info, 0)
+//SetBounceAllOff:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
+        //nv_sprite_set_bounce_all_sr(info, 0)
 }
 
 
@@ -442,11 +448,13 @@ MoveInExtraData:
         //rts
         nv_sprite_move_any_direction_sr(info)
 
-SetBounceAllOn:
-        nv_sprite_set_bounce_all_sr(info, 1)
+//SetBounceAllOn:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
+        //nv_sprite_set_bounce_all_sr(info, 1)
 
-SetBounceAllOff:
-        nv_sprite_set_bounce_all_sr(info, 0)
+//SetBounceAllOff:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
+        //nv_sprite_set_bounce_all_sr(info, 0)
 }
 
 
@@ -493,11 +501,13 @@ MoveInExtraData:
         //rts
         nv_sprite_move_any_direction_sr(info)
 
-SetBounceAllOn:
-        nv_sprite_set_bounce_all_sr(info, 1)
+//SetBounceAllOn:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
+        //nv_sprite_set_bounce_all_sr(info, 1)
 
-SetBounceAllOff:
-        nv_sprite_set_bounce_all_sr(info, 0)
+//SetBounceAllOff:
+        //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
+        //nv_sprite_set_bounce_all_sr(info, 0)
 }
 
 

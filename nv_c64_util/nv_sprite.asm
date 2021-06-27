@@ -446,10 +446,10 @@ DoBounce:
 
 DoWrap:
     // this sprite not set to bounce, so wrap it around
-    lda nv_sprite_left_min_addr(info)
-    sta nv_sprite_x_addr(info)
-    lda nv_sprite_left_min_addr(info)
-    sta nv_sprite_x_addr(info)
+    lda nv_sprite_left_min_lsb_addr(info)
+    sta nv_sprite_x_lsb_addr(info)
+    lda nv_sprite_left_min_msb_addr(info)
+    sta nv_sprite_x_msb_addr(info)
     jmp Done
 
 NewLocInScratch1:
@@ -465,97 +465,99 @@ Done:
 //
 .macro nv_sprite_move_negative_x(info)
 {
-    // add x offset + x velocity and put in scratch1
-    //nv_adc16_8signed((info.base_addr + NV_SPRITE_X_OFFSET), 
-    //                 (info.base_addr + NV_SPRITE_VEL_X_OFFSET), 
-    //                 (info.base_addr + NV_SPRITE_SCRATCH1_OFFSET))
     nv_adc16_8signed((nv_sprite_x_addr(info)), 
                      (nv_sprite_vel_x_addr(info)), 
                      (nv_sprite_scratch1_word_lsb_addr(info)))
 
     // scratch1 now has potential new X location
-    //nv_bgt16(info.base_addr + NV_SPRITE_SCRATCH1_OFFSET, info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET, NewLocInScratch1)
-    nv_bgt16(nv_sprite_scratch1_word_lsb_addr(info), nv_sprite_left_min_addr(info), NewLocInScratch1)
+    nv_bgt16(nv_sprite_scratch1_word_lsb_addr(info), nv_sprite_left_min_lsb_addr(info), NewLocInScratch1)
 
     // moved too far left, either bounce or wrap
-    //ldx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
     ldx nv_sprite_left_action_addr(info)
     beq DoWrap
 
 DoBounce:
 // Bounce here, went off left side.  Change vel to 2's compliment of vel
     lda #$FF
-    //eor info.base_addr + NV_SPRITE_VEL_X_OFFSET
     eor nv_sprite_vel_x_addr(info)
     tax
     inx
-    //stx info.base_addr + NV_SPRITE_VEL_X_OFFSET
     stx nv_sprite_vel_x_addr(info)
     jmp Done    // don't update location this frame, just change vel
 
 DoWrap: 
 // Wrap from left edge to right edge
-    //lda info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET
     lda nv_sprite_right_max_lsb_addr(info)
-    //sta info.base_addr + NV_SPRITE_X_OFFSET
     sta nv_sprite_x_lsb_addr(info)
-    //lda info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET + 1
     lda nv_sprite_right_max_msb_addr(info)
-    //sta info.base_addr + NV_SPRITE_X_OFFSET + 1
     sta nv_sprite_x_msb_addr(info)
     jmp Done
 
 NewLocInScratch1:
-    //lda info.base_addr + NV_SPRITE_SCRATCH1_OFFSET
     lda nv_sprite_scratch1_word_lsb_addr(info)
-    //sta info.base_addr + NV_SPRITE_X_OFFSET
     sta nv_sprite_x_lsb_addr(info)
-    //lda info.base_addr + NV_SPRITE_SCRATCH1_OFFSET + 1
     lda nv_sprite_scratch1_word_msb_addr(info)
-    //sta info.base_addr + NV_SPRITE_X_OFFSET + 1
     sta nv_sprite_x_msb_addr(info)
 Done:
 }
 
-.macro nv_sprite_set_bounce_left(info, value)
+/*
+.macro nv_sprite_set_left_action(info, value)
 {
+    .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
+    {
+        .error("ERROR: Invalid action")
+    }
     ldx #value
-    stx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
+    stx nv_sprite_left_action_addr(info)
 }
 
-.macro nv_sprite_set_bounce_right(info, value)
+.macro nv_sprite_set_right_action(info, value)
 {
+    .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
+    {
+        .error("ERROR: Invalid action")
+    }
     ldx #value
-    stx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
+    stx nv_sprite_right_action_addr(info)
 }
 
-.macro nv_sprite_set_bounce_top(info, value)
+.macro nv_sprite_set_top_action(info, value)
 {
+    .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
+    {
+        .error("ERROR: Invalid action")
+    }
     ldx #value
-    stx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
+    stx nv_sprite_top_action_addr(info)
 }
 
-.macro nv_sprite_set_bounce_bottom(info, value)
+.macro nv_sprite_set_bottom_action(info, value)
 {
+    .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
+    {
+        .error("ERROR: Invalid action")
+    }
     ldx #value
-    stx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+    stx nv_sprite_bottom_action_addr(info)
 }
 
-.macro nv_sprite_set_bounce_all(info, value)
+.macro nv_sprite_set_all_actions(info, value)
 {
     ldx #value
-    stx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
-    stx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
-    stx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
-    stx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+    //stx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
+    stx nv_sprite_left_action_addr(info)
+    //stx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
+    stx nv_sprite_top_action_addr(info)
+    //stx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
+    stx nv_sprite_right_action_addr(info)
+    //stx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+    stx nv_sprite_bottom_action_addr(info)
 }
 
-.macro nv_sprite_set_bounce_all_sr(info, value)
+.macro nv_sprite_set_all_actions_sr(info, value)
 {
-    ldx #value
-    stx info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
-    stx info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
-    stx info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
-    stx info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+    nv_sprite_set_all_actions(info, value)
     rts
 }
+*/

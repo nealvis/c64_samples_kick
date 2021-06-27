@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #importonce
-
+#import "nv_util_data.asm"
 //#import "nv_sprite.asm"
 
 // zero page pointer to use whenever a zero page pointer is needed
@@ -23,6 +23,8 @@
 .const NV_SPRITE_TOP_WRAP_DEFAULT = 32
 .const NV_SPRITE_BOTTOM_WRAP_DEFAULT = 249
 
+.const NV_SPRITE_ACTION_WRAP = 0
+.const NV_SPRITE_ACTION_BOUNCE = 1
 
 
 // struct that provides info for a sprite.  this is a construct of the assembler
@@ -176,20 +178,28 @@
     .return info.base_addr + NV_SPRITE_TOP_MIN_OFFSET
 }
 
-.function nv_sprite_left_min_addr(info)
+//.function nv_sprite_left_min_addr(info)
+//{
+//    .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET
+//}
+.function nv_sprite_left_min_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET
 }
-
+.function nv_sprite_left_min_msb_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET+1
+}
+ 
 .function nv_sprite_bottom_max_addr(info)
 {
     .return info.base_addr + NV_SPRITE_BOTTOM_MAX_OFFSET
 }
 
-//.function nv_sprite_right_max_addr(info)
-//{
-//    .return nv_sprite_right_max_lsb_addr(info)
-//}
+.function nv_sprite_right_max_addr(info)
+{
+    .return nv_sprite_right_max_lsb_addr(info)
+}
 .function nv_sprite_right_max_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_RIGHT_MAX_OFFSET
