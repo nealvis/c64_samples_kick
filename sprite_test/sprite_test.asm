@@ -147,13 +147,13 @@ cycling_color: .byte NV_COLOR_FIRST
         jsr asteroid_4.SetLocationFromExtraData
         jsr asteroid_5.SetLocationFromExtraData
         
-        // enable both sprites
-        nv_sprite_raw_enable(0)
-        nv_sprite_raw_enable(1)
-        nv_sprite_raw_enable(2)
-        nv_sprite_raw_enable(3)
-        nv_sprite_raw_enable(4)
-        nv_sprite_raw_enable(5)
+        // enable sprites
+        jsr ship_1.Enable
+        jsr asteroid_1.Enable
+        jsr asteroid_2.Enable
+        jsr asteroid_3.Enable
+        jsr asteroid_4.Enable
+        jsr asteroid_5.Enable
 
         ldy #12                 // outer loops counts down from this number to 0 
         sty loop_index_2
@@ -299,6 +299,10 @@ MoveInExtraData:
         //rts
         nv_sprite_move_any_direction_sr(info)
 
+Enable:
+        nv_sprite_raw_enable(info.num)
+        rts
+        
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
         //nv_sprite_set_bounce_all_sr(info, 1)
@@ -351,6 +355,11 @@ MoveInExtraData:
         //jsr NvSpriteMoveInExtra
         //rts
         nv_sprite_move_any_direction_sr(info)
+
+Enable:
+        nv_sprite_raw_enable(info.num)
+        rts
+        
 
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -406,6 +415,11 @@ MoveInExtraData:
         //rts
         nv_sprite_move_any_direction_sr(info)
 
+Enable:
+        nv_sprite_raw_enable(info.num)
+        rts
+        
+
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
         //nv_sprite_set_bounce_all_sr(info, 1)
@@ -458,6 +472,11 @@ MoveInExtraData:
         //jsr NvSpriteMoveInExtra
         //rts
         nv_sprite_move_any_direction_sr(info)
+
+Enable:
+        nv_sprite_raw_enable(info.num)
+        rts
+        
 
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -512,6 +531,11 @@ MoveInExtraData:
         //rts
         nv_sprite_move_any_direction_sr(info)
 
+Enable:
+        nv_sprite_raw_enable(info.num)
+        rts
+        
+
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
         //nv_sprite_set_bounce_all_sr(info, 1)
@@ -564,7 +588,12 @@ MoveInExtraData:
         //jsr NvSpriteMoveInExtra
         //rts
         nv_sprite_move_any_direction_sr(info)
+
+Enable:
+        nv_sprite_raw_enable(info.num)
+        rts
         
+
 }
 
 // put the actual sprite subroutines here
