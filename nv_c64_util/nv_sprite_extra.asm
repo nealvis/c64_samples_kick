@@ -12,17 +12,21 @@
 .const ZERO_PAGE_LO = $FB
 .const ZERO_PAGE_HI = $FC
 
-// constants for screen edges for bouncing.  These are the values at which the sprite should bounce
+// Constants for screen edges for bouncing.  
+
+// These are the default max position values when bouncing
 .const NV_SPRITE_LEFT_BOUNCE_DEFAULT = 23
 .const NV_SPRITE_RIGHT_BOUNCE_DEFAULT = 320
 .const NV_SPRITE_TOP_BOUNCE_DEFAULT = 50
 .const NV_SPRITE_BOTTOM_BOUNCE_DEFAULT = 234
 
+// These are the default max position values when wrapping
 .const NV_SPRITE_LEFT_WRAP_DEFAULT = 2
 .const NV_SPRITE_RIGHT_WRAP_DEFAULT = 339 
 .const NV_SPRITE_TOP_WRAP_DEFAULT = 32
 .const NV_SPRITE_BOTTOM_WRAP_DEFAULT = 249
 
+// These are the possible actions when sprite would exceed max position
 .const NV_SPRITE_ACTION_WRAP = 0
 .const NV_SPRITE_ACTION_BOUNCE = 1
 
@@ -31,7 +35,7 @@
 // it just provides an easy way to reference all these different compile time values.
 // No actual memory is created when an instance of the struct is created.
 .struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_ptr, 
-                              base_addr, bounce_top, bounce_left, bounce_bottom, bounce_right,
+                              base_addr, action_top, bounce_left, bounce_bottom, bounce_right,
                               top_min, left_min, bottom_max, right_max}
 
 
@@ -51,13 +55,13 @@
     sprite_vel_x_addr: .byte spt_info.init_x_vel         // the sprite's x velocity in pixels
     sprite_vel_y_addr: .byte spt_info.init_y_vel         // the sprite's y velocity in pixels
     sprite_data_ptr_addr: .word spt_info.data_ptr       // 16 bit addr of sprite data
-    sprite_bounce_top: .byte spt_info.bounce_top         // set to 1 to bounce bottom or 0 not to
+    sprite_action_top: .byte spt_info.action_top         // set to 1 to bounce bottom or 0 not to
     sprite_bounce_left: .byte spt_info.bounce_left       // set to 1 to bounce bottom or 0 not to
     sprite_bounce_bottom: .byte spt_info.bounce_bottom   // set to 1 to bounce bottom or 0 not to
     sprite_bounce_right: .byte spt_info.bounce_right     // set to 1 to bounce bottom or 0 not to
 
     // top boundry for the sprite
-    sprite_top_min_addr: .byte spt_info.top_min == 0 ? (spt_info.bounce_top == 1 ? NV_SPRITE_TOP_BOUNCE_DEFAULT : NV_SPRITE_TOP_WRAP_DEFAULT) : spt_info.top_min
+    sprite_top_min_addr: .byte spt_info.top_min == 0 ? (spt_info.action_top == NV_SPRITE_ACTION_BOUNCE ? NV_SPRITE_TOP_BOUNCE_DEFAULT : NV_SPRITE_TOP_WRAP_DEFAULT) : spt_info.top_min
     
     // left boundry for the sprite
     sprite_left_min_addr: .word spt_info.left_min == 0 ? (spt_info.bounce_left == 1 ? NV_SPRITE_LEFT_BOUNCE_DEFAULT : NV_SPRITE_LEFT_WRAP_DEFAULT) :spt_info.left_min 
@@ -81,10 +85,10 @@
 .const NV_SPRITE_VEL_X_OFFSET = 4
 .const NV_SPRITE_VEL_Y_OFFSET = 5
 .const NV_SPRITE_DATA_PTR_OFFSET = 6
-.const NV_SPRITE_BOUNCE_TOP_OFFSET = 8
-.const NV_SPRITE_BOUNCE_LEFT_OFFSET = 9
-.const NV_SPRITE_BOUNCE_BOTTOM_OFFSET = 10
-.const NV_SPRITE_BOUNCE_RIGHT_OFFSET = 11
+.const NV_SPRITE_ACTION_TOP_OFFSET = 8
+.const NV_SPRITE_ACTION_LEFT_OFFSET = 9
+.const NV_SPRITE_ACTION_BOTTOM_OFFSET = 10
+.const NV_SPRITE_ACTION_RIGHT_OFFSET = 11
 
 .const NV_SPRITE_TOP_MIN_OFFSET = 12
 .const NV_SPRITE_LEFT_MIN_OFFSET = 13
@@ -152,25 +156,25 @@
 // 1 means bounce, 0  means wrap
 .function nv_sprite_top_action_addr(info)
 {
-    .return info.base_addr + NV_SPRITE_BOUNCE_TOP_OFFSET
+    .return info.base_addr + NV_SPRITE_ACTION_TOP_OFFSET
 }
 
 // 1 means bounce, 0  means wrap
 .function nv_sprite_left_action_addr(info)
 {
-    .return info.base_addr + NV_SPRITE_BOUNCE_LEFT_OFFSET
+    .return info.base_addr + NV_SPRITE_ACTION_LEFT_OFFSET
 }
 
 // 1 means bounce, 0  means wrap
 .function nv_sprite_bottom_action_addr(info)
 {
-    .return info.base_addr + NV_SPRITE_BOUNCE_BOTTOM_OFFSET
+    .return info.base_addr + NV_SPRITE_ACTION_BOTTOM_OFFSET
 }
 
 // 1 means bounce, 0  means wrap
 .function nv_sprite_right_action_addr(info)
 {
-    .return info.base_addr + NV_SPRITE_BOUNCE_RIGHT_OFFSET
+    .return info.base_addr + NV_SPRITE_ACTION_RIGHT_OFFSET
 }
 
 .function nv_sprite_top_min_addr(info)
@@ -178,10 +182,10 @@
     .return info.base_addr + NV_SPRITE_TOP_MIN_OFFSET
 }
 
-//.function nv_sprite_left_min_addr(info)
-//{
-//    .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET
-//}
+.function nv_sprite_left_min_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET
+}
 .function nv_sprite_left_min_lsb_addr(info)
 {
     .return info.base_addr + NV_SPRITE_LEFT_MIN_OFFSET
