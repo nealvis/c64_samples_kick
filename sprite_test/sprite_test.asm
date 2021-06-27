@@ -163,11 +163,13 @@ OuterLoop:
         sty loop_index_1
 
 InnerLoop:
-        //lda #254
-        //sta $D020
-        nv_sprite_wait_scan()   // update sprites after particular scan line or will be too fast to see.
-        //lda #NV_COLOR_GREEN
-        //sta $D020
+        
+        lda #NV_COLOR_LITE_BLUE                // change border color back to
+        sta $D020                              // visualize timing
+        nv_sprite_wait_last_scanline()  // wit for particular scanline.
+        lda #NV_COLOR_GREEN                    // change border color to  
+        sta $D020                              // visualize timing
+        
 
         //// call function to move ship based on X and Y velocity
 
@@ -226,6 +228,10 @@ SkipAsteroidMin:
 
         // Done moving sprites, move cursor out of the way 
         // and return, but leave the sprites on the screen
+        // also set border color to normal
+        lda #NV_COLOR_LITE_BLUE
+        sta $D020
+
         nv_screen_plot_cursor(5, 24)
         rts   // program done, return
 
@@ -287,11 +293,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -340,11 +346,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -394,11 +400,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -447,11 +453,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -500,11 +506,11 @@ Setup:
 // to move in the sprite registsers (and have screen reflect it) call the 
 // SetLocationFromExtraData subroutine.
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
 
 //SetBounceAllOn:
         //nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -553,11 +559,11 @@ Setup:
 // this will not update the sprite registers to actually move the sprite, but
 // to do that just call SetShipeLocFromMem
 MoveInExtraData:
-        lda #>info.base_addr
-        ldx #<info.base_addr
-        jsr NvSpriteMoveInExtra
-        rts
-        //nv_sprite_move_any_direction_sr(info)
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
         
 }
 
