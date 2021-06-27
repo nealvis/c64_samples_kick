@@ -187,7 +187,7 @@ skip_multicolor:
 //////////////////////////////////////////////////////////////////////////////
 // Inline macro (no rts) to setup everything for a sprite so its ready to 
 // be enabled and moved.
-.macro nv_sprite_setup_old(sprite_num, sprite_data_addr)
+.macro nv_sprite_raw_setup(sprite_num, sprite_data_addr)
 {
     nv_sprite_set_mode(sprite_num, sprite_data_addr)
     nv_sprite_set_data_ptr(sprite_num, sprite_data_addr)
@@ -198,9 +198,9 @@ skip_multicolor:
 //////////////////////////////////////////////////////////////////////////////
 // inline macro for subroutine (with rts) to setup everything for a sprite such 
 // that its ready to be enabled and moved
-.macro nv_sprite_setup_old_sr(sprite_num, sprite_data_addr)
+.macro nv_sprite_raw_setup_sr(sprite_num, sprite_data_addr)
 {
-    nv_sprite_setup_old(sprite_num, sprite_data_addr)
+    nv_sprite_raw_setup(sprite_num, sprite_data_addr)
     rts
 }
 

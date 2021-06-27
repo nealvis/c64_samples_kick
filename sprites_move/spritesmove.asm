@@ -104,10 +104,10 @@ temp_rts_msb:
         nv_sprite_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
 
         // setup everything for the sprite_ship so its ready to enable
-        nv_sprite_setup($00, sprite_ship)
+        nv_sprite_raw_setup($00, sprite_ship)
 
         // setup everything for the sprite_asteroid so its ready to enable
-        nv_sprite_setup($01, sprite_asteroid)
+        nv_sprite_raw_setup($01, sprite_asteroid)
 
         // set locations for both sprites
         .var ship_x = 22
@@ -139,7 +139,7 @@ OuterLoop:
         sty loop_index_1
 
 InnerLoop:
-        nv_sprite_wait_scan()   // update sprites after particular scan line or will be too fast to see.
+        nv_sprite_wait_last_scanline()   // update sprites after particular scan line or will be too fast to see.
         
         //// call function to move sprite in x direction
         lda ship_speed          // push the number of pixels to move it.
