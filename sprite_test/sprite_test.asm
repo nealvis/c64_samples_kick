@@ -25,13 +25,18 @@
 // min and max speed for all sprites
 .const MAX_SPEED = 6
 .const MIN_SPEED = -6
+.const FPS = 50
 
 // some loop indices
-loop_index_1: .byte 0
-loop_index_2: .byte 0
+//loop_index_1: .byte 0
+//loop_index_2: .byte 0
+frame_counter: .word 0
+second_counter: .word 0
+second_partial_counter: .word 0
+
 
 cycling_color: .byte NV_COLOR_FIRST
-
+cycle_flag: .byte 0
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -155,14 +160,33 @@ cycling_color: .byte NV_COLOR_FIRST
         jsr asteroid_4.Enable
         jsr asteroid_5.Enable
 
-        ldy #12                 // outer loops counts down from this number to 0 
-        sty loop_index_2
 
-OuterLoop:
-        ldy #100                // inner loop counts down from this number to zero
-        sty loop_index_1
 
-InnerLoop:
+MainLoop:
+        nv_adc16_immediate(frame_counter, 1, frame_counter)
+        nv_adc16_immediate(second_partial_counter, 1, second_partial_counter)
+        nv_ble16_immediate(second_partial_counter, FPS, PartialSecond1)
+        jmp FullSecond
+PartialSecond1:
+        jmp PartialSecond2
+FullSecond:
+        lda #0 
+        sta second_partial_counter
+        sta second_partial_counter+1
+        nv_adc16_immediate(second_counter, 1, second_counter)
+        lda #$03
+        and second_counter
+        bne Skip
+        lda #1
+        sta cycle_flag
+Skip:
+        //nv_screen_plot_cursor(0, 7)
+        //nv_screen_print_hex_word(second_counter, true)
+PartialSecond2:
+        //nv_screen_plot_cursor(0, 0)
+        //nv_screen_print_hex_word(frame_counter, true)
+
+
 
         //// call function to move sprites around based on X and Y velocity
         // but only modify the position in their extra data block not on screen
@@ -174,6 +198,15 @@ InnerLoop:
         jsr asteroid_3.MoveInExtraData
         jsr asteroid_4.MoveInExtraData
         jsr asteroid_5.SetLocationFromExtraData
+
+        lda #1                     // lsb of second counter
+        bit cycle_flag
+        beq NoCycle
+Cycle:
+        jsr change_up 
+        lda #0 
+        sta cycle_flag
+NoCycle:
 
         lda #NV_COLOR_LITE_BLUE                // change border color back to
         sta $D020                              // visualize timing
@@ -190,34 +223,8 @@ InnerLoop:
         jsr asteroid_4.SetLocationFromExtraData
         jsr asteroid_5.MoveInExtraData
 
-        // loop back for inner loop if appropriate
-        dec loop_index_1
-        bne InnerLoop
+        jmp MainLoop
 
-        // inner loop finished change some colors and speeds
-
-        // change some colors
-        jsr cycle_colors
-
-        // change some speeds
-        dec ship_1.x_vel          // decrement ship speed
-        bne SkipShipMax         // if its not zero yet then skip setting to max
-        lda #MAX_SPEED          // if it is zero then set it back to the max speed
-        sta ship_1.x_vel          // save the new ship speed (max speed)
-
-
-SkipShipMax:                   
-        inc asteroid_1.y_vel    // increment asteroid Y velocity 
-        lda asteroid_1.y_vel    // load new speed just incremented
-        cmp #MAX_SPEED+1        // compare new spead with max +1
-        bne SkipAsteroidMin     // if we haven't reached max + 1 then skip setting to min
-        lda #MIN_SPEED          // else, we have reached max+1 so need to reset it back min
-        sta asteroid_1.y_vel
-
-SkipAsteroidMin:
-        // now we can loop back for outer loop if appropriate.
-        dec loop_index_2
-        bne OuterLoop
 
         // Done moving sprites, move cursor out of the way 
         // and return, but leave the sprites on the screen
@@ -232,7 +239,7 @@ SkipAsteroidMin:
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to cycle the color of a sprite just to show how
 // the nv_sprite_set_color_from_memory macro works.
-cycle_colors:
+change_up:
         ldx cycling_color
         inx
         cpx #NV_COLOR_BLUE // blue is default backgroumd, so skip that one
@@ -246,6 +253,23 @@ NotBlue:
 SetColor:
         stx cycling_color
         nv_sprite_raw_set_color_from_memory(1, cycling_color)
+
+        // change some speeds
+        dec ship_1.x_vel          // decrement ship speed
+        bne SkipShipMax         // if its not zero yet then skip setting to max
+        lda #MAX_SPEED          // if it is zero then set it back to the max speed
+        sta ship_1.x_vel          // save the new ship speed (max speed)
+
+SkipShipMax:                   
+        inc asteroid_1.y_vel    // increment asteroid Y velocity 
+        lda asteroid_1.y_vel    // load new speed just incremented
+        cmp #MAX_SPEED+1        // compare new spead with max +1
+        bne SkipAsteroidMin     // if we haven't reached max + 1 then skip setting to min
+        lda #MIN_SPEED          // else, we have reached max+1 so need to reset it back min
+        sta asteroid_1.y_vel
+
+SkipAsteroidMin:
+
         rts
 
 //////////////////////////////////////////////////////////////////////////////
