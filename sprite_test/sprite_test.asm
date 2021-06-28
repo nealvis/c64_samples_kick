@@ -163,39 +163,32 @@ OuterLoop:
         sty loop_index_1
 
 InnerLoop:
-        
+
+        //// call function to move sprites around based on X and Y velocity
+        // but only modify the position in their extra data block not on screen
+        lda #NV_COLOR_LITE_GREEN                      // change border color back to
+        sta $D020                               // visualize timing
+        jsr ship_1.MoveInExtraData
+        jsr asteroid_1.MoveInExtraData
+        jsr asteroid_2.MoveInExtraData
+        jsr asteroid_3.MoveInExtraData
+        jsr asteroid_4.MoveInExtraData
+        jsr asteroid_5.SetLocationFromExtraData
+
         lda #NV_COLOR_LITE_BLUE                // change border color back to
         sta $D020                              // visualize timing
-        nv_sprite_wait_last_scanline()  // wit for particular scanline.
+        nv_sprite_wait_last_scanline()         // wait for particular scanline.
         lda #NV_COLOR_GREEN                    // change border color to  
         sta $D020                              // visualize timing
-        
 
-        //// call function to move ship based on X and Y velocity
 
-        jsr ship_1.MoveInExtraData
+        //// call routine to update sprite x and y positions on screen
         jsr ship_1.SetLocationFromExtraData
-
-        //// call routine to move asteroid based on x and y velocity
-        jsr asteroid_1.MoveInExtraData
         jsr asteroid_1.SetLocationFromExtraData
-
-
-        //// call routine to move asteroid 2 based on x and y velocity
-        jsr asteroid_2.MoveInExtraData
         jsr asteroid_2.SetLocationFromExtraData
-
-        //// call routine to move asteroid 3 based on x and y velocity
-        jsr asteroid_3.MoveInExtraData
         jsr asteroid_3.SetLocationFromExtraData
-
-        //// call routine to move asteroid 3 based on x and y velocity
-        jsr asteroid_4.MoveInExtraData
         jsr asteroid_4.SetLocationFromExtraData
-
-        //// call routine to move asteroid 3 based on x and y velocity
         jsr asteroid_5.MoveInExtraData
-        jsr asteroid_5.SetLocationFromExtraData
 
         // loop back for inner loop if appropriate
         dec loop_index_1
