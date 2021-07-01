@@ -158,7 +158,7 @@ change_up_flag: .byte 0
         jsr asteroid_4.Enable
         jsr asteroid_5.Enable
 
-
+.var showTiming = false
 
 MainLoop:
 
@@ -188,8 +188,11 @@ PartialSecond2:
 
         //// call function to move sprites around based on X and Y velocity
         // but only modify the position in their extra data block not on screen
-        lda #NV_COLOR_LITE_GREEN                      // change border color back to
-        sta $D020                                     // visualize timing
+        .if (showTiming)
+        {
+            lda #NV_COLOR_LITE_GREEN                      // change border color back to
+            sta $D020                                     // visualize timing
+        }
         jsr ship_1.MoveInExtraData
         jsr asteroid_1.MoveInExtraData
         jsr asteroid_2.MoveInExtraData
@@ -206,14 +209,19 @@ YesChangeUp:
         lda #0 
         sta change_up_flag
 NoChangeUp:
-
-
         // not changing this frame, 
-        lda #NV_COLOR_LITE_BLUE                // change border color back to
-        sta $D020                              // visualize timing
+
+        .if (showTiming)
+        {
+            lda #NV_COLOR_LITE_BLUE                // change border color back to
+            sta $D020                              // visualize timing
+        }
         nv_sprite_wait_last_scanline()         // wait for particular scanline.
-        lda #NV_COLOR_GREEN                    // change border color to  
-        sta $D020                              // visualize timing
+        .if (showTiming)
+        {
+            lda #NV_COLOR_GREEN                    // change border color to  
+            sta $D020                              // visualize timing
+        }
 
         jsr ship_1.SetLocationFromExtraData
         jsr asteroid_1.SetLocationFromExtraData
@@ -223,7 +231,7 @@ NoChangeUp:
         jsr asteroid_5.SetLocationFromExtraData
 
         //// call routine to update sprite x and y positions on screen
-        jsr CheckCollisions
+        jsr CheckShipCollisions
         lda closest_sprite
         beq IgnoreCollision
 HandleCollision:
@@ -284,7 +292,7 @@ SkipAsteroidMin:
 
 //////////////////////////////////////////////////////////////////////////////
 //
-CheckCollisions: 
+CheckShipCollisions: 
         lda #$FF
         sta closest_rel_dist
         lda #$00
@@ -386,9 +394,6 @@ collision_bit: .byte 0
 closest_sprite: .byte 0
 closest_rel_dist: .word 0
 temp_rel_dist: .word 0
-
-//save_collisions: .byte 0
-
 
 
 temp_x_dist: .word 0
