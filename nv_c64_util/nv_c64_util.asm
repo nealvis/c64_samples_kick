@@ -9,4 +9,5 @@
 #import "nv_sprite.asm"
 #import "nv_branch16.asm"
 #import "nv_math16.asm"
+#import "nv_math8.asm"
 
