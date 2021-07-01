@@ -208,19 +208,6 @@ skip_multicolor:
 //
 .macro nv_sprite_raw_enable_from_mem(spt_num_addr)
 {
-/*
-    ldx spt_num_addr
-    lda #$01
-    
-Loop:
-    dex
-    bmi MaskDone
-    clc
-    rol
-    jmp Loop
-
-MaskDone:
-*/
     nv_mask_from_bit_num_mem(spt_num_addr, false)
     // mask is now in Accum
     ora NV_SPRITE_ENABLE_REG_ADDR
@@ -235,21 +222,6 @@ MaskDone:
 //                 sprite number (0-7) that will be disabled
 .macro nv_sprite_raw_disable_from_mem(spt_num_addr)
 {
-/*
-    ldx spt_num_addr
-    lda #$01
-    
-Loop:
-    dex
-    bmi MaskDone
-    clc
-    rol
-    jmp Loop
-
-MaskDone:
-    // mask is now in A
-    eor #$FF
-*/
     nv_mask_from_bit_num_mem(spt_num_addr, true)
     // negated mask now in accum
     and NV_SPRITE_ENABLE_REG_ADDR
