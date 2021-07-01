@@ -121,3 +121,31 @@ Loop:
     dey
     bne Loop
 }
+
+
+.macro negate16(addr16, result_addr16)
+{
+    lda addr16
+    eor #$FF
+    sta result_addr16
+
+    lda addr16+1
+    eor #$FF
+    sta result_addr16+1
+}
+
+.macro nv_twos_comp_16(addr16, result_addr16)
+{
+    negate16(addr16, result_addr16)
+    nv_adc16_immediate(result_addr16, 1, result_addr16)
+}
+
+// subtract contents at addr2 from those at addr1
+.macro nv_sbc16(addr1, addr2, result_addr)
+{
+    // nps todo: look at the sbc instruction, might be better
+    // to use that than to take 2s comp and add.
+    nv_twos_comp_16(addr2, sbc16_temp16)
+    nv_adc16(addr1, sbc16_temp16, result_addr)
+}
+sbc16_temp16: .word 0

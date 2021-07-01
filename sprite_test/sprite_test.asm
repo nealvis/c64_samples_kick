@@ -25,18 +25,16 @@
 // min and max speed for all sprites
 .const MAX_SPEED = 6
 .const MIN_SPEED = -6
-.const FPS = 50
+.const FPS = 60
 
 // some loop indices
-//loop_index_1: .byte 0
-//loop_index_2: .byte 0
 frame_counter: .word 0
 second_counter: .word 0
 second_partial_counter: .word 0
 
 
 cycling_color: .byte NV_COLOR_FIRST
-cycle_flag: .byte 0
+change_up_flag: .byte 0
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -163,6 +161,7 @@ cycle_flag: .byte 0
 
 
 MainLoop:
+
         nv_adc16_immediate(frame_counter, 1, frame_counter)
         nv_adc16_immediate(second_partial_counter, 1, second_partial_counter)
         nv_ble16_immediate(second_partial_counter, FPS, PartialSecond1)
@@ -175,11 +174,11 @@ FullSecond:
         sta second_partial_counter+1
         nv_adc16_immediate(second_counter, 1, second_counter)
         lda #$03
-        and second_counter
-        bne Skip
+        and second_counter  //set flag every 4 secs when bits 0 and 1 clear
+        bne NoSetFlag
         lda #1
-        sta cycle_flag
-Skip:
+        sta change_up_flag
+NoSetFlag:
         //nv_screen_plot_cursor(0, 7)
         //nv_screen_print_hex_word(second_counter, true)
 PartialSecond2:
@@ -187,45 +186,57 @@ PartialSecond2:
         //nv_screen_print_hex_word(frame_counter, true)
 
 
-
         //// call function to move sprites around based on X and Y velocity
         // but only modify the position in their extra data block not on screen
         lda #NV_COLOR_LITE_GREEN                      // change border color back to
-        sta $D020                               // visualize timing
+        sta $D020                                     // visualize timing
         jsr ship_1.MoveInExtraData
         jsr asteroid_1.MoveInExtraData
         jsr asteroid_2.MoveInExtraData
         jsr asteroid_3.MoveInExtraData
         jsr asteroid_4.MoveInExtraData
-        jsr asteroid_5.SetLocationFromExtraData
+        jsr asteroid_5.MoveInExtraData
 
-        lda #1                     // lsb of second counter
-        bit cycle_flag
-        beq NoCycle
-Cycle:
-        jsr change_up 
+        lda #1 
+        bit change_up_flag
+        beq NoChangeUp
+YesChangeUp:
+        // every few seconds change up some sprite properties
+        jsr ChangeUp 
         lda #0 
-        sta cycle_flag
-NoCycle:
+        sta change_up_flag
+NoChangeUp:
 
+
+        // not changing this frame, 
         lda #NV_COLOR_LITE_BLUE                // change border color back to
         sta $D020                              // visualize timing
         nv_sprite_wait_last_scanline()         // wait for particular scanline.
         lda #NV_COLOR_GREEN                    // change border color to  
         sta $D020                              // visualize timing
 
-
-        //// call routine to update sprite x and y positions on screen
         jsr ship_1.SetLocationFromExtraData
         jsr asteroid_1.SetLocationFromExtraData
         jsr asteroid_2.SetLocationFromExtraData
         jsr asteroid_3.SetLocationFromExtraData
         jsr asteroid_4.SetLocationFromExtraData
-        jsr asteroid_5.MoveInExtraData
+        jsr asteroid_5.SetLocationFromExtraData
 
+        //// call routine to update sprite x and y positions on screen
+        jsr CheckCollisions
+        lda closest_sprite
+        beq IgnoreCollision
+HandleCollision:
+        nv_sprite_raw_disable_from_mem(closest_sprite)
+
+        //nv_screen_plot_cursor(0, 15)
+        //nv_screen_print_hex_byte_at_addr(closest_sprite, true)
+        //nv_screen_wait_anykey()
+
+IgnoreCollision:
         jmp MainLoop
 
-
+ProgramDone:
         // Done moving sprites, move cursor out of the way 
         // and return, but leave the sprites on the screen
         // also set border color to normal
@@ -239,7 +250,7 @@ NoCycle:
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to cycle the color of a sprite just to show how
 // the nv_sprite_set_color_from_memory macro works.
-change_up:
+ChangeUp:
         ldx cycling_color
         inx
         cpx #NV_COLOR_BLUE // blue is default backgroumd, so skip that one
@@ -269,14 +280,206 @@ SkipShipMax:
         sta asteroid_1.y_vel
 
 SkipAsteroidMin:
-
         rts
+
+//////////////////////////////////////////////////////////////////////////////
+//
+CheckCollisions: 
+        lda #$FF
+        sta closest_rel_dist
+        lda #$00
+        sta closest_sprite
+        lda #$8F 
+        sta closest_rel_dist + 1
+
+        nv_sprite_raw_get_sprite_collisions_in_a()
+
+        sta collision_bit
+        ror collision_bit        // rotate bit for sprite 0 (ship) bit to carry
+        bcs SkipJump 
+        jmp ClosestSpriteSet
+SkipJump:
+
+        // carry is set here
+        ror collision_bit        // rotate bit for sprite 1 bit to carry
+        bcc CheckSprite2
+WasSprite1:
+        jsr GetDistance_0_1
+        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite2)
+        lda temp_rel_dist
+        sta closest_rel_dist
+        lda temp_rel_dist+1
+        sta closest_rel_dist+1
+        lda #1
+        sta closest_sprite
+        jmp CheckSprite2
+
+CheckSprite2:
+        ror collision_bit        // rotate bit for sprite 2 bit to carry
+        bcc CheckSprite3
+
+WasSprite2:
+        jsr GetDistance_0_2
+        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite3)
+        lda temp_rel_dist
+        sta closest_rel_dist
+        lda temp_rel_dist+1
+        sta closest_rel_dist+1
+        lda #2
+        sta closest_sprite
+        jmp CheckSprite3
+
+CheckSprite3:
+        ror collision_bit        // rotate bit for sprite 3 bit to carry
+        bcc CheckSprite4
+
+WasSprite3:
+        jsr GetDistance_0_3
+        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite4)
+        lda temp_rel_dist
+        sta closest_rel_dist
+        lda temp_rel_dist+1
+        sta closest_rel_dist+1
+        lda #3
+        sta closest_sprite
+        jmp CheckSprite4
+
+CheckSprite4:
+        ror collision_bit        // rotate bit for sprite 4 bit to carry
+        bcc CheckSprite5
+
+WasSprite4:
+        jsr GetDistance_0_4
+        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite5)
+        lda temp_rel_dist
+        sta closest_rel_dist
+        lda temp_rel_dist+1
+        sta closest_rel_dist+1
+        lda #4
+        sta closest_sprite
+        jmp CheckSprite5
+
+CheckSprite5:
+        ror collision_bit        // rotate bit for sprite 5 bit to carry
+        bcc CheckSprite6
+
+WasSprite5:
+        jsr GetDistance_0_5
+        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite6)
+        lda temp_rel_dist
+        sta closest_rel_dist
+        lda temp_rel_dist+1
+        sta closest_rel_dist+1
+        lda #5
+        sta closest_sprite
+        jmp CheckSprite6
+
+CheckSprite6:
+        ror collision_bit        // rotate bit for sprite 6 bit to carry
+        ror collision_bit        // rotate bit for sprite 7 bit to carry
+        ror collision_bit        // rotate bit for sprite 8 bit to carry
+
+ClosestSpriteSet: 
+        rts
+
+collision_bit: .byte 0
+closest_sprite: .byte 0
+closest_rel_dist: .word 0
+temp_rel_dist: .word 0
+
+//save_collisions: .byte 0
+
+
+
+temp_x_dist: .word 0
+temp_y_dist: .word 0
+temp_x_a: .word 0
+temp_y_a: .word 0
+temp_x_b: .word 0
+temp_y_b: .word 0
+blank_str: .text @"                                       \$00"
+//////////////////////////////////////////////////////////////////////////////
+// macro to get relative distance between two sprites
+// the word (16 bit) whose LSB is at rel_dist_addr will return the distance
+// between the two sprites
+.macro nv_sprite_raw_get_relative_distance(spt_num_a, spt_num_b, rel_dist_addr)
+{
+    // clear the MSB of our temps
+    lda #0 
+    sta temp_y_a+1
+    sta temp_y_b+1
+
+    nv_sprite_raw_get_location(spt_num_a, temp_x_a, temp_y_a)
+
+    //nv_screen_plot_cursor(24, 0)
+    //nv_screen_print_string_basic(blank_str)
+
+    nv_sprite_raw_get_location(spt_num_a, temp_x_a, temp_y_a)
+    nv_sprite_raw_get_location(spt_num_b, temp_x_b, temp_y_b)
+
+    nv_bge16(temp_x_a, temp_x_b, BiggerAX)
+BiggerBX:
+    nv_sbc16(temp_x_b, temp_x_a, temp_x_dist)
+    jmp FindDistY
+BiggerAX:
+    nv_sbc16(temp_x_a, temp_x_b, temp_x_dist)
+
+FindDistY:
+    nv_bge16(temp_y_a, temp_y_b, BiggerAY)
+BiggerBY:
+    nv_adc16(temp_x_dist, temp_y_b, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_a, rel_dist_addr)
+    jmp DebugPrint
+BiggerAY:
+    nv_adc16(temp_x_dist, temp_y_a, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_b, rel_dist_addr)
+
+DebugPrint:
+/*
+    nv_screen_plot_cursor(24, 0)
+    lda #spt_num_b
+    nv_screen_print_hex_byte(true)
+    nv_screen_plot_cursor(24, 5)
+    nv_screen_print_hex_word(temp_x_b, true)
+    nv_screen_plot_cursor(24, 12)
+    nv_screen_print_hex_byte_at_addr(temp_y_b, true)
+    //nv_screen_plot_cursor(24,28)
+    //nv_screen_print_hex_word(temp_x_dist, true)
+    nv_screen_plot_cursor(24,34)
+    nv_screen_print_hex_word(rel_dist_addr, true)
+
+    nv_screen_wait_anykey()
+*/
+}
+
+.macro nv_sprite_raw_get_relative_distance_sr(spt_num_a, spt_num_b, rel_dist)
+{
+    nv_sprite_raw_get_relative_distance(spt_num_a, spt_num_b, rel_dist)
+    rts
+}
+
+GetDistance_0_1:
+    nv_sprite_raw_get_relative_distance_sr(0, 1, temp_rel_dist)
+
+GetDistance_0_2:
+    nv_sprite_raw_get_relative_distance_sr(0, 2, temp_rel_dist)
+
+GetDistance_0_3:
+    nv_sprite_raw_get_relative_distance_sr(0, 3, temp_rel_dist)
+
+GetDistance_0_4:
+    nv_sprite_raw_get_relative_distance_sr(0, 4, temp_rel_dist)
+
+GetDistance_0_5:
+    nv_sprite_raw_get_relative_distance_sr(0, 5, temp_rel_dist)
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
 .namespace asteroid_1
 {
-        .var info = nv_sprite_info_struct("asteroid_1", 1, 30, 80, -1, 0, sprite_asteroid_1, 
+        .var info = nv_sprite_info_struct("asteroid_1", 1, 
+                                          30, 180, -1, 0,     // init x, y, VelX, VelY
+                                          sprite_asteroid_1, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0) // min/max top, left, bottom, right
@@ -329,7 +532,9 @@ SetWrapAllOn:
 // Namespace with everything related to asteroid 2
 .namespace asteroid_2
 {
-        .var info = nv_sprite_info_struct("asteroid_2", 2, 150, 150, -1, -2, sprite_asteroid_2, 
+        .var info = nv_sprite_info_struct("asteroid_2", 2, 
+                                          80, 150, 1, 2, // init x, y, VelX, VelY
+                                          sprite_asteroid_2, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0) // min/max top, left, bottom, right
@@ -384,7 +589,9 @@ SetWrapAllOn:
 // Namespace with everything related to asteroid 3
 .namespace asteroid_3
 {
-        .var info = nv_sprite_info_struct("asteroid_3", 3, 75, 75, 2, -3, sprite_asteroid_3, 
+        .var info = nv_sprite_info_struct("asteroid_3", 3, 
+                                          75, 200, 2, -3,  // init x, y, VelX, VelY
+                                          sprite_asteroid_3, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0) // min/max top, left, bottom, right
@@ -438,7 +645,9 @@ SetWrapAllOn:
 // Namespace with everything related to asteroid 4
 .namespace asteroid_4
 {
-        .var info = nv_sprite_info_struct("asteroid_4", 4, 255, 75, 1, 1, sprite_asteroid_4, 
+        .var info = nv_sprite_info_struct("asteroid_4", 4, 
+                                          255, 155, 1, 1, // init x, y, VelX, VelY 
+                                          sprite_asteroid_4, 
                                           sprite_extra, 
                                           0, 0, 0, 0, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0) // min/max top, left, bottom, right
@@ -492,7 +701,9 @@ SetWrapAllOn:
 // Namespace with everything related to asteroid 5
 .namespace asteroid_5
 {
-        .var info = nv_sprite_info_struct("asteroid_5", 5, 85, 76, -2, -1, sprite_asteroid_5, 
+        .var info = nv_sprite_info_struct("asteroid_5", 5,
+                                          85, 76, -2, -1, // init x, y, VelX, VelY 
+                                          sprite_asteroid_5, 
                                           sprite_extra, 
                                           0, 0, 0, 0, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0) // min/max top, left, bottom, right
@@ -546,7 +757,9 @@ SetWrapAllOn:
 // namespace with everything related to ship sprite
 .namespace ship_1
 {
-        .var info = nv_sprite_info_struct("ship_1", 0, 22, 50, 4, 1, sprite_ship, 
+        .var info = nv_sprite_info_struct("ship_1", 0,
+                                          22, 50, 4, 1,  // init x, y, VelX, VelY 
+                                          sprite_ship, 
                                           sprite_extra, 
                                           1, 0, 1, 0, // bounce on top, left, bottom, right  
                                           0, 0, 75, 0) // min/max top, left, bottom, right

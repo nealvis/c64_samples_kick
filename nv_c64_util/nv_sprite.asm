@@ -40,6 +40,28 @@
 // the hi 4 bits don't seem to be writable
 .const NV_SPRITE_1_COLOR_REG_ADDR = $d028
 
+// contains a bit for each sprite indicating if it
+// has been in a collisin with another sprite
+.const NV_SPRITE_COLLISION_SPRITE_REG_ADDR = $d01e
+
+// contains a bit for each sprite indicating if it
+// has been in a collisin with a text or bitmap graphics
+.const NV_SPRITE_COLLISION_DATA_REG_ADDR = $d01f
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to read the sprite/sprite collision register
+.macro nv_sprite_raw_get_sprite_collisions_in_a()
+{
+    lda NV_SPRITE_COLLISION_SPRITE_REG_ADDR
+} 
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to read the sprite/data collision register
+.macro nv_sprite_raw_get_data_collisions_in_a()
+{
+    lda NV_SPRITE_COLLISION_DATA_REG_ADDR
+} 
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to set the shared colors for multi colored sprites
@@ -180,6 +202,51 @@ skip_multicolor:
     rts
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_raw_enable_from_mem(spt_num_addr)
+{
+    ldx spt_num_addr
+    lda #$01
+    
+Loop:
+    dex
+    bmi MaskDone
+    clc
+    rol
+    jmp Loop
+
+MaskDone:
+    // mask is now in A
+    ora NV_SPRITE_ENABLE_REG_ADDR
+    sta NV_SPRITE_ENABLE_REG_ADDR
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_raw_disable_from_mem(spt_num_addr)
+{
+    ldx spt_num_addr
+    lda #$01
+    
+Loop:
+    dex
+    bmi MaskDone
+    clc
+    rol
+    jmp Loop
+
+MaskDone:
+    // mask is now in A
+    eor #$FF
+    and NV_SPRITE_ENABLE_REG_ADDR
+    sta NV_SPRITE_ENABLE_REG_ADDR
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 // Inline macro (no rts) to setup everything for a sprite so its ready to 
 // be enabled and moved.
@@ -303,6 +370,40 @@ loop:
     }
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to get the specified sprite's x and y position.
+// macro parameters:
+//   sprite_num: must be set to the number of the sprite 0-7
+//   sprite_x_addr: is the address of the LSB of a 16 bit word to get x pos
+//   sprite_y_addr: is the address of the byte to get the y position
+.macro nv_sprite_raw_get_location(sprite_num, sprite_x_addr, sprite_y_addr)
+{
+    ldx #(sprite_num*2) // load x with offset to sprite location for this sprite
+             
+    lda NV_SPRITE_0_X_ADDR,x    // load in right sprite's x loc low 8 bits
+    sta sprite_x_addr           // store in the memory addr
+
+    lda NV_SPRITE_0_Y_ADDR,x    // load in right sprites y loc
+    sta sprite_y_addr
+
+    .var sprite_mask = $01 << sprite_num
+
+    lda #0
+    sta sprite_x_addr+1
+
+    lda #sprite_mask
+    bit NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+    beq StayClear
+    inc sprite_x_addr+1
+StayClear:
+}
+
+.macro nv_sprite_raw_get_location_sr(sprite_num, sprite_x_addr, sprite_y_addr)
+{
+    nv_sprite_raw_get_location(sprite_num, sprite_x_addr, sprite_y_addr)
+    rts
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine macro to set sprite's location in the sprite registers based on
