@@ -5,6 +5,7 @@
 
 #import "nv_color.asm"
 #import "nv_math16.asm"
+#import "nv_math8.asm"
 #import "nv_branch16.asm"
 #import "nv_sprite_extra.asm"
 
@@ -207,6 +208,7 @@ skip_multicolor:
 //
 .macro nv_sprite_raw_enable_from_mem(spt_num_addr)
 {
+/*
     ldx spt_num_addr
     lda #$01
     
@@ -218,16 +220,22 @@ Loop:
     jmp Loop
 
 MaskDone:
-    // mask is now in A
+*/
+    nv_mask_from_bit_num_mem(spt_num_addr, false)
+    // mask is now in Accum
     ora NV_SPRITE_ENABLE_REG_ADDR
     sta NV_SPRITE_ENABLE_REG_ADDR
 }
 
 
 //////////////////////////////////////////////////////////////////////////////
-//
+// Disable the sprite specified (0-7) in the sprite hw register
+// Macro parameters:
+//   spt_num_addr: is the address of the byte that contains the 
+//                 sprite number (0-7) that will be disabled
 .macro nv_sprite_raw_disable_from_mem(spt_num_addr)
 {
+/*
     ldx spt_num_addr
     lda #$01
     
@@ -241,6 +249,9 @@ Loop:
 MaskDone:
     // mask is now in A
     eor #$FF
+*/
+    nv_mask_from_bit_num_mem(spt_num_addr, true)
+    // negated mask now in accum
     and NV_SPRITE_ENABLE_REG_ADDR
     sta NV_SPRITE_ENABLE_REG_ADDR
 }
