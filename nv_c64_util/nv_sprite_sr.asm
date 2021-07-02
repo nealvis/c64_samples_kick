@@ -164,7 +164,7 @@ SaveBlock:
      nv_sprite_extra_byte_to_x(NV_SPRITE_NUM_OFFSET)
 
     lda scratch_word                  // implied this is multiplied by 64 by system
-    sta NV_SPRITE_0_DATA_PTR_ADDR,x   // store in ptr for this sprite
+    sta NV_SPRITE_0_DATA_PTR_REG_ADDR,x   // store in ptr for this sprite
 
     nv_sprite_standard_restore(SaveBlock)
     rts
@@ -325,14 +325,14 @@ save_lo: .byte 0
     nv_sprite_extra_byte_to_a(NV_SPRITE_X_OFFSET)
 
     // store the x location to the correct sprite register
-    sta NV_SPRITE_0_X_ADDR,x    // store in right sprite's x loc
+    sta NV_SPRITE_0_X_REG_ADDR,x    // store in right sprite's x loc
 
 
     // get sprite y location from extra data block to accum
     nv_sprite_extra_byte_to_a(NV_SPRITE_Y_OFFSET)
 
     // store y position to correct sprite register
-    sta NV_SPRITE_0_Y_ADDR,x    // store in right sprites y loc
+    sta NV_SPRITE_0_Y_REG_ADDR,x    // store in right sprites y loc
 
     // load MSB of sprite X position to A 
     nv_sprite_extra_byte_to_a(NV_SPRITE_X_OFFSET + 1)
@@ -347,8 +347,8 @@ save_lo: .byte 0
 
     // and with reg that holds all the sprite x hi bits
     // then store it back to the same register so our sprite's bit is clear
-    and NV_SPRITE_ALL_X_HIGH_BIT_ADDR
-    sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR 
+    and NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR
+    sta NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR 
     
     nv_sprite_standard_restore(SaveBlock)
     rts
@@ -358,8 +358,8 @@ save_lo: .byte 0
     pla                                 // pop sprite num to accum
     tax                                 // sprite num to x for get mask macro
     nv_sprite_get_mask_in_a()           // get a mask for our sprite num
-    ora NV_SPRITE_ALL_X_HIGH_BIT_ADDR   // or with the reg of all hi X bits
-    sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR   // store back with our bit set
+    ora NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR   // or with the reg of all hi X bits
+    sta NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR   // store back with our bit set
 
     nv_sprite_standard_restore(SaveBlock)
     rts

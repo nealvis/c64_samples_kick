@@ -23,10 +23,10 @@
 .const NV_SPRITE_COLLISION_DATA_REG_ADDR = $d01f
 
 // HW reg/address of color for sprite bits that are binary 01
-.const NV_SPRITE_COLOR_1_ADDR = $D025 
+.const NV_SPRITE_COLOR_1_REG_ADDR = $D025 
 
 // HW reg/address of color for sprite bits that are binary 11
-.const NV_SPRITE_COLOR_2_ADDR = $D026 
+.const NV_SPRITE_COLOR_2_REG_ADDR = $D026 
 
 // register with one bit for each sprite to indicate high res (one color)
 // or multi color.  Bit 0 (lsb) corresponds to sprite 0
@@ -41,7 +41,7 @@
 // 8 bits so one byte per pointer.  For example sprite 1's shape data pointer
 // is in NV_SPRITE_0_DATA_PTR_ADDR+1 which is $07F9.  These are usually
 // accessed relative to the ptr for sprite 0 so no need for more consts
-.const NV_SPRITE_0_DATA_PTR_ADDR = $07F8  
+.const NV_SPRITE_0_DATA_PTR_REG_ADDR = $07F8  
 
 // if we wanted consts for each sprite they would continue here as such
 // .const NV_SPRITE_1_DATA_PTR_ADDR = $07F9  
@@ -64,8 +64,8 @@
 // memory/HW regs so sprite 1 locations are here, and sprite 2 locations
 // follow these, etc. We only really need sprite 0 location since sprite
 // locations are usually accessed relative to sprite 0.
-.const NV_SPRITE_0_X_ADDR = $D000
-.const NV_SPRITE_0_Y_ADDR = $D001
+.const NV_SPRITE_0_X_REG_ADDR = $D000
+.const NV_SPRITE_0_Y_REG_ADDR = $D001
 
 // If we wanted consts for X and Y for sprites 1-7 they would continue
 // here as such
@@ -75,7 +75,7 @@
 // since there are more than 255 x locations across the screen
 // the high bit for each sprite's X location is gathered in the 
 // byte here.  sprite_0's ninth bit is bit 0 of the byte at this addr.
-.const NV_SPRITE_ALL_X_HIGH_BIT_ADDR = $D010
+.const NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR = $D010
 
 // the low 4 bits (0-3) contain the color for sprite 1
 // the hi 4 bits don't seem to be writable
@@ -231,9 +231,9 @@
 .macro nv_sprite_raw_set_multicolors(color1, color2) 
 {
     lda #color1 // multicolor sprites global color 1
-    sta NV_SPRITE_COLOR_1_ADDR   // can also get this from spritemate
+    sta NV_SPRITE_COLOR_1_REG_ADDR   // can also get this from spritemate
     lda #color2      // multicolor sprites global color 2
-    sta NV_SPRITE_COLOR_2_ADDR
+    sta NV_SPRITE_COLOR_2_REG_ADDR
 }
 
 
@@ -283,7 +283,7 @@ skip_multicolor:
 {
     lda #(sprite_data_addr / 64)            // implied this is multiplied by 64
     ldx #sprite_num
-    sta NV_SPRITE_0_DATA_PTR_ADDR,x         // store in ptr for this sprite
+    sta NV_SPRITE_0_DATA_PTR_REG_ADDR,x         // store in ptr for this sprite
 } 
 
 
@@ -303,24 +303,24 @@ skip_multicolor:
                                 // for each sprite.
 
     lda #sprite_x               // load LSB for x location 
-    sta NV_SPRITE_0_X_ADDR,x    // store in right sprite's x loc
+    sta NV_SPRITE_0_X_REG_ADDR,x    // store in right sprite's x loc
 
     lda #sprite_y
-    sta NV_SPRITE_0_Y_ADDR,x    // store in right sprites y loc
+    sta NV_SPRITE_0_Y_REG_ADDR,x    // store in right sprites y loc
 
     .var sprite_mask = $01 << sprite_num
     .if (sprite_x > 255)
     {
-        lda NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+        lda NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR
         ora #sprite_mask
-        sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+        sta NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR
     }
     .if (sprite_x <= 255)
     {
         .var not_sprite_mask = ~sprite_mask
-        lda NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+        lda NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR
         and #not_sprite_mask
-        sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR 
+        sta NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR 
     }
 }
 
@@ -335,10 +335,10 @@ skip_multicolor:
 {
     ldx #(sprite_num*2) // load x with offset to sprite location for this sprite
              
-    lda NV_SPRITE_0_X_ADDR,x    // load in right sprite's x loc low 8 bits
+    lda NV_SPRITE_0_X_REG_ADDR,x    // load in right sprite's x loc low 8 bits
     sta sprite_x_addr           // store in the memory addr
 
-    lda NV_SPRITE_0_Y_ADDR,x    // load in right sprites y loc
+    lda NV_SPRITE_0_Y_REG_ADDR,x    // load in right sprites y loc
     sta sprite_y_addr
 
     .var sprite_mask = $01 << sprite_num
@@ -347,7 +347,7 @@ skip_multicolor:
     sta sprite_x_addr+1
 
     lda #sprite_mask
-    bit NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+    bit NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR
     beq StayClear
     inc sprite_x_addr+1
 StayClear:
@@ -386,10 +386,10 @@ StayClear:
     asl 
     tax  
 
-    lda NV_SPRITE_0_X_ADDR,x    // load in right sprite's x loc low 8 bits
+    lda NV_SPRITE_0_X_REG_ADDR,x    // load in right sprite's x loc low 8 bits
     sta sprite_x_addr           // store in the memory addr
 
-    lda NV_SPRITE_0_Y_ADDR,x    // load in right sprites y loc
+    lda NV_SPRITE_0_Y_REG_ADDR,x    // load in right sprites y loc
     sta sprite_y_addr
 
     lda #0                      // clear the high bit in mem
@@ -397,7 +397,7 @@ StayClear:
 
     tya                                     // sprite number in Accum
     nv_mask_from_bit_num_a(false)           // bitmask for sprite num in Accum
-    bit NV_SPRITE_ALL_X_HIGH_BIT_ADDR       // check sprite's high bit
+    bit NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR       // check sprite's high bit
     beq StayClear                           // if hi bit 0 then done
     inc sprite_x_addr+1                     // if hi bit 1 then set it in mem
 StayClear:
@@ -418,10 +418,10 @@ StayClear:
     ldx #(sprite_num*2) // load x with offset to sprite location for this sprite
 
     lda sprite_x_addr               
-    sta NV_SPRITE_0_X_ADDR,x    // store in right sprite's x loc
+    sta NV_SPRITE_0_X_REG_ADDR,x    // store in right sprite's x loc
 
     lda sprite_y_addr
-    sta NV_SPRITE_0_Y_ADDR,x    // store in right sprites y loc
+    sta NV_SPRITE_0_Y_REG_ADDR,x    // store in right sprites y loc
 
     .var sprite_mask = $01 << sprite_num
 
@@ -429,15 +429,15 @@ StayClear:
     bne SetBit                            // high byte was non zero, so set bit
     // clear bit
     .var not_sprite_mask = ~sprite_mask
-    lda NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+    lda NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR
     and #not_sprite_mask
-    sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR 
+    sta NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR 
     rts
     
  SetBit:   
-    lda NV_SPRITE_ALL_X_HIGH_BIT_ADDR
+    lda NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR
     ora #sprite_mask
-    sta NV_SPRITE_ALL_X_HIGH_BIT_ADDR  
+    sta NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR  
     rts
 }
 

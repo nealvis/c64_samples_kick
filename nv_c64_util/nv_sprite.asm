@@ -77,7 +77,6 @@ loop:
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to move a sprite based on information in the sprite extra 
 // struct (info) that is passed into the macro.  The sprite x and y location
