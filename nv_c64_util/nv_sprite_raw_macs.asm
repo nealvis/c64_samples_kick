@@ -85,6 +85,11 @@
 //////////////////////////////////////////////////////////////////////////////
 // Inline macro (no rts) to setup everything for a sprite so its ready to 
 // be enabled and moved.
+// Macro params:
+//   sprite_num: is the number of the sprite to setup (0-7 only)
+//   sprite_data_addr: is the address where the 64 bytes of data for the
+//                     sprite are stored.  This is the real address it will
+//                     be divided by 64 prior to setting in the sprite register.
 .macro nv_sprite_raw_setup(sprite_num, sprite_data_addr)
 {
     nv_sprite_raw_set_mode(sprite_num, sprite_data_addr)
@@ -157,6 +162,23 @@
     nv_mask_from_bit_num_mem(spt_num_addr, true)
     // negated mask now in accum
     and NV_SPRITE_ENABLE_REG_ADDR
+    sta NV_SPRITE_ENABLE_REG_ADDR
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// macro to disable a specified sprite
+// Subroutine params:
+//   Accum: set to the sprite number for the sprite to be dissabled
+//  
+.macro nv_sprite_raw_disable_from_reg()
+{
+    // change sprite number to negated sprite mask
+    nv_mask_from_bit_num_a(true)
+
+    // negated mask now in accum
+    and NV_SPRITE_ENABLE_REG_ADDR
+    
+    // store back in HW Reg with the bit cleared for this sprite
     sta NV_SPRITE_ENABLE_REG_ADDR
 }
 
