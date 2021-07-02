@@ -3,11 +3,13 @@
 
 #importonce
 
+#import "nv_util_data.asm"
 #import "nv_color.asm"
 #import "nv_math16.asm"
 #import "nv_math8.asm"
 #import "nv_branch16.asm"
 #import "nv_sprite_extra.asm"
+#import "nv_debug.asm"       // for debugging
 
 .const NV_SPRITE_ENABLE_REG_ADDR = $d015 // each bit turns on one of the sprites lsb is sprite 0, msb is sprite 7
 .const NV_SPRITE_COLOR_1_ADDR = $D025 // address of color for sprite bits that are binary 01
@@ -229,7 +231,6 @@ skip_multicolor:
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////////
 // Inline macro (no rts) to setup everything for a sprite so its ready to 
 // be enabled and moved.
@@ -386,6 +387,42 @@ StayClear:
 {
     nv_sprite_raw_get_location(sprite_num, sprite_x_addr, sprite_y_addr)
     rts
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to get the location of a sprite and put it in memory
+// subroutine parameters:
+//   Y Reg: must contain the sprite number (0-7) of the sprite who's
+//          location will be retrieved
+// macro parameters:
+//   sprite_x_addr: is the address of the LSB of a word into which the
+//                  sprite's x position will be placed  
+//   sprite_y_addr: is the address of the LSB of a word into which the
+//                  sprite's y position will be placed  
+.macro nv_sprite_raw_get_loc_reg(sprite_x_addr, sprite_y_addr)
+{
+    // multiply sprite num by 2 since two byte for each sprite (x and y)
+    // load x with offset to sprite location for this sprite
+    tya
+    asl 
+    tax  
+
+    lda NV_SPRITE_0_X_ADDR,x    // load in right sprite's x loc low 8 bits
+    sta sprite_x_addr           // store in the memory addr
+
+    lda NV_SPRITE_0_Y_ADDR,x    // load in right sprites y loc
+    sta sprite_y_addr
+
+    lda #0                      // clear the high bit in mem
+    sta sprite_x_addr+1         // if it needs to be set, do that below
+
+    tya                                     // sprite number in Accum
+    nv_mask_from_bit_num_a(false)           // bitmask for sprite num in Accum
+    bit NV_SPRITE_ALL_X_HIGH_BIT_ADDR       // check sprite's high bit
+    beq StayClear                           // if hi bit 0 then done
+    inc sprite_x_addr+1                     // if hi bit 1 then set it in mem
+StayClear:
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -729,3 +766,344 @@ Done:
     nv_sprite_set_all_actions(info, value)
     rts
 }
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to check if there is currently a collision between 
+// one sprite and any other sprites.
+// macro parameters:
+//  sprite_num_to_check: this is the sprite number (0-7) for the sprite
+//  we are checking.  
+// return: (nv_b8) will contain $FF if no collision with sprite_num sprite
+//         or it will have the sprite number for the colliding sprite
+.macro nv_sprite_raw_check_collision(sprite_num)
+{
+    .label collision_bit = nv_a8
+    .label closest_sprite = nv_b8
+    .label closest_rel_dist = nv_a16
+    .label temp_rel_dist = nv_g16    // this is the distance returned from sr
+    .label temp_x_dist = nv_c16
+    .label temp_y_dist = nv_d16 
+
+    .if (sprite_num > 7)
+    {
+        .error("Error - nv_sprite_raw_check_collision: sprite_num too big")
+    }
+    .var sprite_mask = $01 << sprite_num
+    .var sprite_mask_negated = sprite_mask ^ $FF
+
+    // set relative distance to largest positive number
+    nv_store16_immediate(closest_rel_dist, $8FFF)
+
+    // set closest sprite to $FF which is an invalid sprite
+    // if its still this at the end, then no collision with sprite_num
+    nv_store8_immediate(closest_sprite, $FF)
+
+    // read the raw collision data from the HW register to accum
+    nv_sprite_raw_get_sprite_collisions_in_a()
+    sta collision_bit
+
+    and #sprite_mask
+    bne HaveCollisionWithSpriteNum
+    jmp ClosestSpriteSet    
+
+HaveCollisionWithSpriteNum: 
+    // turn off the bit for sprite_num so we don't check for collision 
+    // with ourself.
+    lda #sprite_mask_negated
+    and collision_bit
+    sta collision_bit
+
+CheckSprite0:
+    ror collision_bit        // rotate bit for sprite 0 (ship) bit to carry
+    bcc CheckSprite1 
+WasSprite0:
+    ldx #sprite_num
+    ldy #0
+    jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite1)
+
+    // save the new closest rel distance
+    nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
+
+    // save the new closest sprite
+    nv_store8_immediate(closest_sprite, 0)
+    
+
+CheckSprite1:
+    // carry is set here
+    ror collision_bit        // rotate bit for sprite 1 bit to carry
+    bcc CheckSprite2
+WasSprite1:
+    ldx #sprite_num
+    ldy #1
+    jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite2)
+
+    // save the new closest rel distance
+    nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
+
+    // save the new closest sprite
+    nv_store8_immediate(closest_sprite, 1)
+
+CheckSprite2:
+    ror collision_bit        // rotate bit for sprite 2 bit to carry
+    bcc CheckSprite3
+
+WasSprite2:
+    ldx #sprite_num
+    ldy #2
+    jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite3)
+
+    // save the new closest rel distance
+    nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
+
+    // save the new closest sprite
+    nv_store8_immediate(closest_sprite, 2)
+
+
+CheckSprite3:
+    ror collision_bit        // rotate bit for sprite 3 bit to carry
+    bcc CheckSprite4
+
+WasSprite3:
+    ldx #sprite_num
+    ldy #3
+    jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite4)
+
+    // save the new closest rel distance
+    nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
+
+    // save the new closest sprite
+    nv_store8_immediate(closest_sprite, 3)
+
+CheckSprite4:
+    ror collision_bit        // rotate bit for sprite 4 bit to carry
+    bcc CheckSprite5
+
+WasSprite4:
+    ldx #sprite_num
+    ldy #4
+    jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite5)
+    
+    // save the new closest rel distance
+    nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
+
+    // save the new closest sprite
+    nv_store8_immediate(closest_sprite, 4)
+
+
+CheckSprite5:
+    ror collision_bit        // rotate bit for sprite 5 bit to carry
+    bcc CheckSprite6
+
+WasSprite5:
+    ldx #sprite_num
+    ldy #5
+    jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite6)
+    
+    // save the new closest rel distance
+    nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
+
+    // save the new closest sprite
+    nv_store8_immediate(closest_sprite, 5)
+
+
+CheckSprite6:
+    ror collision_bit        // rotate bit for sprite 6 bit to carry
+    bcc CheckSprite7
+
+WasSprite6:
+    ldx #sprite_num
+    ldy #6
+    jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite7)
+    
+    // save the new closest rel distance
+    nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
+
+    // save the new closest sprite
+    nv_store8_immediate(closest_sprite, 6)
+
+
+CheckSprite7:
+    ror collision_bit        // rotate bit for sprite 7 bit to carry
+    bcc DoneChecking
+
+WasSprite7:
+    ldx #sprite_num
+    ldy #7
+    jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_bge16(temp_rel_dist, closest_rel_dist, DoneChecking)
+    
+    // save the new closest rel distance
+    nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
+
+    // save the new closest sprite
+    nv_store8_immediate(closest_sprite, 7)
+
+DoneChecking:
+    //ror collision_bit        // rotate one more time to get back to beginning 
+
+ClosestSpriteSet: 
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// macro to get relative distance between two sprites
+// the word (16 bit) whose LSB is at rel_dist_addr will return the distance
+// between the two sprites
+.macro nv_sprite_raw_get_relative_distance(spt_num_a, spt_num_b, rel_dist_addr)
+{
+
+    .label temp_x_dist = nv_a16
+    .label temp_y_dist = nv_b16
+    .label temp_x_a = nv_c16
+    .label temp_y_a = nv_d16
+    .label temp_x_b = nv_e16
+    .label temp_y_b = nv_f16
+
+    // clear the MSB of our temps
+    lda #0 
+    sta temp_y_a+1
+    sta temp_y_b+1
+
+    //nv_sprite_raw_get_location(spt_num_a, temp_x_a, temp_y_a)
+
+    //nv_screen_plot_cursor(24, 0)
+    //nv_screen_print_string_basic(blank_str)
+
+    nv_sprite_raw_get_location(spt_num_a, temp_x_a, temp_y_a)
+    nv_sprite_raw_get_location(spt_num_b, temp_x_b, temp_y_b)
+
+    nv_bge16(temp_x_a, temp_x_b, BiggerAX)
+BiggerBX:
+    nv_sbc16(temp_x_b, temp_x_a, temp_x_dist)
+    jmp FindDistY
+BiggerAX:
+    nv_sbc16(temp_x_a, temp_x_b, temp_x_dist)
+
+FindDistY:
+    nv_bge16(temp_y_a, temp_y_b, BiggerAY)
+BiggerBY:
+    nv_adc16(temp_x_dist, temp_y_b, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_a, rel_dist_addr)
+    jmp DebugPrint
+BiggerAY:
+    nv_adc16(temp_x_dist, temp_y_a, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_b, rel_dist_addr)
+
+DebugPrint:
+/*
+    nv_screen_plot_cursor(24, 0)
+    lda #spt_num_b
+    nv_screen_print_hex_byte(true)
+    nv_screen_plot_cursor(24, 5)
+    nv_screen_print_hex_word(temp_x_b, true)
+    nv_screen_plot_cursor(24, 12)
+    nv_screen_print_hex_byte_at_addr(temp_y_b, true)
+    //nv_screen_plot_cursor(24,28)
+    //nv_screen_print_hex_word(temp_x_dist, true)
+    nv_screen_plot_cursor(24,34)
+    nv_screen_print_hex_word(rel_dist_addr, true)
+
+    nv_screen_wait_anykey()
+*/
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine macro to get relative distance between two sprites
+// the word (16 bit) whose LSB is at rel_dist_addr will return the distance
+// between the two sprites
+// subroutine params
+//   X register contains the sprite num of one sprite
+//   y register contains the sprite num of the other sprite
+// macro params:
+//   rel_dist_addr: is the 16 bit addr to a word in memory into which 
+//                  the relative distance will be placed
+temp_x_dist: .word 0
+temp_y_dist: .word 0
+temp_x_a: .word 0
+temp_y_a: .word 0
+temp_x_b: .word 0
+temp_y_b: .word 0
+hold_spt_num_a: .word 0
+hold_spt_num_b: .word 0
+
+.macro nv_sprite_raw_get_rel_dist_reg(rel_dist_addr)
+{
+/*
+    .label temp_x_dist = nv_a16
+    .label temp_y_dist = nv_b16
+    .label temp_x_a = nv_c16
+    .label temp_y_a = nv_d16
+    .label temp_x_b = nv_e16
+    .label temp_y_b = nv_f16
+    .label hold_spt_num_a = nv_a8
+    .label hold_spt_num_b = nv_b8
+*/
+    stx hold_spt_num_a
+    sty hold_spt_num_b
+
+    // clear the MSB of our temps
+    lda #0 
+    sta temp_y_a+1
+    sta temp_y_b+1
+
+    ldy hold_spt_num_a
+    nv_sprite_raw_get_loc_reg(temp_x_a, temp_y_a)
+
+    ldy hold_spt_num_b
+    nv_sprite_raw_get_loc_reg(temp_x_b, temp_y_b)
+
+    nv_bge16(temp_x_a, temp_x_b, BiggerAX)
+BiggerBX:
+    nv_sbc16(temp_x_b, temp_x_a, temp_x_dist)
+    jmp FindDistY
+BiggerAX:
+    nv_sbc16(temp_x_a, temp_x_b, temp_x_dist)
+
+FindDistY:
+    nv_bge16(temp_y_a, temp_y_b, BiggerAY)
+BiggerBY:
+    nv_adc16(temp_x_dist, temp_y_b, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_a, rel_dist_addr)
+    jmp DebugPrint
+BiggerAY:
+    nv_adc16(temp_x_dist, temp_y_a, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_b, rel_dist_addr)
+
+DebugPrint:
+/*
+    nv_screen_plot_cursor(24, 0)
+    lda #spt_num_b
+    nv_screen_print_hex_byte(true)
+    nv_screen_plot_cursor(24, 5)
+    nv_screen_print_hex_word(temp_x_b, true)
+    nv_screen_plot_cursor(24, 12)
+    nv_screen_print_hex_byte_at_addr(temp_y_b, true)
+    //nv_screen_plot_cursor(24,28)
+    //nv_screen_print_hex_word(temp_x_dist, true)
+    nv_screen_plot_cursor(24,34)
+    nv_screen_print_hex_word(rel_dist_addr, true)
+
+    nv_screen_wait_anykey()
+*/
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to get relative distance between two sprites.
+// subroutine params:
+//   X Reg: sprite number for one sprite
+//   Y Reg: sprite number for other sprite
+// Return: (in nv_g16) is a 16bit value that is the relative distance
+//         between the two sprites
+NvSpriteRawGetRelDistReg:
+    nv_sprite_raw_get_rel_dist_reg(nv_g16)
+    rts

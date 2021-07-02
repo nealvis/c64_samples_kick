@@ -36,6 +36,10 @@ second_partial_counter: .word 0
 cycling_color: .byte NV_COLOR_FIRST
 change_up_flag: .byte 0
 
+// will be $FF (no collision) or sprite number of sprite colliding with
+ship_collision_sprite: .byte 0      
+
+
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
 *=$0900 "SpriteData"
@@ -231,11 +235,11 @@ NoChangeUp:
         jsr asteroid_5.SetLocationFromExtraData
 
         //// call routine to update sprite x and y positions on screen
-        jsr CheckShipCollisions
-        lda closest_sprite
-        beq IgnoreCollision
+        jsr CheckShipCollision
+        lda ship_collision_sprite     // closest_sprite
+        bmi IgnoreCollision
 HandleCollision:
-        nv_sprite_raw_disable_from_mem(closest_sprite)
+        nv_sprite_raw_disable_from_mem(ship_collision_sprite)
 
         //nv_screen_plot_cursor(0, 15)
         //nv_screen_print_hex_byte_at_addr(closest_sprite, true)
@@ -291,192 +295,12 @@ SkipAsteroidMin:
         rts
 
 //////////////////////////////////////////////////////////////////////////////
-//
-CheckShipCollisions: 
-        lda #$FF
-        sta closest_rel_dist
-        lda #$00
-        sta closest_sprite
-        lda #$8F 
-        sta closest_rel_dist + 1
-
-        nv_sprite_raw_get_sprite_collisions_in_a()
-
-        sta collision_bit
-        ror collision_bit        // rotate bit for sprite 0 (ship) bit to carry
-        bcs SkipJump 
-        jmp ClosestSpriteSet
-SkipJump:
-
-        // carry is set here
-        ror collision_bit        // rotate bit for sprite 1 bit to carry
-        bcc CheckSprite2
-WasSprite1:
-        jsr GetDistance_0_1
-        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite2)
-        lda temp_rel_dist
-        sta closest_rel_dist
-        lda temp_rel_dist+1
-        sta closest_rel_dist+1
-        lda #1
-        sta closest_sprite
-        jmp CheckSprite2
-
-CheckSprite2:
-        ror collision_bit        // rotate bit for sprite 2 bit to carry
-        bcc CheckSprite3
-
-WasSprite2:
-        jsr GetDistance_0_2
-        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite3)
-        lda temp_rel_dist
-        sta closest_rel_dist
-        lda temp_rel_dist+1
-        sta closest_rel_dist+1
-        lda #2
-        sta closest_sprite
-        jmp CheckSprite3
-
-CheckSprite3:
-        ror collision_bit        // rotate bit for sprite 3 bit to carry
-        bcc CheckSprite4
-
-WasSprite3:
-        jsr GetDistance_0_3
-        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite4)
-        lda temp_rel_dist
-        sta closest_rel_dist
-        lda temp_rel_dist+1
-        sta closest_rel_dist+1
-        lda #3
-        sta closest_sprite
-        jmp CheckSprite4
-
-CheckSprite4:
-        ror collision_bit        // rotate bit for sprite 4 bit to carry
-        bcc CheckSprite5
-
-WasSprite4:
-        jsr GetDistance_0_4
-        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite5)
-        lda temp_rel_dist
-        sta closest_rel_dist
-        lda temp_rel_dist+1
-        sta closest_rel_dist+1
-        lda #4
-        sta closest_sprite
-        jmp CheckSprite5
-
-CheckSprite5:
-        ror collision_bit        // rotate bit for sprite 5 bit to carry
-        bcc CheckSprite6
-
-WasSprite5:
-        jsr GetDistance_0_5
-        nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite6)
-        lda temp_rel_dist
-        sta closest_rel_dist
-        lda temp_rel_dist+1
-        sta closest_rel_dist+1
-        lda #5
-        sta closest_sprite
-        jmp CheckSprite6
-
-CheckSprite6:
-        ror collision_bit        // rotate bit for sprite 6 bit to carry
-        ror collision_bit        // rotate bit for sprite 7 bit to carry
-        ror collision_bit        // rotate bit for sprite 8 bit to carry
-
-ClosestSpriteSet: 
-        rts
-
-collision_bit: .byte 0
-closest_sprite: .byte 0
-closest_rel_dist: .word 0
-temp_rel_dist: .word 0
-
-
-temp_x_dist: .word 0
-temp_y_dist: .word 0
-temp_x_a: .word 0
-temp_y_a: .word 0
-temp_x_b: .word 0
-temp_y_b: .word 0
-blank_str: .text @"                                       \$00"
-//////////////////////////////////////////////////////////////////////////////
-// macro to get relative distance between two sprites
-// the word (16 bit) whose LSB is at rel_dist_addr will return the distance
-// between the two sprites
-.macro nv_sprite_raw_get_relative_distance(spt_num_a, spt_num_b, rel_dist_addr)
-{
-    // clear the MSB of our temps
-    lda #0 
-    sta temp_y_a+1
-    sta temp_y_b+1
-
-    nv_sprite_raw_get_location(spt_num_a, temp_x_a, temp_y_a)
-
-    //nv_screen_plot_cursor(24, 0)
-    //nv_screen_print_string_basic(blank_str)
-
-    nv_sprite_raw_get_location(spt_num_a, temp_x_a, temp_y_a)
-    nv_sprite_raw_get_location(spt_num_b, temp_x_b, temp_y_b)
-
-    nv_bge16(temp_x_a, temp_x_b, BiggerAX)
-BiggerBX:
-    nv_sbc16(temp_x_b, temp_x_a, temp_x_dist)
-    jmp FindDistY
-BiggerAX:
-    nv_sbc16(temp_x_a, temp_x_b, temp_x_dist)
-
-FindDistY:
-    nv_bge16(temp_y_a, temp_y_b, BiggerAY)
-BiggerBY:
-    nv_adc16(temp_x_dist, temp_y_b, rel_dist_addr)
-    nv_sbc16(rel_dist_addr, temp_y_a, rel_dist_addr)
-    jmp DebugPrint
-BiggerAY:
-    nv_adc16(temp_x_dist, temp_y_a, rel_dist_addr)
-    nv_sbc16(rel_dist_addr, temp_y_b, rel_dist_addr)
-
-DebugPrint:
-/*
-    nv_screen_plot_cursor(24, 0)
-    lda #spt_num_b
-    nv_screen_print_hex_byte(true)
-    nv_screen_plot_cursor(24, 5)
-    nv_screen_print_hex_word(temp_x_b, true)
-    nv_screen_plot_cursor(24, 12)
-    nv_screen_print_hex_byte_at_addr(temp_y_b, true)
-    //nv_screen_plot_cursor(24,28)
-    //nv_screen_print_hex_word(temp_x_dist, true)
-    nv_screen_plot_cursor(24,34)
-    nv_screen_print_hex_word(rel_dist_addr, true)
-
-    nv_screen_wait_anykey()
-*/
-}
-
-.macro nv_sprite_raw_get_relative_distance_sr(spt_num_a, spt_num_b, rel_dist)
-{
-    nv_sprite_raw_get_relative_distance(spt_num_a, spt_num_b, rel_dist)
+// subroutine to check for collisions with the ship (sprite 0)
+CheckShipCollision:
+    nv_sprite_raw_check_collision(0)
+    lda nv_b8
+    sta ship_collision_sprite
     rts
-}
-
-GetDistance_0_1:
-    nv_sprite_raw_get_relative_distance_sr(0, 1, temp_rel_dist)
-
-GetDistance_0_2:
-    nv_sprite_raw_get_relative_distance_sr(0, 2, temp_rel_dist)
-
-GetDistance_0_3:
-    nv_sprite_raw_get_relative_distance_sr(0, 3, temp_rel_dist)
-
-GetDistance_0_4:
-    nv_sprite_raw_get_relative_distance_sr(0, 4, temp_rel_dist)
-
-GetDistance_0_5:
-    nv_sprite_raw_get_relative_distance_sr(0, 5, temp_rel_dist)
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
@@ -769,6 +593,7 @@ SetWrapAllOn:
                                           1, 0, 1, 0, // bounce on top, left, bottom, right  
                                           0, 0, 75, 0) // min/max top, left, bottom, right
 
+        .var sprite_num = info.num
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET

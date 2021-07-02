@@ -149,3 +149,29 @@ Loop:
     nv_adc16(addr1, sbc16_temp16, result_addr)
 }
 sbc16_temp16: .word 0
+
+//////////////////////////////////////////////////////////////////////////////
+// inlne macro to store 16 bit immediate value into the word with LSB 
+// at lsb_addr
+.macro nv_store16_immediate(lsb_addr, value)
+{
+    lda #(value & $00FF)
+    sta lsb_addr
+    lda #(value >> 8)
+    sta lsb_addr+1
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to move one 16 bit word in memory to another location
+// in memory.
+// Macro Params:
+//   lsb_src_addr: LSB of the source for the copy
+//   lsb_dest_addr: LSB of the destination for the copy
+// Accum will be modified
+.macro nv_xfer16_mem_mem(lsb_src_addr, lsb_dest_addr)
+{
+    lda lsb_src_addr
+    sta lsb_dest_addr
+    lda lsb_src_addr+1
+    sta lsb_dest_addr+1
+}
