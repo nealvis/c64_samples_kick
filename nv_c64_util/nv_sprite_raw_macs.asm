@@ -261,14 +261,14 @@
     bit sprite_data_addr + 63     // set Zero flag if the masked bits are all 0s
                                   // if any masked bits in the last byte of sprite_0 are set 
                                   // then its a multi colored sprite
-    beq skip_multicolor           // if its zero then, ie no masked bits were set, then branch
+    beq SkipMulticolor           // if its zero then, ie no masked bits were set, then branch
                                   // to skip multi color mode.
 
     // If we didn't skip the multi color, then set sprite 0 to muli color mode
     lda NV_SPRITE_MODE_REG_ADDR   // load current contents of sprite mode reg
     ora #sprite_mask             // set bit for sprite 0 (bit 0) to 1 for multi color
     sta NV_SPRITE_MODE_REG_ADDR   // leave other bits untouched for sprites 1-7 
-skip_multicolor:
+SkipMulticolor:
 }
 
 
