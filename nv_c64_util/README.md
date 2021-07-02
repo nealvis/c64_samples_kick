@@ -5,9 +5,12 @@ This directory holds nv_c64_util which is just a collection of C64 utility routi
 All the assembler code in this directory is written for Kick Assembler and in general the setup outlined in the [main repository README.md](../README.md)
 
 ## Conventions
+- Files that do not generate any code by themself when assembled have a filename ending in \_macs (for macros)
+- Files that do generate code or data when assembled have a filename ending in \_code or \_data
 - In general all identifiers to be used outside of the file will start with NV_ or nv_
 - Labels in the code are: PascalCase
 - Macro names are: lower_case_with_underscores
+- Macro parameters are: lower_case_with_underscores
 - Constants are: UPPER_CASE_WITH_UNDERSCORES
 - Macros that are intended to be instantiated in conjunction with a label to be called via jsr have "\_sr" at the end (for **S**ub**R**outine).  For example to use nv_sprite_wait_scan_sr you should instantiate the macro along with a label similar to this.
 ```  
