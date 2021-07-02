@@ -5,7 +5,6 @@
 
 #importonce
 #import "nv_util_data.asm"
-//#import "nv_sprite.asm"
 
 // zero page pointer to use whenever a zero page pointer is needed
 // usually used to store and load to and from the sprite extra pointer
