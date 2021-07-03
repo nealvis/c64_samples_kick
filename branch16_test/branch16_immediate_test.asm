@@ -1,7 +1,11 @@
-// This sample shows how to do 16bit operations such as add, subtract, and compare
+//////////////////////////////////////////////////////////////////////////////
+// branch16_immediate_test.asm
+// This sample shows how to do 16 bit conditional branches based on
+// an immediate opperand.
 
-
-#import "../nv_c64_util/nv_c64_util.asm"
+// import all nv_c64_util macros and data.  The data
+// will go in default place
+#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0

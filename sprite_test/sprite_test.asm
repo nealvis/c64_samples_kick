@@ -3,14 +3,7 @@
 // sprite test program
 //////////////////////////////////////////////////////////////////////////////
 
-// import the nv_util_data at the very top of memory.
-// it can go anywhere but this is out of the way
-*=$9F00 "nv_util_data"   
-#import "../nv_c64_util/nv_c64_util_data.asm"
-
-// import some macros 
-#import "../nv_c64_util/nv_c64_util_macs.asm"
-
+#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
 *=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.

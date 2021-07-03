@@ -3,14 +3,10 @@
 // and compare
 //////////////////////////////////////////////////////////////////////////////
 
+// import all nv_c64_util macros and data.  The data
+// will go in default place
+#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
-// import the nv_util_data at the very top of memory.
-// it can go anywhere but this is out of the way
-*=$9F00 "nv_util_data"   
-#import "../nv_c64_util/nv_c64_util_data.asm"
-
-// import macros, these don't generate any code
-#import "../nv_c64_util/nv_c64_util_macs.asm"
 
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0
