@@ -3,6 +3,11 @@
 // import some macros 
 #import "../nv_c64_util/nv_c64_util.asm"
 
+// import the nv_util_data at the very top of memory.
+// it can go anywhere but this is out of the way
+*=$9F00 "nv_util_data"   
+#import "../nv_c64_util/nv_util_data.asm"
+
 
 *=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
@@ -20,7 +25,7 @@
         .byte $20, $28, $34, $30, $39, $36, $29 // ASCII for " (4096)"
         .byte $00, $00, $00      // end of basic program (addr $080E from above)
 
-*=$0820 "Vars"
+*=$0820 "Main Program Vars"
 
 // min and max speed for all sprites
 .const MAX_SPEED = 6
@@ -127,6 +132,7 @@ ship_collision_sprite: .byte 0
 
 
 // our assembly code will goto this address
+// it will go from $1000-$2FFF
 *=$1000 "Main Start"
 
         // clear the screen just to have an empty canvas
@@ -638,6 +644,12 @@ SetWrapAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
 
 }
+// our sprite routines will goto this address
+*=$3000 "Sprite Code"
 
 // put the actual sprite subroutines here
-#import "../nv_c64_util/nv_sprite_sr.asm"
+#import "../nv_c64_util/nv_sprite_extra_code.asm"
+#import "../nv_c64_util/nv_sprite_raw_collisions_code.asm"
+#import "../nv_c64_util/nv_sprite_raw_code.asm"
+
+//#import "../nv_c64_util/nv_sprite_raw_code.asm"

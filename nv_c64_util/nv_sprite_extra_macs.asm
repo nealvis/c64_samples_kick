@@ -5,6 +5,7 @@
 
 #importonce
 #import "nv_util_data.asm"
+#import "nv_sprite_raw_macs.asm"
 
 // zero page pointer to use whenever a zero page pointer is needed
 // usually used to store and load to and from the sprite extra pointer
@@ -526,3 +527,330 @@
     txa
     nv_sprite_a_to_extra(offset)
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to move a sprite based on information in the sprite extra 
+// struct (info) that is passed into the macro.  The sprite x and y location
+// in memory will be updated according to the x and y velocity.
+// Note if the sprite goes off the edge it will be reset to the opposite side
+// of the screen or bounce based on sprite extra data
+// Note that this only updates the location in memory, it doesn't update the
+// sprite location in sprite registers.  To update sprite location in registers
+// and on the screen, call nv_sprite_set_location_from_memory_sr after this.
+.macro nv_sprite_move_any_direction_sr(info)
+{
+    ldx nv_sprite_vel_y_addr(info)
+    bpl PosVelY
+
+NegVelY:
+    nv_sprite_move_negative_y(info)
+    jmp DoneY
+
+PosVelY:
+    nv_sprite_move_positive_y(info)
+    
+DoneY:
+// Y location done, now on to X
+    ldx nv_sprite_vel_x_addr(info)
+    bmi NegVelX
+
+PosVelX:
+// moving right (positive X velocity)
+    nv_sprite_move_positive_x(info)
+    jmp FinishedUpdate
+
+NegVelX:
+// moving left (negative X velocity)
+    nv_sprite_move_negative_x(info)
+
+FinishedUpdate:
+    rts                // already popped the return address, jump back now
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_positive_y(info)
+{
+    
+    lda nv_sprite_vel_y_addr(info)
+
+    ldx nv_sprite_bottom_action_addr(info)
+    beq DoWrap                                          // 0 = wrap, 1 = bounce
+
+DoBounce:   
+    clc
+    adc nv_sprite_y_addr(info)
+
+    cmp nv_sprite_bottom_max_addr(info)
+    bcc AccumHasNewY
+    // reverse the y velocity here to do that we do bitwise not + 1 (twos comp)
+    lda #$FF
+    eor nv_sprite_vel_y_addr(info)
+    tax
+    inx
+    stx nv_sprite_vel_y_addr(info)
+    jmp DoneY                            // don't actually update y
+                                         // when bouncing
+    
+// bounce bottom flag not set, Don't need to check for bounce
+DoWrap:
+    clc
+    adc nv_sprite_y_addr(info)
+    cmp nv_sprite_bottom_max_addr(info)
+    bcc AccumHasNewY                     // if not off bottom then just update
+
+// wrap to top of screen
+    lda nv_sprite_top_min_addr(info)
+AccumHasNewY:
+    sta nv_sprite_y_addr(info)
+DoneY:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_negative_y(info)
+{
+    lda nv_sprite_vel_y_addr(info)                    // load y vel to accum
+
+    ldx nv_sprite_top_action_addr(info)               // load x with top action
+    beq DoWrap                                        // 0 = wrap, 1 = bounce
+
+DoBounce:
+    clc
+    adc nv_sprite_y_addr(info)
+    cmp nv_sprite_top_min_addr(info)
+    bcs AccumHasNewY
+    // reverse the y velocity here to do that we do bitwise not + 1
+    lda #$FF
+    eor nv_sprite_vel_y_addr(info)
+    tax
+    inx
+    stx nv_sprite_vel_y_addr(info)
+    jmp DoneY                                        // don't update Y loc
+
+DoWrap:
+
+    // wrap to other side of screen
+    clc
+    adc nv_sprite_y_addr(info)
+    cmp nv_sprite_top_min_addr(info)
+    bcs AccumHasNewY              // branch if accum > min top
+
+    // sprite is less than min top so need to move it to bottom
+    lda nv_sprite_bottom_max_addr(info)
+
+AccumHasNewY:
+    sta nv_sprite_y_addr(info)
+DoneY:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_positive_x(info)
+{
+    // add x offset + x velocity and put in scratch1
+    nv_adc16_8((nv_sprite_x_addr(info)), 
+               (nv_sprite_vel_x_addr(info)), 
+               (nv_sprite_scratch1_word_addr(info)))
+
+
+    // scratch1 now has potential new X location
+    nv_ble16(nv_sprite_scratch1_word_lsb_addr(info), nv_sprite_right_max_lsb_addr(info), NewLocInScratch1)
+
+    // New X is too far since didn't branch above
+    ldx nv_sprite_right_action_addr(info)
+    beq DoWrap                                              // 0 = wrap, 1 = bounce
+
+DoBounce:
+    // bounce off right side by changing vel to 2's compliment of vel
+    lda #$FF
+    eor nv_sprite_vel_x_addr(info)
+    tax
+    inx
+    stx nv_sprite_vel_x_addr(info)
+    jmp Done
+
+DoWrap:
+    // this sprite not set to bounce, so wrap it around
+    lda nv_sprite_left_min_lsb_addr(info)
+    sta nv_sprite_x_lsb_addr(info)
+    lda nv_sprite_left_min_msb_addr(info)
+    sta nv_sprite_x_msb_addr(info)
+    jmp Done
+
+NewLocInScratch1:
+    lda nv_sprite_scratch1_word_lsb_addr(info)
+    sta nv_sprite_x_lsb_addr(info)
+    lda nv_sprite_scratch1_word_msb_addr(info)
+    sta nv_sprite_x_msb_addr(info)
+Done:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_sprite_move_negative_x(info)
+{
+    nv_adc16_8signed((nv_sprite_x_addr(info)), 
+                     (nv_sprite_vel_x_addr(info)), 
+                     (nv_sprite_scratch1_word_lsb_addr(info)))
+
+    // scratch1 now has potential new X location
+    nv_bgt16(nv_sprite_scratch1_word_lsb_addr(info), nv_sprite_left_min_lsb_addr(info), NewLocInScratch1)
+
+    // moved too far left, either bounce or wrap
+    ldx nv_sprite_left_action_addr(info)
+    beq DoWrap
+
+DoBounce:
+// Bounce here, went off left side.  Change vel to 2's compliment of vel
+    lda #$FF
+    eor nv_sprite_vel_x_addr(info)
+    tax
+    inx
+    stx nv_sprite_vel_x_addr(info)
+    jmp Done    // don't update location this frame, just change vel
+
+DoWrap: 
+// Wrap from left edge to right edge
+    lda nv_sprite_right_max_lsb_addr(info)
+    sta nv_sprite_x_lsb_addr(info)
+    lda nv_sprite_right_max_msb_addr(info)
+    sta nv_sprite_x_msb_addr(info)
+    jmp Done
+
+NewLocInScratch1:
+    lda nv_sprite_scratch1_word_lsb_addr(info)
+    sta nv_sprite_x_lsb_addr(info)
+    lda nv_sprite_scratch1_word_msb_addr(info)
+    sta nv_sprite_x_msb_addr(info)
+Done:
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the action for the scenario when the sprite is 
+// attempting to move past its left min position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
+.macro nv_sprite_set_left_action(info, value)
+{
+    .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
+    {
+        .error("ERROR: Invalid action")
+    }
+    ldx #value
+    stx nv_sprite_left_action_addr(info)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro set the action for the scenario when the sprite is 
+// attempting to move past its right max position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
+.macro nv_sprite_set_right_action(info, value)
+{
+    .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
+    {
+        .error("ERROR: Invalid action")
+    }
+    ldx #value
+    stx nv_sprite_right_action_addr(info)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro set the action for the scenario when the sprite is 
+// attempting to move past its top min position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
+.macro nv_sprite_set_top_action(info, value)
+{
+    .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
+    {
+        .error("ERROR: Invalid action")
+    }
+    ldx #value
+    stx nv_sprite_top_action_addr(info)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the action for the scenario when the sprite is 
+// attempting to move past its bottom max position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
+.macro nv_sprite_set_bottom_action(info, value)
+{
+    .if (value != NV_SPRITE_ACTION_BOUNCE && value != NV_SPRITE_ACTION_WRAP)
+    {
+        .error("ERROR: Invalid action")
+    }
+    ldx #value
+    stx nv_sprite_bottom_action_addr(info)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// in line macro set the action for the scenario when the sprite is 
+// attempting to move past any max or min position.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
+.macro nv_sprite_set_all_actions(info, value)
+{
+    ldx #value
+    stx nv_sprite_left_action_addr(info)
+    stx nv_sprite_top_action_addr(info)
+    stx nv_sprite_right_action_addr(info)
+    stx nv_sprite_bottom_action_addr(info)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine macro to set the action for the scenario when the sprite is 
+// attempting to move past its min or max position in any direction.
+// macro parameters:
+//   info: one of the nv_sprite_info_struct structs
+//   value: the action to set, one of the NV_SPRITE_ACTION_XXX values
+//          NV_SPRITE_ACTION_BOUNCE,
+//          NV_SPRITE_ACTION_WRAP
+.macro nv_sprite_set_all_actions_sr(info, value)
+{
+    nv_sprite_set_all_actions(info, value)
+    rts
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro (no rts) to setup everything for a sprite so its ready to 
+// be enabled and moved.
+.macro nv_sprite_setup(info)
+{
+    nv_sprite_raw_set_mode(info.num, info.data_ptr)
+    nv_sprite_raw_set_data_ptr(info.num, info.data_ptr)
+    nv_sprite_raw_set_color_from_data(info.num, info.data_ptr)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine macro to setup the sprite so that its ready to be enabled 
+// and moved.  
+.macro nv_sprite_setup_sr(info)
+{
+    nv_sprite_setup(info)
+    rts
+}
+
+

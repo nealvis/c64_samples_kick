@@ -10,6 +10,7 @@
 #importonce
 #import "nv_sprite_raw_macs.asm"
 #import "nv_math8.asm"
+#import "nv_math16.asm"
 #import "nv_util_data.asm"
 
 
@@ -19,11 +20,9 @@
 // subroutine disable a specified sprite
 // Subroutine params:
 //   Accum: set to the sprite number for the sprite to be dissabled
-NvSpriteRawDisableFromA:
+NvSpriteRawDisableFromReg:
     nv_sprite_raw_disable_from_reg()
     rts
-
-
 
 
 

@@ -5,6 +5,8 @@
 // the user to make sure this doesn't conflict with their 
 // program or move it if it does.  The end of basic is 
 // usually $A000 so $9F00 is the 256 bytes before there
+// to place this data there, put this line right before importing
+// this file.
 //*=$9F00 "nv_util_data"   
 
 temp_hex_str: .byte 0,0,0,0,0,0         // enough bytes for dollor sign, 4 

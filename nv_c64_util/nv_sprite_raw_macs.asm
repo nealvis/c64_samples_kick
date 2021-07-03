@@ -10,6 +10,7 @@
 // Import other modules as needed here
 #importonce
 #import "nv_math8.asm"
+#import "nv_math16.asm"
 
 
 // HW reg/address that 
@@ -461,5 +462,149 @@ StayClear:
     ora #sprite_mask
     sta NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR  
     rts
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// macro to get relative distance between two sprites
+// the word (16 bit) whose LSB is at rel_dist_addr will return the distance
+// between the two sprites
+.macro nv_sprite_raw_get_relative_distance(spt_num_a, spt_num_b, rel_dist_addr)
+{
+
+    .label temp_x_dist = nv_a16
+    .label temp_y_dist = nv_b16
+    .label temp_x_a = nv_c16
+    .label temp_y_a = nv_d16
+    .label temp_x_b = nv_e16
+    .label temp_y_b = nv_f16
+
+    // clear the MSB of our temps
+    lda #0 
+    sta temp_y_a+1
+    sta temp_y_b+1
+
+    //nv_sprite_raw_get_location(spt_num_a, temp_x_a, temp_y_a)
+
+    //nv_screen_plot_cursor(24, 0)
+    //nv_screen_print_string_basic(blank_str)
+
+    nv_sprite_raw_get_location(spt_num_a, temp_x_a, temp_y_a)
+    nv_sprite_raw_get_location(spt_num_b, temp_x_b, temp_y_b)
+
+    nv_bge16(temp_x_a, temp_x_b, BiggerAX)
+BiggerBX:
+    nv_sbc16(temp_x_b, temp_x_a, temp_x_dist)
+    jmp FindDistY
+BiggerAX:
+    nv_sbc16(temp_x_a, temp_x_b, temp_x_dist)
+
+FindDistY:
+    nv_bge16(temp_y_a, temp_y_b, BiggerAY)
+BiggerBY:
+    nv_adc16(temp_x_dist, temp_y_b, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_a, rel_dist_addr)
+    jmp DebugPrint
+BiggerAY:
+    nv_adc16(temp_x_dist, temp_y_a, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_b, rel_dist_addr)
+
+DebugPrint:
+/*
+    nv_screen_plot_cursor(24, 0)
+    lda #spt_num_b
+    nv_screen_print_hex_byte(true)
+    nv_screen_plot_cursor(24, 5)
+    nv_screen_print_hex_word(temp_x_b, true)
+    nv_screen_plot_cursor(24, 12)
+    nv_screen_print_hex_byte_at_addr(temp_y_b, true)
+    //nv_screen_plot_cursor(24,28)
+    //nv_screen_print_hex_word(temp_x_dist, true)
+    nv_screen_plot_cursor(24,34)
+    nv_screen_print_hex_word(rel_dist_addr, true)
+
+    nv_screen_wait_anykey()
+*/
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine macro to get relative distance between two sprites
+// the word (16 bit) whose LSB is at rel_dist_addr will return the distance
+// between the two sprites
+// subroutine params
+//   X register contains the sprite num of one sprite
+//   y register contains the sprite num of the other sprite
+// macro params:
+//   rel_dist_addr: is the 16 bit addr to a word in memory into which 
+//                  the relative distance will be placed
+temp_x_dist: .word 0
+temp_y_dist: .word 0
+temp_x_a: .word 0
+temp_y_a: .word 0
+temp_x_b: .word 0
+temp_y_b: .word 0
+hold_spt_num_a: .word 0
+hold_spt_num_b: .word 0
+
+.macro nv_sprite_raw_get_rel_dist_reg(rel_dist_addr)
+{
+/*
+    .label temp_x_dist = nv_a16
+    .label temp_y_dist = nv_b16
+    .label temp_x_a = nv_c16
+    .label temp_y_a = nv_d16
+    .label temp_x_b = nv_e16
+    .label temp_y_b = nv_f16
+    .label hold_spt_num_a = nv_a8
+    .label hold_spt_num_b = nv_b8
+*/
+    stx hold_spt_num_a
+    sty hold_spt_num_b
+
+    // clear the MSB of our temps
+    lda #0 
+    sta temp_y_a+1
+    sta temp_y_b+1
+
+    ldy hold_spt_num_a
+    nv_sprite_raw_get_loc_reg(temp_x_a, temp_y_a)
+
+    ldy hold_spt_num_b
+    nv_sprite_raw_get_loc_reg(temp_x_b, temp_y_b)
+
+    nv_bge16(temp_x_a, temp_x_b, BiggerAX)
+BiggerBX:
+    nv_sbc16(temp_x_b, temp_x_a, temp_x_dist)
+    jmp FindDistY
+BiggerAX:
+    nv_sbc16(temp_x_a, temp_x_b, temp_x_dist)
+
+FindDistY:
+    nv_bge16(temp_y_a, temp_y_b, BiggerAY)
+BiggerBY:
+    nv_adc16(temp_x_dist, temp_y_b, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_a, rel_dist_addr)
+    jmp DebugPrint
+BiggerAY:
+    nv_adc16(temp_x_dist, temp_y_a, rel_dist_addr)
+    nv_sbc16(rel_dist_addr, temp_y_b, rel_dist_addr)
+
+DebugPrint:
+/*
+    nv_screen_plot_cursor(24, 0)
+    lda #spt_num_b
+    nv_screen_print_hex_byte(true)
+    nv_screen_plot_cursor(24, 5)
+    nv_screen_print_hex_word(temp_x_b, true)
+    nv_screen_plot_cursor(24, 12)
+    nv_screen_print_hex_byte_at_addr(temp_y_b, true)
+    //nv_screen_plot_cursor(24,28)
+    //nv_screen_print_hex_word(temp_x_dist, true)
+    nv_screen_plot_cursor(24,34)
+    nv_screen_print_hex_word(rel_dist_addr, true)
+
+    nv_screen_wait_anykey()
+*/
 }
 

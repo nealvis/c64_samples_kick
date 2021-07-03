@@ -10,7 +10,7 @@
 #importonce
 
 #import "nv_sprite.asm"
-#import "nv_sprite_extra.asm"
+#import "nv_sprite_extra_macs.asm"
 #import "nv_util_data.asm"
 #import "nv_math16.asm"
 
@@ -680,3 +680,15 @@ NvSpriteMoveInExtraNegX:
 
 NvSpriteMoveInExtraPosX:
     nv_sprite_move_in_extra_pos_x_sr()
+
+
+
+
+
+
+
+
+
+
+
+
