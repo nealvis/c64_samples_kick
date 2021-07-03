@@ -25,3 +25,19 @@ jsr WaitScanSubroutine
 ```
 nv_sprite_wait_last_scanline()
 ```
+
+## Usage
+There are macros and data parts of the library.  The macros depend on some data variables and lookup tables etc.  All the data can be assembled into
+any file by
+```
+#import "<path to nv_c64_util here>/nv_c64_util_data.asm"
+```
+After the data has been assembled then the the macros can be assembled with this:
+```
+#import "<path to nv_c64_util here>/nv_c64_util_macs.asm"
+```
+When using the above method the data will go into whatever segement and memory block its being imported into.  Which allows the user some flexibility as to where the data goes.  But if you don't prefer you could import both with the following, and the data will go to a default location (towards the end of BASIC memory.)
+
+```
+#import "<path to nv_c64_util here>/nv_c64_util_macs_and_data.asm"
+```
