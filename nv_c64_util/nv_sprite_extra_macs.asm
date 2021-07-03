@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #importonce
-#import "nv_util_data.asm"
+#import "nv_c64_util_data.asm"
 #import "nv_sprite_raw_macs.asm"
 
 // zero page pointer to use whenever a zero page pointer is needed

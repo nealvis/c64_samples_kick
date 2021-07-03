@@ -9,10 +9,10 @@
 
 #importonce
 
-#import "nv_sprite.asm"
+#import "nv_sprite_macs.asm"
 #import "nv_sprite_extra_macs.asm"
-#import "nv_util_data.asm"
-#import "nv_math16.asm"
+#import "nv_math16_macs.asm"
+#import "nv_c64_util_data.asm"
 
 .macro nv_sprite_load_extra_ptr()
 {

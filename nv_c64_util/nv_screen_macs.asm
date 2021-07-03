@@ -1,18 +1,26 @@
-// nv_c64_util
-// screen releated stuff
+// nv_screen_macs.asm
+// inline macros for screen releated functions
+// importing this file will not generate any code or data directly
 
 #importonce
 
-#import "nv_util_data.asm"
+#import "nv_c64_util_data.asm"
 
-.const NV_SCREEN_PRINT_STRING_BASIC_ADDR = $AB1E    // Basic routine to print text
-.const NV_SCREEN_CLEAR_KERNAL_ADDR = $E544   // Kernal clear screen addr
-.const NV_SCREEN_CURSOR_ROW_ADDR = 214              // current cursor row
-.const NV_SCREEN_CURSOR_COL_ADDR = 211              // current cursor col
-.const NV_SCREEN_PLOT_CURSOR_KERNAL_ADDR = $FFF0    // kernal jmp table routine to 
-                                             // read/write cursor locaction.
-                                             // jumps to $E50A where real routine is.
+// Basic routine to print text
+.const NV_SCREEN_PRINT_STRING_BASIC_ADDR = $AB1E    
 
+// Kernal clear screen addr
+.const NV_SCREEN_CLEAR_KERNAL_ADDR = $E544   
+
+// current cursor row
+.const NV_SCREEN_CURSOR_ROW_ADDR = 214 
+
+// current cursor col
+.const NV_SCREEN_CURSOR_COL_ADDR = 211              
+
+// kernal jmp table routine to read/write cursor locaction.
+// jumps to $E50A where real routine is.
+.const NV_SCREEN_PLOT_CURSOR_KERNAL_ADDR = $FFF0    
 
 
 // clear screen and leave cursor in upper left
@@ -95,6 +103,7 @@
     nv_screen_print_string_basic(temp_hex_str) 
 }
 
+//////////////////////////////////////////////////////////////////////////////
 .macro nv_screen_print_hex_byte_at_addr(addr, include_dollar)
 {
     lda addr

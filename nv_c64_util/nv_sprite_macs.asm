@@ -1,8 +1,14 @@
-// nv_c64_util
-// sprite releated stuff
+//////////////////////////////////////////////////////////////////////////////
+// nv_sprite_macs.asm
+// Contains inline macros for sprite releated stuff
+// Importing this file will not generate any code or data when assembled
+//////////////////////////////////////////////////////////////////////////////
 
 #importonce
 
+#import "nv_sprite_raw_macs.asm"
+#import "nv_sprite_extra_macs.asm"
+#import "nv_sprite_raw_collisions_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro (no rts) to wait for the a specific scanline  
@@ -29,8 +35,6 @@ loop:
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////////
 // inline macro (no rts) to wait for the last scanline drawing last row 
 // of screen before bottom border starts
@@ -47,5 +51,4 @@ loop:
     nv_sprite_wait_last_scanline()
     rts
 }
-
 

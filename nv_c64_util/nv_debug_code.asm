@@ -1,6 +1,7 @@
 #importonce
 
-#import "nv_screen.asm"
+#import "nv_debug_macs.asm"
+#import "nv_screen_macs.asm"
 
 here_str: .text @"HERE \$00"
 clear_here_str: .text @"     \$00"
@@ -12,55 +13,6 @@ here4_str: .text @"HERE 4 \$00"
 here5_str: .text @"HERE 5 \$00"
 here6_str: .text @"HERE 6 \$00"
 here7_str: .text @"HERE 7 \$00"
-
-//////////////////////////////////////////////////////////////////////////////
-//
-.macro nv_debug_print_byte(row, col, addr, include_dollar, wait)
-{
-    nv_debug_save_state()
-
-    nv_screen_plot_cursor(row, col)
-    nv_screen_print_hex_byte_at_addr(addr, include_dollar)
-
-    .if (wait != false)
-    {
-            nv_screen_wait_anykey()
-    }
-
-    nv_debug_restore_state()
-}
-
-//////////////////////////////////////////////////////////////////////////////
-//
-.macro nv_debug_print_byte_a(row, col, include_dollar, wait)
-{
-    nv_debug_save_state()
-
-    nv_screen_plot_cursor(row, col)
-    nv_screen_print_hex_byte(include_dollar)
-    .if (wait != false)
-    {
-            nv_screen_wait_anykey()
-    }
-
-    nv_debug_restore_state()
-}
-
-//////////////////////////////////////////////////////////////////////////////
-//
-.macro nv_debug_print_byte_immediate(row, col, immed_value, include_dollar, wait)
-{
-    nv_debug_save_state()
-
-    nv_screen_plot_cursor(row, col)
-    nv_screen_print_hex_word_immediate(immed_value, include_dollar)
-    .if (wait != false)
-    {
-            nv_screen_wait_anykey()
-    }
-
-    nv_debug_restore_state()
-}
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -96,30 +48,6 @@ here7_str: .text @"HERE 7 \$00"
 */
 
 
-//////////////////////////////////////////////////////////////////////////////
-//
-.macro nv_debug_save_state()
-{
-    php     // push processor status flags
-    pha     // push Accum
-    txa     
-    pha     // push X reg
-    tya
-    pha     // push Y reg
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-//
-.macro nv_debug_restore_state()
-{
-    pla     // pull Y 
-    tay 
-    pla     // pull X
-    tax
-    pla     // pull accum
-    plp     // pull processor status flags
-}
 
 NvDebugPrintHere:
     nv_debug_print_here(0, 0, true)
@@ -128,7 +56,6 @@ NvDebugPrintHere:
 NvDebugPrintByte:
     nv_debug_print_byte_a(0, 0, true, true)
     rts
-
 
 /*
 NvDebugPrintHere1:

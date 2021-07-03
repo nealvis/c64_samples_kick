@@ -9,8 +9,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Import other modules as needed here
 #importonce
-#import "nv_math8.asm"
-#import "nv_math16.asm"
+#import "nv_math8_macs.asm"
+#import "nv_math16_macs.asm"
 
 
 // HW reg/address that 

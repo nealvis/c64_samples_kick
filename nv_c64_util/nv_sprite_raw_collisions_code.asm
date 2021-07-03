@@ -1,10 +1,10 @@
 #importonce
 
-#import "nv_math16.asm"
-#import "nv_math8.asm"
-#import "nv_branch16.asm"
+#import "nv_math16_macs.asm"
+#import "nv_math8_macs.asm"
+#import "nv_branch16_macs.asm"
 #import "nv_sprite_raw_macs.asm"
-#import "nv_util_data.asm"
+#import "nv_c64_util_data.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to check if there is currently a collision between 

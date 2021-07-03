@@ -1,7 +1,7 @@
 // This sample shows how to do 16bit operations such as add, subtract, and compare
 
 
-#import "../nv_c64_util/nv_c64_util.asm"
+#import "../nv_c64_util/nv_c64_util_macs.asm"
 
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0

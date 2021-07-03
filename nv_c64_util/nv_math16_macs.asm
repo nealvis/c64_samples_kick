@@ -1,6 +1,6 @@
 #importonce
 
-#import "nv_util_data.asm"
+#import "nv_c64_util_data.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to add two 16 bit values and store the result in another
