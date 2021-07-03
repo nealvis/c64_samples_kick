@@ -1,10 +1,13 @@
 #importonce
 
+#if !NV_C64_UTIL_DATA
+.error("Error - nv_sprite_raw_collisions_code.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm")
+#endif
+
 #import "nv_math16_macs.asm"
 #import "nv_math8_macs.asm"
 #import "nv_branch16_macs.asm"
 #import "nv_sprite_raw_macs.asm"
-#import "nv_c64_util_data.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to check if there is currently a collision between 

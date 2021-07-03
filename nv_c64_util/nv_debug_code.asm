@@ -1,5 +1,9 @@
 #importonce
 
+#if !NV_C64_UTIL_DATA
+.error("Error - nv_debug_code.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm")
+#endif
+
 #import "nv_debug_macs.asm"
 #import "nv_screen_macs.asm"
 

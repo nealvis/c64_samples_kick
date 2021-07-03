@@ -9,6 +9,11 @@
 // this file.
 //*=$9F00 "nv_util_data"   
 
+// define this so that other nv_c64_util *_macs.asm files can 
+// verify that the data has been imported into the program 
+// somewhere else without doing it from the _macs.asm files
+#define NV_C64_UTIL_DATA
+
 temp_hex_str: .byte 0,0,0,0,0,0         // enough bytes for dollor sign, 4 
                                         // hex digits and a trailing null
 hex_digit_lookup:

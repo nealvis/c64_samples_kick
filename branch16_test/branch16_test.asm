@@ -1,7 +1,12 @@
 // This sample shows how to do 16bit operations such as add, subtract, and compare
 
+// import the nv_util_data at the very top of memory.
+// it can go anywhere but this is out of the way
+*=$9F00 "nv_util_data"   
+#import "../nv_c64_util/nv_c64_util_data.asm"
 
-#import "../nv_c64_util/nv_c64_util.asm"
+// import all the c64_util macros (no code generated)
+#import "../nv_c64_util/nv_c64_util_macs.asm"
 
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0
@@ -66,6 +71,8 @@ opOne: .word $0001
 opTwo: .word $0002
 opHighOnes: .word $FF00
 opLowOnes: .word $00FF
+
+
 
 
 *=$1000 "Main Start"

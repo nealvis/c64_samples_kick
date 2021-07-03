@@ -4,7 +4,9 @@
 
 #importonce
 
-#import "nv_c64_util_data.asm"
+#if !NV_C64_UTIL_DATA
+.error "Error - nv_screen_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm"
+#endif
 
 // Basic routine to print text
 .const NV_SCREEN_PRINT_STRING_BASIC_ADDR = $AB1E    

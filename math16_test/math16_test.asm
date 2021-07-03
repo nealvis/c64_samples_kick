@@ -1,6 +1,15 @@
-// This sample shows how to do 16bit operations such as add, subtract, and compare
+//////////////////////////////////////////////////////////////////////////////
+// math16_test.asm
+// This sample shows how to do 16bit operations such as 
+// add, subtract, and compare
+/////////////////////////////////////////////////////////////////////////////
 
+// import the nv_util_data at the very top of memory.
+// it can go anywhere but this is out of the way
+*=$9F00 "nv_util_data"   
+#import "../nv_c64_util/nv_c64_util_data.asm"
 
+// import macros, these don't generate any code
 #import "../nv_c64_util/nv_c64_util_macs.asm"
 
 *=$0800 "BASIC Start"

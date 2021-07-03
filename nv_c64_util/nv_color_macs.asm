@@ -2,6 +2,10 @@
 
 #importonce
 
+#if !NV_C64_UTIL_DATA
+.error("Error - nv_color_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm")
+#endif
+
 // c64 colors
 .const NV_COLOR_BLACK = $00
 .const NV_COLOR_WHITE = $01
