@@ -24,6 +24,11 @@
 // jumps to $E50A where real routine is.
 .const NV_SCREEN_PLOT_CURSOR_KERNAL_ADDR = $FFF0    
 
+// The start of c64 screen memory.  its 1000 bytes long
+.const SCREEN_START = $0400       
+
+// a somewhat random location in screen memory to write to directly
+.const SCREEN_DIRECT_START = SCREEN_START + $0100 
 
 // clear screen and leave cursor in upper left
 .macro nv_screen_clear()
@@ -171,4 +176,23 @@ ScanLoop:
     lda 203
     cmp #64
     beq OuterLoop
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//                Below here is direct to screen
+//////////////////////////////////////////////////////////////////////////////
+.macro nv_screen_poke(row, col, str_to_poke)
+{
+    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    
+    ldx #0                  // use x reg as loop index start at 0
+DirectLoop:
+    lda str_to_poke,x       // put a byte from string into accum
+    beq Done                // if the byte was 0 then we're done 
+    sta screen_poke_start,x  // Store the byte to screen
+    inx                     // inc to next byte and next screen location 
+    jmp DirectLoop          // Go back for next byte
+Done:
+
 }
