@@ -20,7 +20,6 @@ nv_c64_util_data_start_addr:
 //                    all data must be below this
 //////////////////////////////////////////////////////////////////////////////
 
-
 temp_hex_str: .byte 0,0,0,0,0,0         // enough bytes for dollor sign, 4 
                                         // hex digits and a trailing null
 hex_digit_lookup:
@@ -48,6 +47,7 @@ nv_d8: .byte 0
 nv_e8: .byte 0
 nv_f8: .byte 0
 nv_g8: .byte 0
+
 //////////////////////////////////////////////////////////////////////////////
 //                    all data must be above this
 //////////////////////////////////////////////////////////////////////////////
