@@ -51,8 +51,6 @@ loop_index_1: .byte 0
 loop_index_2: .byte 0
 
 
-*=$08F8
-
 // two bytes to store the return address from the stack temporarily while 
 // popping other parameters from the stack 
 temp_rts_lsb:
