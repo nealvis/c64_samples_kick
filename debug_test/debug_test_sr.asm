@@ -3,7 +3,6 @@
 // import all nv_c64_util macros and data.  The data
 // will go in default place
 #import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
-
 //#import "../nv_c64_util/nv_c64_util_macs.asm"
 //#import "../nv_c64_util/nv_debug_macs.asm"
 
@@ -34,17 +33,18 @@
 //negated_str: .text @" NEGATED \$00"
 equal_str: .text@" = \$00"
 
-title_str: .text @"DEBUG\$00"          // null terminated string to print
+title_str: .text @"DEBUG SR\$00"          // null terminated string to print
                                        // via the BASIC routine
-title_debug_print_byte_str: .text @"TEST DEBUG PRINT BYTE\$00"
-title_debug_print_str_str: .text @"TEST DEBUG PRINT STR\$00"
-title_debug_print_byte_a_str: .text @"TEST DEBUG PRINT BYTE A\$00"
-title_debug_print_byte_immediate_str: .text @"TEST DEBUG PRINT BYTE IMMED\$00"
-title_debug_print_word_immediate_str: .text @"TEST DEBUG PRINT WORD IMMED\$00"
-title_debug_print_labeled_byte_str: .text @"TEST DEBUG PRINT LABELED BYTE\$00"
+title_debug_print_byte_str: .text @"TEST DEBUG PRINT BYTE SR\$00"
+title_debug_print_str_str: .text @"TEST DEBUG PRINT STR SR\$00"
+title_debug_print_byte_a_str: .text @"TEST DEBUG PRINT BYTE A SR\$00"
+title_debug_print_byte_immediate_str: .text @"TEST DEBUG PRINT BYTE IMMED SR\$00"
+title_debug_print_word_immediate_str: .text @"TEST DEBUG PRINT WORD IMMED SR\$00"
+title_debug_print_labeled_byte_str: .text @"TEST DEBUG PRINT LABELED BYTE SR\$00"
 
 
-direct1_str: .text  @"nps0123\$00"  // null terminated string to print
+direct0_str: .text  @"abc\$00"  // null terminated string to print
+direct1_str: .text  @"nps123\$00"  // null terminated string to print
 direct2_str: .text  @"abc 123\$00"  // null terminated string to print
 direct3_str: .text  @"123 =+-<>\$00"  // null terminated string to print
 
@@ -118,8 +118,9 @@ op_07: .byte $07
 .var row = 0
 
     nv_screen_clear()
-    nv_screen_plot_cursor(row++, 33)
-    nv_screen_print_string_basic(title_str)
+
+    //nv_screen_plot_cursor(row++, 31)
+    //nv_screen_print_string_basic(title_str)
 
     //test_debug_print_str(0)
     //test_debug_print_byte(0)
@@ -128,7 +129,7 @@ op_07: .byte $07
     //test_debug_print_byte_immediate(0)
     test_debug_print_labeled_byte(0)
 
-    nv_screen_clear()
+    //nv_screen_clear()
     rts
 
 
@@ -175,7 +176,7 @@ op_07: .byte $07
     /////////////////////////////
     nv_screen_plot_cursor(row, 0)
     print_debug_print_byte(op_00, row++)
-
+    
     /////////////////////////////
     nv_screen_plot_cursor(row, 0)
     print_debug_print_byte(op1Beef, row++)
@@ -195,7 +196,6 @@ op_07: .byte $07
     /////////////////////////////
     nv_screen_plot_cursor(row, 0)
     print_debug_print_byte(op8_80, row++)
-
 
     wait_and_clear_at_row(row)
 }
@@ -404,7 +404,7 @@ op_07: .byte $07
 
     nv_screen_clear()
     .eval row=0
-    nv_screen_plot_cursor(row++, 33)
+    nv_screen_plot_cursor(row++, 31)
     nv_screen_print_string_basic(title_str)
 }
 
@@ -421,10 +421,37 @@ op_07: .byte $07
 // 
 .macro print_debug_print_str(str, row)
 {
+
+    // print the string with macro version
     nv_screen_poke_string(row, 0, str)
-    //nv_screen_print_string_basic(equal_str)
-    nv_debug_print_str(row, 20, str, true)
-    //nv_debug_print_byte(row, 6, op1, true, true)
+
+    // setup the params for the subroutine version as follows:
+    //   nv_a8: row position on screen to print at
+    //   nv_b8: col position on screen to print at
+    //   nv_a16: the address of the first char of label string.
+    //           this string must be zero terminated.
+    //   nv_e8: pass true to wait for a key after printing
+
+    // put row param in nv_a8
+    lda #row
+    sta nv_a8
+
+    // put col param in nv_b8 (print at col 20)
+    lda #20 
+    sta nv_b8
+
+    // put pointer to string to print in nv_a16
+    lda #<str
+    sta nv_a16
+    lda #>str 
+    sta nv_a16+1
+
+    // put wait param in nv_d8
+    lda #0
+    sta nv_e8 
+
+    // call our routine
+    jsr NvDebugPrintStr
 }
 
 
@@ -437,7 +464,33 @@ op_07: .byte $07
     nv_screen_print_hex_byte_at_addr(op1, true)
     nv_screen_print_string_basic(equal_str)
 
-    nv_debug_print_byte(row, 6, op1, true, true)
+    // setup the params for the subroutine version as follows:
+    //   nv_a8: row position on screen to print at
+    //   nv_b8: col position on screen to print at
+    //   nv_c8: the byte in to print.
+    //   nv_d8: set to 1 to include dollar sign
+    //   nv_e8: pass true to wait for a key after printing
+
+    // put row param in nv_a8
+    lda #row
+    sta nv_a8
+
+    // put col param in nv_b8 (print at col 6)
+    lda #6
+    sta nv_b8
+
+    // Byte to print in nv_c8
+    lda op1
+    sta nv_c8
+
+    // put wait param in nv_d8
+    lda #0
+    sta nv_d8 
+
+    // call our routine
+    jsr NvDebugPrintHexByte
+
+
 }
 
 
@@ -483,5 +536,47 @@ op_07: .byte $07
 // 
 .macro print_debug_print_labeled_byte(label_addr, value_addr, row)
 {
-    nv_debug_print_labeled_byte(row, 0, label_addr, value_addr, true, true)
+
+    //   nv_a8: row position on screen to print at
+    //   nv_b8: col position on screen to print at
+    //   nv_a16: the address of the first char of label string.
+    //           this string must be zero terminated.
+    //   nv_b16: The address of the byte that holds the value to print
+    //   nv_d8: pass 1 for preceding '$'
+    //   nv_e8: pass true to wait for a key after printing
+
+
+    // put row param in nv_a8
+    lda #row
+    sta nv_a8
+
+    // put col param in nv_b8 (print at col 20)
+    lda #0
+    sta nv_b8
+
+    // put byte to print in nv_c8
+    lda value_addr
+    sta nv_c8
+
+    // put pointer to string to print in nv_a16
+    lda #<label_addr
+    sta nv_a16
+    lda #>label_addr 
+    sta nv_a16+1
+
+    // put a preceding dollar sign
+    lda #1 
+    sta nv_d8
+
+    // put a 1 to wait or 0 not to.
+    lda #0
+    sta nv_e8 
+
+    // call our routine
+    jsr NvDebugPrintLabeledByte
+
+    //nv_debug_print_labeled_byte(row, 0, label_addr, value_addr, true, true)
 }
+
+
+#import "../nv_c64_util/nv_debug_code.asm"

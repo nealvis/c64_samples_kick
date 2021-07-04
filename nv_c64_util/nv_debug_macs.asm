@@ -73,13 +73,11 @@
 {
     nv_debug_save_state()
 
-    //nv_screen_plot_cursor(row, col)
-    //nv_screen_print_hex_byte_at_addr(addr, include_dollar)
     nv_screen_poke_hex_byte_at_addr(row, col, addr, include_dollar)
 
     .if (wait != false)
     {
-            nv_screen_wait_anykey()
+        nv_screen_wait_anykey()
     }
 
     nv_debug_restore_state()
@@ -175,6 +173,53 @@
     .if (wait)
     {
             nv_screen_wait_anykey()
+    }
+
+    nv_debug_restore_state()
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// get number of chars in zero terminated string
+// macro params: 
+//   str_addr: the address in memory of the first char of the string
+// X Reg: will hold the length of the string upon return.
+.macro nv_string_get_len(str_addr)
+{
+    ldx #0
+Loop:
+    lda str_addr, x
+    beq Done
+    inx
+    jmp Loop
+Done:
+
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print a labeled byte from memory on the screen.
+// at a specified position.  Will look like this on screen: 
+// LABEL: $03
+// macro params:
+//   row: row position on screen to print at
+//   col: col position on screen to print at
+//   label_addr: the address of the first char of label string.
+//               this string must be zero terminated.
+//   value_addr: The address of the byte that holds the value to print
+//   include_dollar: pass true for preceding '$'
+//   wait: pass true to wait for a key after printing
+.macro nv_debug_print_labeled_byte(row, col, label_addr, value_addr, 
+                                   include_dollar, wait)
+{
+    nv_debug_save_state()
+
+    nv_string_get_len(label_addr)
+
+    nv_screen_poke_string(row, col, label_addr)
+    nv_screen_poke_hex_byte_at_addr(row, col+10, value_addr, include_dollar)
+
+    .if (wait)
+    {
+         nv_screen_wait_anykey()
     }
 
     nv_debug_restore_state()

@@ -147,10 +147,10 @@ Loop:
 {
     // nps todo: look at the sbc instruction, might be better
     // to use that than to take 2s comp and add.
-    nv_twos_comp_16(addr2, sbc16_temp16)
-    nv_adc16(addr1, sbc16_temp16, result_addr)
+    nv_twos_comp_16(addr2, nv_g16)
+    nv_adc16(addr1, nv_g16, result_addr)
 }
-sbc16_temp16: .word 0
+//sbc16_temp16: .word 0
 
 //////////////////////////////////////////////////////////////////////////////
 // inlne macro to store 16 bit immediate value into the word with LSB 
