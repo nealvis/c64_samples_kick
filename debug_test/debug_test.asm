@@ -257,7 +257,7 @@ op_07: .byte $07
 // 
 .macro print_debug_print_str(str, row)
 {
-    nv_screen_poke(row, 0, str)
+    nv_screen_poke_string(row, 0, str)
     //nv_screen_print_string_basic(equal_str)
     nv_debug_print_str(row, 20, str, true)
     //nv_debug_print_byte(row, 6, op1, true, true)
@@ -273,7 +273,6 @@ op_07: .byte $07
     nv_screen_print_hex_byte_at_addr(op1, true)
     nv_screen_print_string_basic(equal_str)
 
-    //nv_screen_poke(row, 6, direct1_str)
     nv_debug_print_byte(row, 6, op1, true, true)
 }
 

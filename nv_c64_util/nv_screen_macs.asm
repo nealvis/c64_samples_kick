@@ -8,6 +8,9 @@
 .error "Error - nv_screen_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm"
 #endif
 
+// nps remove this later
+//#import "nv_c64_util_data.asm"
+
 // Basic routine to print text
 .const NV_SCREEN_PRINT_STRING_BASIC_ADDR = $AB1E    
 
@@ -182,7 +185,11 @@ ScanLoop:
 //////////////////////////////////////////////////////////////////////////////
 //                Below here is direct to screen
 //////////////////////////////////////////////////////////////////////////////
-.macro nv_screen_poke(row, col, str_to_poke)
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars for a string to screen memory
+.macro nv_screen_poke_string(row, col, str_to_poke)
 {
     .var screen_poke_start = SCREEN_START + (40*row) + col 
     
@@ -195,4 +202,48 @@ DirectLoop:
     jmp DirectLoop          // Go back for next byte
 Done:
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars to the screen that represent
+// a hex number that is in the accumulator
+//   row: the screen row 
+//   col: the screen col
+//   include_dollar: pass true to print a '$' before the number
+.macro nv_screen_poke_hex_byte(row, col, include_dollar)
+{
+    .var offset = 0
+    .if (include_dollar)
+    {
+        .eval offset++
+        ldy #$24            // dollar sign
+        sty temp_hex_str
+    }
+    tay
+    ror 
+    ror 
+    ror 
+    ror  
+    and #$0f
+    tax
+    lda hex_digit_lookup_poke, x
+    sta temp_hex_str+offset
+    tya
+    and #$0f
+    tax
+    lda hex_digit_lookup_poke, x
+    sta temp_hex_str+1+offset
+    lda #0
+    sta temp_hex_str + 2 + offset
+
+    nv_screen_poke_string(row, col, temp_hex_str) 
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars to the screen that are the 
+// string representation of the hex value of the byte at an address
+.macro nv_screen_poke_hex_byte_at_addr(row, col, addr, include_dollar)
+{
+    lda addr
+    nv_screen_poke_hex_byte(row, col, include_dollar)
 }

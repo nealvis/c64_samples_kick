@@ -31,6 +31,10 @@
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// Below here are screen poke debug routines
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
 // inline macro to print a byte in memory at a specified position
 // on the screen
 // macro params:
@@ -43,8 +47,9 @@
 {
     nv_debug_save_state()
 
-    nv_screen_plot_cursor(row, col)
-    nv_screen_print_hex_byte_at_addr(addr, include_dollar)
+    //nv_screen_plot_cursor(row, col)
+    //nv_screen_print_hex_byte_at_addr(addr, include_dollar)
+    nv_screen_poke_hex_byte_at_addr(row, col, addr, include_dollar)
 
     .if (wait != false)
     {
@@ -69,8 +74,10 @@
 {
     nv_debug_save_state()
 
-    nv_screen_plot_cursor(row, col)
-    nv_screen_print_hex_byte(include_dollar)
+    //nv_screen_plot_cursor(row, col)
+    //nv_screen_print_hex_byte(include_dollar)
+    nv_screen_poke_hex_byte(row, col, include_dollar)
+    
     .if (wait != false)
     {
             nv_screen_wait_anykey()
@@ -94,7 +101,8 @@
 
     nv_screen_plot_cursor(row, col)
     nv_screen_print_hex_word_immediate(immed_value, include_dollar)
-    .if (wait != false)
+
+    .if (wait)
     {
             nv_screen_wait_anykey()
     }
@@ -113,11 +121,11 @@
 {
     nv_debug_save_state()
 
-    nv_screen_poke(row, col, str)
+    nv_screen_poke_string(row, col, str)
 
     .if (wait != false)
     {
-            nv_screen_wait_anykey()
+        nv_screen_wait_anykey()
     }
 
     nv_debug_restore_state()
