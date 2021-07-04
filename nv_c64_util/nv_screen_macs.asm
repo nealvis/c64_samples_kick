@@ -210,6 +210,7 @@ Done:
 //   row: the screen row 
 //   col: the screen col
 //   include_dollar: pass true to print a '$' before the number
+//   accum: the byte to poke to screen
 .macro nv_screen_poke_hex_byte(row, col, include_dollar)
 {
     .var offset = 0
@@ -246,4 +247,32 @@ Done:
 {
     lda addr
     nv_screen_poke_hex_byte(row, col, include_dollar)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars to the screen that are the 
+// string representation of the immediate hex value passed
+.macro nv_screen_poke_hex_byte_immediate(row, col, immed_value, include_dollar)
+{
+    lda #immed_value
+    nv_screen_poke_hex_byte(row, col, include_dollar)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars to the screen that are the 
+// string representation of the immediate hex value passed
+.macro nv_screen_poke_hex_word_immediate(row, col, immed_value, include_dollar)
+{
+    .var lsb = immed_value & $00FF
+    .var msb = (immed_value >> 8) & $00FF
+    .var second_col = col+2
+    .if (include_dollar)
+    {
+        .eval second_col = col + 3
+    }
+    lda #msb
+    nv_screen_poke_hex_byte(row, col, include_dollar)
+    lda #lsb
+    nv_screen_poke_hex_byte(row, second_col, false)
 }

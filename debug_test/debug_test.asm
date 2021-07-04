@@ -38,8 +38,9 @@ title_str: .text @"DEBUG\$00"          // null terminated string to print
                                        // via the BASIC routine
 title_debug_print_byte_str: .text @"TEST DEBUG PRINT BYTE\$00"
 title_debug_print_str_str: .text @"TEST DEBUG PRINT STR\$00"
-title_debug_print_byte_a_str: .text @"TEST DEBUG PRINT BYTE_A\$00"
+title_debug_print_byte_a_str: .text @"TEST DEBUG PRINT BYTE A\$00"
 title_debug_print_byte_immediate_str: .text @"TEST DEBUG PRINT BYTE IMMED\$00"
+title_debug_print_word_immediate_str: .text @"TEST DEBUG PRINT WORD IMMED\$00"
 
 direct1_str: .text  @"nps0123\$00"  // null terminated string to print
 direct2_str: .text  @"abc 123\$00"  // null terminated string to print
@@ -101,10 +102,11 @@ op_07: .byte $07
     nv_screen_plot_cursor(row++, 33)
     nv_screen_print_string_basic(title_str)
 
-    test_debug_print_str(0)
-    test_debug_print_byte(0)
+    //test_debug_print_str(0)
+    //test_debug_print_byte(0)
     //test_debug_print_byte_a(0)
-    //test_debug_print_byte_immediate(0)
+    test_debug_print_word_immediate(0)
+    test_debug_print_byte_immediate(0)
 
     nv_screen_clear()
     rts
@@ -177,54 +179,136 @@ op_07: .byte $07
 
     wait_and_clear_at_row(row)
 }
-/*
+
+
 //////////////////////////////////////////////////////////////////////////////
 //
-.macro test_mask_from_bit_num_a(init_row)
+.macro test_debug_print_byte_a(init_row)
 {
     .var row = init_row
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_mask_from_bit_num_a_str)
+    nv_screen_print_string_basic(title_debug_print_byte_a_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_mask_from_bit_num_mem(op_00)
+    print_debug_print_byte_a(op_00, row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_mask_from_bit_num_mem(op_01)
+    print_debug_print_byte_a(op1Beef, row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_mask_from_bit_num_mem(op_02)
+    print_debug_print_byte_a(op8_7F, row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_mask_from_bit_num_mem(op_03)
+    print_debug_print_byte_a(op8_FF, row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_mask_from_bit_num_mem(op_04)
+    print_debug_print_byte_a(op_01, row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_mask_from_bit_num_mem(op_05)
+    print_debug_print_byte_a(op8_80, row++)
 
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_mask_from_bit_num_mem(op_06)
-
-    /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_mask_from_bit_num_mem(op_07)
 
     wait_and_clear_at_row(row)
 }
-*/
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_debug_print_byte_immediate(init_row)
+{
+    .var row = init_row
+    
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_debug_print_byte_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($00, row++)
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($01, row++)
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($02, row++)
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($FF, row++)
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($F0, row++)
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($0F, row++)
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($FE, row++)
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($7F, row++)
+
+    /////////////////////////////
+    print_debug_print_byte_immediate($80, row++)
+
+
+    wait_and_clear_at_row(row)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_debug_print_word_immediate(init_row)
+{
+    .var row = init_row
+    
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_string_basic(title_debug_print_word_immediate_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    /////////////////////////////
+    print_debug_print_word_immediate($0000, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($0101, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($0202, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($FFFF, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($F0F0, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($0F0F, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($FEFE, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($7F7F, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($8080, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($FF80, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($01FF, row++)
+
+    /////////////////////////////
+    print_debug_print_word_immediate($8000, row++)
+
+    wait_and_clear_at_row(row)
+}
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -276,29 +360,39 @@ op_07: .byte $07
     nv_debug_print_byte(row, 6, op1, true, true)
 }
 
-/*
+
 //////////////////////////////////////////////////////////////////////////////
-// inline macro to print the specified mask from bit number operation
-// at the current cursor location
-// nv_mask_from_bit_num is used to do the operation.  
-// it will look like this
-//    BIT $00 = MASK $01
-//    BIT $01 = MASK $02
-.macro print_mask_from_bit_num_a(op1)
+// inline macro to print the byte value and then use the debug
+// function to print the same value 
+// 
+.macro print_debug_print_byte_a(op1, row)
 {
-    nv_screen_print_string_basic(bit_str)
+    nv_screen_plot_cursor(row, 0)
     nv_screen_print_hex_byte_at_addr(op1, true)
-    nv_screen_print_string_basic(equal_str)
-    //nv_screen_print_string_basic(mask_str)
     lda op1
-    nv_mask_from_bit_num_a(false)
-    nv_screen_print_hex_byte(true)
-
-    nv_screen_print_string_basic(negated_str)
-    lda op1
-    nv_mask_from_bit_num_a(true)
-    nv_screen_print_hex_byte(true)
-
+    nv_debug_print_byte_a(row, 6, true, true)
 }
 
-*/
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the byte value and then use the debug
+// function to print the same value 
+// 
+.macro print_debug_print_byte_immediate(op1, row)
+{
+    nv_screen_plot_cursor(row, 0)
+    nv_screen_print_hex_word_immediate(op1, true)
+    nv_debug_print_byte_immediate(row, 6, op1, true, true)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the byte value and then use the debug
+// function to print the same value 
+// 
+.macro print_debug_print_word_immediate(op1, row)
+{
+    nv_screen_plot_cursor(row, 0)
+    nv_screen_print_hex_word_immediate(op1, true)
+    nv_debug_print_word_immediate(row, 8, op1, true, true)
+}
+

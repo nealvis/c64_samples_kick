@@ -31,6 +31,32 @@
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// inline macro to print an immediate byte value at a specified position
+// on the screen
+// macro params:
+//   row: row position on screen to print at
+//   col: col position on screen to print at
+//   immed_value: The 8 bit value to print
+//   include_dollar: pass true for preceding '$'
+//   wait: pass true to wait for a key after printing
+.macro nv_debug_print_byte_immediate_basic(row, col, immed_value, include_dollar, wait)
+{
+    nv_debug_save_state()
+
+    nv_screen_plot_cursor(row, col)
+    nv_screen_print_hex_word_immediate(immed_value, include_dollar)
+
+    .if (wait)
+    {
+            nv_screen_wait_anykey()
+    }
+
+    nv_debug_restore_state()
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////
 // Below here are screen poke debug routines
 //////////////////////////////////////////////////////////////////////////////
 
@@ -87,30 +113,6 @@
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// inline macro to print an immediate byte value at a specified position
-// on the screen
-// macro params:
-//   row: row position on screen to print at
-//   col: col position on screen to print at
-//   immed_value: The 8 bit value to print
-//   include_dollar: pass true for preceding '$'
-//   wait: pass true to wait for a key after printing
-.macro nv_debug_print_byte_immediate(row, col, immed_value, include_dollar, wait)
-{
-    nv_debug_save_state()
-
-    nv_screen_plot_cursor(row, col)
-    nv_screen_print_hex_word_immediate(immed_value, include_dollar)
-
-    .if (wait)
-    {
-            nv_screen_wait_anykey()
-    }
-
-    nv_debug_restore_state()
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // inline macro to print a null terminated string to the 
 // screen for debugging.
 //   row: row position on screen to print at
@@ -132,15 +134,65 @@
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// inline macro to print an immediate 8 bit value at a specified position
+// on the screen
+// macro params:
+//   row: row position on screen to print at
+//   col: col position on screen to print at
+//   immed_value: The 8 bit value to print
+//   include_dollar: pass true for preceding '$'
+//   wait: pass true to wait for a key after printing
+.macro nv_debug_print_byte_immediate(row, col, immed_value, include_dollar, wait)
+{
+    nv_debug_save_state()
+
+    nv_screen_poke_hex_byte_immediate(row, col, immed_value, include_dollar)
+
+    .if (wait)
+    {
+            nv_screen_wait_anykey()
+    }
+
+    nv_debug_restore_state()
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print an immediate 16 bit value at a specified position
+// on the screen
+// macro params:
+//   row: row position on screen to print at
+//   col: col position on screen to print at
+//   immed_value: The 16 bit value to print
+//   include_dollar: pass true for preceding '$'
+//   wait: pass true to wait for a key after printing
+.macro nv_debug_print_word_immediate(row, col, immed_value, include_dollar, wait)
+{
+    nv_debug_save_state()
+
+    nv_screen_poke_hex_word_immediate(row, col, immed_value, include_dollar)
+
+    .if (wait)
+    {
+            nv_screen_wait_anykey()
+    }
+
+    nv_debug_restore_state()
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
 // inline macro to save state to stack
 .macro nv_debug_save_state()
 {
     php     // push processor status flags
     pha     // push Accum
+    sta nv_debug_save_a // save a
     txa     
     pha     // push X reg
     tya
     pha     // push Y reg
+    lda nv_debug_save_a // restore a
 }
 
 
