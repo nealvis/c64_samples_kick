@@ -143,6 +143,56 @@ NoDollar:
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// Subroutine macro to print the hex value of a byte in memory to the screen.
+// Subroutine Parameters
+//   nv_a8: row position on screen to print at
+//   nv_b8: col position on screen to print at
+//   nv_c16: the byte to print should be loaded here
+//   nv_d8: set to 1 to include dollar sign
+.macro nv_screen_poke_hex_word_sr()
+{
+    // set nv_c8 with high byte first
+    lda nv_c16+1
+    sta nv_c8
+    jsr NvScreenPokeHexByte
+
+    // now load nv_c8 with low byte to print
+    lda nv_c16
+    sta nv_c8
+
+    // save d8
+    lda nv_d8
+    sta save_d8
+    beq NoDollar 
+YesDollar:
+    inc nv_b8
+
+NoDollar:
+    inc nv_b8
+    inc nv_b8
+
+    // set d8 with 0 for no dollar for LSB
+    lda #0
+    sta nv_d8
+
+    jsr NvScreenPokeHexByte
+
+    // restore d8 with dollar flag
+    lda save_d8
+    sta nv_d8
+    bne StillNoDollar   // now restore the nv_b8 by dec
+StillYesDollar:
+    dec nv_b8           // decrement 1 extra time if dollar
+StillNoDollar:
+    dec nv_b8           // dec 2 times regardless of dollar
+    dec nv_b8           // now it should be same as when called.
+    rts
+
+    // subroutine variables
+    save_d8: .byte 0
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // Instantiations of macros from above go below here
 //////////////////////////////////////////////////////////////////////////////
 
@@ -166,3 +216,15 @@ NvScreenPokeString:
 //   nv_d8: set to 1 to include dollar sign
 NvScreenPokeHexByte:
     nv_screen_poke_hex_byte_sr()
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Subroutine to print the hex value of a byte in specific memory location
+// to the screen.
+// Subroutine Parameters
+//   nv_a8: row position on screen to print at
+//   nv_b8: col position on screen to print at
+//   nv_c16: the word to print should be loaded here
+//   nv_d8: set to 1 to include dollar sign
+NvScreenPokeHexWord:
+    nv_screen_poke_hex_word_sr()
