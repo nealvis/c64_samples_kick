@@ -4,6 +4,11 @@
 .error "Error - nv_math16_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm"
 #endif
 
+// the #if above doesn't seem to always work so..
+// if data hasn't been imported yet, import it into default location
+#importif !NV_C64_UTIL_DATA "nv_c64_util_default_data.asm"
+
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to add two 16 bit values and store the result in another
 // 16bit value.  carry bit will be set if carry occured
@@ -150,7 +155,7 @@ Loop:
     nv_twos_comp_16(addr2, nv_g16)
     nv_adc16(addr1, nv_g16, result_addr)
 }
-//sbc16_temp16: .word 0
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inlne macro to store 16 bit immediate value into the word with LSB 

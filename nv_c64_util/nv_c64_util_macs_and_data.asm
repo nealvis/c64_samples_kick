@@ -10,13 +10,12 @@
 //   *=$1000                             // start memory block for
 //                                       // the next code/data
 
-// import the nv_util_data at the very top of memory.
+// import the nv_c64_util_data at the default location
 // it can go anywhere but this is a good out of the way place
 // at the end of BASIC memory
-*=$9F00 "nv_util_data"   
-#import "../nv_c64_util/nv_c64_util_data.asm"
+#import "../nv_c64_util/nv_c64_util_default_data.asm"
 
-// import some macros 
+// import the nv_c64_util macros 
 #import "../nv_c64_util/nv_c64_util_macs.asm"
 
 

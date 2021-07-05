@@ -10,6 +10,11 @@
 .error "Error - nv_math8_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm"
 #endif
 
+// the #if above doesn't seem to always work so..
+// if data hasn't been imported yet, import it into default location
+#importif !NV_C64_UTIL_DATA "nv_c64_util_default_data.asm"
+
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to create a bit mask for a bit number between 0 and 7.
 //   macro parameters:

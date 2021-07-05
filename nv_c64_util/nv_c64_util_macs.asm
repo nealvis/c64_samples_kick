@@ -6,6 +6,10 @@
 .error "Error - nv_c64_util_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm"
 #endif
 
+// the #if above doesn't seem to always work so..
+// if data hasn't been imported yet, import it into default location
+#importif !NV_C64_UTIL_DATA "nv_c64_util_default_data.asm"
+
 // Import all the _macs.asm files here.  They will not generate any
 // code or data just by importing them, but will make the macros
 // available to use

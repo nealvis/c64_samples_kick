@@ -4,6 +4,10 @@
 .error "Error - nv_branch16_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm"
 #endif
 
+// the #if above doesn't seem to always work so..
+// if data hasn't been imported yet, import it into default location
+#importif !NV_C64_UTIL_DATA "nv_c64_util_default_data.asm"
+
 
 //////////////////////////////////////////////////////////////////////////////
 // compare the contents of two 16 bit words and set flags accordingly.
