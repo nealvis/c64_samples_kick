@@ -211,13 +211,15 @@ NvSpriteRawGetRelDistReg:
     nv_sprite_raw_get_rel_dist_reg(nv_g16)
     rts
 
+/*
 DebugRelDist:
     // closest
-    nv_debug_print_labeled_word(6, 0, closest_label_str, 12, nv_a16, true, false)
+    nv_debug_print_labeled_word_mem(6, 0, closest_label_str, 12, nv_a16, true, false)
     // temp
-    nv_debug_print_labeled_word(7, 0, temp_label_str, 12, nv_g16, true, false)
+    nv_debug_print_labeled_word_mem(7, 0, temp_label_str, 12, nv_g16, true, false)
 
     //nv_screen_wait_anykey()
     rts
 closest_label_str: .text  @"closest\$00"
 temp_label_str:  .text  @"temp\$00"
+*/

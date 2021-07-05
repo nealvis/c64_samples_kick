@@ -98,7 +98,7 @@ NoWait:
 //   nv_c8: the byte  to print.
 //   nv_d8: set to 1 to include dollar sign
 //   nv_e8: pass true to wait for a key after printing
-.macro nv_debug_print_hex_byte_sr()
+.macro nv_debug_print_byte_sr()
 {
     nv_debug_save_state()
 
@@ -129,7 +129,7 @@ NoWait:
 //   nv_c16: the word  to print.
 //   nv_d8: set to 1 to include dollar sign
 //   nv_e8: pass true to wait for a key after printing
-.macro nv_debug_print_hex_word_sr()
+.macro nv_debug_print_word_sr()
 {
     nv_debug_save_state()
 
@@ -376,8 +376,8 @@ NvDebugPrintStr:
 //   nv_c8: the byte in memory to print.
 //   nv_d8: set to 1 to include dollar sign
 //   nv_e8: pass true to wait for a key after printing
-NvDebugPrintHexByte:
-    nv_debug_print_hex_byte_sr()
+NvDebugPrintByte:
+    nv_debug_print_byte_sr()
 
 //////////////////////////////////////////////////////////////////////////////
 // Subroutine to print the hex value of a byte in memory to the screen
@@ -386,8 +386,8 @@ NvDebugPrintHexByte:
 //   nv_c16: the word in memory to print.
 //   nv_d8: set to 1 to include dollar sign
 //   nv_e8: pass true to wait for a key after printing
-NvDebugPrintHexWord:
-    nv_debug_print_hex_word_sr()
+NvDebugPrintWord:
+    nv_debug_print_word_sr()
 
 //////////////////////////////////////////////////////////////////////////////
 //NvDebugPrintHere:

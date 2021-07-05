@@ -121,11 +121,11 @@ op_07: .byte $07
     nv_screen_plot_cursor(row++, 33)
     nv_screen_print_string_basic(title_str)
 
-    //test_debug_print_str(0)
-    //test_debug_print_byte(0)
-    //test_debug_print_byte_a(0)
-    //test_debug_print_word_immediate(0)
-    //test_debug_print_byte_immediate(0)
+    test_debug_print_str(0)
+    test_debug_print_byte(0)
+    test_debug_print_byte_a(0)
+    test_debug_print_word_immediate(0)
+    test_debug_print_byte_immediate(0)
     test_debug_print_labeled_byte(0)
 
     nv_screen_clear()
@@ -422,9 +422,7 @@ op_07: .byte $07
 .macro print_debug_print_str(str, row)
 {
     nv_screen_poke_string(row, 0, str)
-    //nv_screen_print_string_basic(equal_str)
     nv_debug_print_str(row, 20, str, true)
-    //nv_debug_print_byte(row, 6, op1, true, true)
 }
 
 
@@ -437,7 +435,7 @@ op_07: .byte $07
     nv_screen_print_hex_byte_at_addr(op1, true)
     nv_screen_print_string_basic(equal_str)
 
-    nv_debug_print_byte(row, 6, op1, true, true)
+    nv_debug_print_byte_mem(row, 6, op1, true, true)
 }
 
 
@@ -462,7 +460,7 @@ op_07: .byte $07
 {
     nv_screen_plot_cursor(row, 0)
     nv_screen_print_hex_word_immediate(op1, true)
-    nv_debug_print_byte_immediate(row, 6, op1, true, true)
+    nv_debug_print_byte_immed(row, 6, op1, true, true)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -473,7 +471,7 @@ op_07: .byte $07
 {
     nv_screen_plot_cursor(row, 0)
     nv_screen_print_hex_word_immediate(op1, true)
-    nv_debug_print_word_immediate(row, 8, op1, true, true)
+    nv_debug_print_word_immed(row, 8, op1, true, true)
 }
 
 
@@ -483,5 +481,5 @@ op_07: .byte $07
 // 
 .macro print_debug_print_labeled_byte(label_addr, value_addr, row)
 {
-    nv_debug_print_labeled_byte(row, 0, label_addr, value_addr, true, true)
+    nv_debug_print_labeled_byte_mem(row, 0, label_addr, 10, value_addr, true, true)
 }

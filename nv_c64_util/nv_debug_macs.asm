@@ -12,15 +12,15 @@
 #import "nv_screen_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
-// inline macro to print a byte in memory at a specified position
-// on the screen
+// inline macro to print hex val of  byte in memory at a specified position
+// on the screen.  Uses BASIC routine rather than poking to screen
 // macro params:
 //   row: row position on screen to print at
 //   col: col position on screen to print at
 //   addr: address of the byte to print
 //   include_dollar: pass true for preceding '$'
 //   wait: pass true to wait for a key after printing
-.macro nv_debug_print_byte_basic(row, col, addr, include_dollar, wait)
+.macro nv_debug_print_byte_mem_basic(row, col, addr, include_dollar, wait)
 {
     nv_debug_save_state()
 
@@ -36,15 +36,15 @@
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// inline macro to print an immediate byte value at a specified position
-// on the screen
+// inline macro to print hex val of immediate byte value at a specified pos
+// on the screen.  Uses BASIC routine rather than poking to screen
 // macro params:
 //   row: row position on screen to print at
 //   col: col position on screen to print at
 //   immed_value: The 8 bit value to print
 //   include_dollar: pass true for preceding '$'
 //   wait: pass true to wait for a key after printing
-.macro nv_debug_print_byte_immediate_basic(row, col, immed_value, include_dollar, wait)
+.macro nv_debug_print_byte_immed_basic(row, col, immed_value, include_dollar, wait)
 {
     nv_debug_save_state()
 
@@ -66,15 +66,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-// inline macro to print a byte in memory at a specified position
-// on the screen
+// inline macro to print hex val of byte in memory at a specified position
+// on the screen.  Pokes directly to screen
 // macro params:
 //   row: row position on screen to print at
 //   col: col position on screen to print at
 //   addr: address of the byte to print
 //   include_dollar: pass true for preceding '$'
 //   wait: pass true to wait for a key after printing
-.macro nv_debug_print_byte(row, col, addr, include_dollar, wait)
+.macro nv_debug_print_byte_mem(row, col, addr, include_dollar, wait)
 {
     nv_debug_save_state()
 
@@ -90,8 +90,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// inline macro to print a byte in accum at a specified position
-// on the screen
+// inline macro to print hex value of byte in accum at a specified position
+// on the screen.  Pokes directly to screen memory to print
 // macro params:
 //   row: row position on screen to print at
 //   col: col position on screen to print at
@@ -103,8 +103,6 @@
 {
     nv_debug_save_state()
 
-    //nv_screen_plot_cursor(row, col)
-    //nv_screen_print_hex_byte(include_dollar)
     nv_screen_poke_hex_byte(row, col, include_dollar)
     
     .if (wait != false)
@@ -138,14 +136,14 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print an immediate 8 bit value at a specified position
-// on the screen
+// on the screen in hex.
 // macro params:
 //   row: row position on screen to print at
 //   col: col position on screen to print at
 //   immed_value: The 8 bit value to print
 //   include_dollar: pass true for preceding '$'
 //   wait: pass true to wait for a key after printing
-.macro nv_debug_print_byte_immediate(row, col, immed_value, include_dollar, wait)
+.macro nv_debug_print_byte_immed(row, col, immed_value, include_dollar, wait)
 {
     nv_debug_save_state()
 
@@ -153,7 +151,7 @@
 
     .if (wait)
     {
-            nv_screen_wait_anykey()
+        nv_screen_wait_anykey()
     }
 
     nv_debug_restore_state()
@@ -162,14 +160,14 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print an immediate 16 bit value at a specified position
-// on the screen
+// on the screen in hex
 // macro params:
 //   row: row position on screen to print at
 //   col: col position on screen to print at
 //   immed_value: The 16 bit value to print
 //   include_dollar: pass true for preceding '$'
 //   wait: pass true to wait for a key after printing
-.macro nv_debug_print_word_immediate(row, col, immed_value, include_dollar, wait)
+.macro nv_debug_print_word_immed(row, col, immed_value, include_dollar, wait)
 {
     nv_debug_save_state()
 
@@ -197,7 +195,6 @@ Loop:
     inx
     jmp Loop
 Done:
-
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -212,7 +209,7 @@ Done:
 //   value_addr: The address of the byte that holds the value to print
 //   include_dollar: pass true for preceding '$'
 //   wait: pass true to wait for a key after printing
-.macro nv_debug_print_labeled_byte(row, col, label_addr, label_len, value_addr, 
+.macro nv_debug_print_labeled_byte_mem(row, col, label_addr, label_len, value_addr, 
                                    include_dollar, wait)
 {
     nv_debug_save_state()
@@ -239,15 +236,15 @@ Done:
 //   col: col position on screen to print at
 //   label_addr: the address of the first char of label string.
 //               this string must be zero terminated.
+//   label_len: the lenght of the label passed in chars
 //   value_addr: The address of the byte that holds the value to print
 //   include_dollar: pass true for preceding '$'
 //   wait: pass true to wait for a key after printing
-.macro nv_debug_print_labeled_word(row, col, label_addr, label_len, value_addr, 
-                                   include_dollar, wait)
+.macro nv_debug_print_labeled_word_mem(row, col, label_addr, 
+                                       label_len, value_addr, 
+                                       include_dollar, wait)
 {
     nv_debug_save_state()
-
-    //nv_string_get_len(label_addr)
 
     nv_screen_poke_string(row, col, label_addr)
     nv_screen_poke_hex_byte_at_addr(row, col+label_len+1, value_addr+1, include_dollar)

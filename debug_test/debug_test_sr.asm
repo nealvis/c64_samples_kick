@@ -429,7 +429,7 @@ op_FFFF_label_str: .text  @"op8 ffff\$00"
     sta nv_d8 
 
     // call our routine
-    jsr NvDebugPrintHexByte
+    jsr NvDebugPrintByte
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -467,7 +467,7 @@ op_FFFF_label_str: .text  @"op8 ffff\$00"
     sta nv_d8 
 
     // call our routine
-    jsr NvDebugPrintHexWord
+    jsr NvDebugPrintWord
 }
 
 //////////////////////////////////////////////////////////////////////////////

@@ -657,6 +657,6 @@ SetWrapAllOn:
 /*
 ship_collision_label_str: .text  @"ship collision sprite:\$00"
 DebugShipCollisionSprite:
-    nv_debug_print_labeled_byte(0, 0, ship_collision_label_str, 22, nv_b8, true, false)
+    nv_debug_print_labeled_byte_mem(0, 0, ship_collision_label_str, 22, nv_b8, true, false)
     rts
 */
