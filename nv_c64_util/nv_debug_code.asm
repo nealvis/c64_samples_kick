@@ -76,7 +76,7 @@ here7_str: .text @"HERE 7 \$00"
     //   nv_b8: col position on screen to print at
     //   nv_a16: the address of the first char of string.
     //           this string must be zero terminated.
-    jsr NvScreenPokeString
+    jsr NvScreenPokeStr
 
     lda nv_e8
     beq NoWait
@@ -181,7 +181,7 @@ NoWait:
     //   nv_b8: col position on screen to print at
     //   nv_a16: the address of the first char of string.
     //           this string must be zero terminated.
-    jsr NvScreenPokeString
+    jsr NvScreenPokeStr
 
     // setup and call routine to print the byte value
     //   nv_a8: row position, already set
@@ -244,7 +244,7 @@ NoWait:
     //   nv_b8: col position on screen to print at
     //   nv_a16: the address of the first char of string.
     //           this string must be zero terminated.
-    jsr NvScreenPokeString
+    jsr NvScreenPokeStr
 
     // setup and call routine to print the byte value
     //   nv_a8: row position, already set

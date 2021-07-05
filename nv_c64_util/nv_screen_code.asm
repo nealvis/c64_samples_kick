@@ -17,7 +17,7 @@
 //   nv_b8: col position on screen to print at
 //   nv_a16: the address of the first char of string.
 //           this string must be zero terminated.
-.macro nv_screen_poke_string_sr()
+.macro nv_screen_poke_str_sr()
 {
     // two zero page bytes to use as a pointer
     .const ZERO_PAGE_LO = $FB
@@ -140,7 +140,7 @@ NoDollar:
     lda #>temp_hex_str
     sta nv_a16+1
 
-    jsr NvScreenPokeString
+    jsr NvScreenPokeStr
 
     rts
 }
@@ -205,8 +205,8 @@ StillNoDollar:
 //   nv_b8: col position on screen to print at
 //   nv_a16: the address of the first char of string.
 //           this string must be zero terminated.
-NvScreenPokeString:
-    nv_screen_poke_string_sr()
+NvScreenPokeStr:
+    nv_screen_poke_str_sr()
 
 
 //////////////////////////////////////////////////////////////////////////////
