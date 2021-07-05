@@ -90,7 +90,7 @@ op8_81: .byte $81  // -127
 
     nv_screen_clear()
     nv_screen_plot_cursor(row++, 33)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 
     test_adc16(0)
     test_adc16_immediate(0)
@@ -109,7 +109,7 @@ op8_81: .byte $81  // -127
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_adc16_str)
+    nv_screen_print_str(title_adc16_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -177,7 +177,7 @@ op8_81: .byte $81  // -127
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_adc16_8u_str)
+    nv_screen_print_str(title_adc16_8u_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -265,7 +265,7 @@ op8_81: .byte $81  // -127
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_adc16_8s_str)
+    nv_screen_print_str(title_adc16_8s_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -361,7 +361,7 @@ op8_81: .byte $81  // -127
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_adc16_immediate_str)
+    nv_screen_print_str(title_adc16_immediate_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -428,7 +428,7 @@ op8_81: .byte $81  // -127
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_lsr16_str)
+    nv_screen_print_str(title_lsr16_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -525,14 +525,14 @@ op8_81: .byte $81  // -127
     .var row = init_row
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
+    nv_screen_print_str(hit_anykey_str)
 
     nv_screen_wait_anykey()
 
     nv_screen_clear()
     .eval row=0
     nv_screen_plot_cursor(row++, 33)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 }
 
 
@@ -550,16 +550,16 @@ op8_81: .byte $81  // -127
 //    $FFFF + $0001 = (C) $0000
 .macro print_adc16(op1, op2, result)
 {
-    nv_screen_print_hex_word(op1, true)
-    nv_screen_print_string_basic(plus_str)
-    nv_screen_print_hex_word(op2, true)
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_hex_word_mem(op1, true)
+    nv_screen_print_str(plus_str)
+    nv_screen_print_hex_word_mem(op2, true)
+    nv_screen_print_str(equal_str)
 
     nv_adc16(op1, op2, result)
     bcc NoCarry
-    nv_screen_print_string_basic(carry_str)
+    nv_screen_print_str(carry_str)
 NoCarry:
-    nv_screen_print_hex_word(result, true)
+    nv_screen_print_hex_word_mem(result, true)
 }
 
 
@@ -572,16 +572,16 @@ NoCarry:
 //    $FFFF + $01 = (C) $0000
 .macro print_adc16_8u(op16, op8, result)
 {
-    nv_screen_print_hex_word(op16, true)
-    nv_screen_print_string_basic(plus_str)
-    nv_screen_print_hex_byte_at_addr(op8, true)
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_hex_word_mem(op16, true)
+    nv_screen_print_str(plus_str)
+    nv_screen_print_hex_byte_mem(op8, true)
+    nv_screen_print_str(equal_str)
 
     nv_adc16_8unsigned(op16, op8, result)
     bcc NoCarry
-    nv_screen_print_string_basic(carry_str)
+    nv_screen_print_str(carry_str)
 NoCarry:
-    nv_screen_print_hex_word(result, true)
+    nv_screen_print_hex_word_mem(result, true)
 }
 
 
@@ -594,16 +594,16 @@ NoCarry:
 //    $FFFF + $01 = (C) $0000
 .macro print_adc16_8s(op16, op8, result)
 {
-    nv_screen_print_hex_word(op16, true)
-    nv_screen_print_string_basic(plus_str)
-    nv_screen_print_hex_byte_at_addr(op8, true)
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_hex_word_mem(op16, true)
+    nv_screen_print_str(plus_str)
+    nv_screen_print_hex_byte_mem(op8, true)
+    nv_screen_print_str(equal_str)
 
     nv_adc16_8signed(op16, op8, result)
     bcc NoCarry
-    nv_screen_print_string_basic(carry_str)
+    nv_screen_print_str(carry_str)
 NoCarry:
-    nv_screen_print_hex_word(result, true)
+    nv_screen_print_hex_word_mem(result, true)
 }
 
 
@@ -617,16 +617,16 @@ NoCarry:
 //    $FFFF + $0001 = (C) $0000
 .macro print_adc16_immediate(op1, num, result)
 {
-    nv_screen_print_hex_word(op1, true)
-    nv_screen_print_string_basic(plus_str)
-    nv_screen_print_hex_word_immediate(num, true)
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_hex_word_mem(op1, true)
+    nv_screen_print_str(plus_str)
+    nv_screen_print_hex_word_immed(num, true)
+    nv_screen_print_str(equal_str)
 
     nv_adc16_immediate(op1, num, result)
     bcc NoCarry
-    nv_screen_print_string_basic(carry_str)
+    nv_screen_print_str(carry_str)
 NoCarry:
-    nv_screen_print_hex_word(result, true)
+    nv_screen_print_hex_word_mem(result, true)
 }
 
 
@@ -643,13 +643,13 @@ NoCarry:
     sta temp_lsr16
     lda op1+1
     sta temp_lsr16 + 1
-    nv_screen_print_hex_word(temp_lsr16, true)
-    nv_screen_print_string_basic(lsr_str)
-    nv_screen_print_hex_word_immediate(num_rots, true)
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_hex_word_mem(temp_lsr16, true)
+    nv_screen_print_str(lsr_str)
+    nv_screen_print_hex_word_immed(num_rots, true)
+    nv_screen_print_str(equal_str)
 
     nv_lsr16(temp_lsr16, num_rots)
-    nv_screen_print_hex_word(temp_lsr16, true)
+    nv_screen_print_hex_word_mem(temp_lsr16, true)
 }
 
 temp_lsr16: .word 0
