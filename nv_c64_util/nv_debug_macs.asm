@@ -25,7 +25,7 @@
     nv_debug_save_state()
 
     nv_screen_plot_cursor(row, col)
-    nv_screen_print_hex_byte_at_addr(addr, include_dollar)
+    nv_screen_print_hex_byte_mem(addr, include_dollar)
 
     .if (wait != false)
     {
@@ -49,7 +49,7 @@
     nv_debug_save_state()
 
     nv_screen_plot_cursor(row, col)
-    nv_screen_print_hex_word_immediate(immed_value, include_dollar)
+    nv_screen_print_hex_word_immed(immed_value, include_dollar)
 
     .if (wait)
     {
@@ -78,7 +78,7 @@
 {
     nv_debug_save_state()
 
-    nv_screen_poke_hex_byte_at_addr(row, col, addr, include_dollar)
+    nv_screen_poke_hex_byte_mem(row, col, addr, include_dollar)
 
     .if (wait != false)
     {
@@ -103,7 +103,7 @@
 {
     nv_debug_save_state()
 
-    nv_screen_poke_hex_byte(row, col, include_dollar)
+    nv_screen_poke_hex_byte_a(row, col, include_dollar)
     
     .if (wait != false)
     {
@@ -124,7 +124,7 @@
 {
     nv_debug_save_state()
 
-    nv_screen_poke_string(row, col, str)
+    nv_screen_poke_str(row, col, str)
 
     .if (wait != false)
     {
@@ -147,7 +147,7 @@
 {
     nv_debug_save_state()
 
-    nv_screen_poke_hex_byte_immediate(row, col, immed_value, include_dollar)
+    nv_screen_poke_hex_byte_immed(row, col, immed_value, include_dollar)
 
     .if (wait)
     {
@@ -171,7 +171,7 @@
 {
     nv_debug_save_state()
 
-    nv_screen_poke_hex_word_immediate(row, col, immed_value, include_dollar)
+    nv_screen_poke_hex_word_immed(row, col, immed_value, include_dollar)
 
     .if (wait)
     {
@@ -216,8 +216,8 @@ Done:
 
     //nv_string_get_len(label_addr)
 
-    nv_screen_poke_string(row, col, label_addr)
-    nv_screen_poke_hex_byte_at_addr(row, col+label_len+1, value_addr, include_dollar)
+    nv_screen_poke_str(row, col, label_addr)
+    nv_screen_poke_hex_byte_mem(row, col+label_len+1, value_addr, include_dollar)
 
     .if (wait)
     {
@@ -246,9 +246,9 @@ Done:
 {
     nv_debug_save_state()
 
-    nv_screen_poke_string(row, col, label_addr)
-    nv_screen_poke_hex_byte_at_addr(row, col+label_len+1, value_addr+1, include_dollar)
-    nv_screen_poke_hex_byte_at_addr(row, col+label_len+1, value_addr, false)
+    nv_screen_poke_str(row, col, label_addr)
+    nv_screen_poke_hex_byte_mem(row, col+label_len+1, value_addr+1, include_dollar)
+    nv_screen_poke_hex_byte_mem(row, col+label_len+1, value_addr, false)
 
     .if (wait)
     {

@@ -119,7 +119,7 @@ op_07: .byte $07
 
     nv_screen_clear()
     nv_screen_plot_cursor(row++, 33)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 
     test_debug_print_str(0)
     test_debug_print_byte(0)
@@ -141,7 +141,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_str_str)
+    nv_screen_print_str(title_debug_print_str_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -168,7 +168,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_byte_str)
+    nv_screen_print_str(title_debug_print_byte_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -209,7 +209,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_byte_a_str)
+    nv_screen_print_str(title_debug_print_byte_a_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -243,7 +243,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_byte_immediate_str)
+    nv_screen_print_str(title_debug_print_byte_immediate_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -287,7 +287,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_word_immediate_str)
+    nv_screen_print_str(title_debug_print_word_immediate_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -340,7 +340,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_labeled_byte_str)
+    nv_screen_print_str(title_debug_print_labeled_byte_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -398,14 +398,14 @@ op_07: .byte $07
     .var row = init_row
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
+    nv_screen_print_str(hit_anykey_str)
 
     nv_screen_wait_anykey()
 
     nv_screen_clear()
     .eval row=0
     nv_screen_plot_cursor(row++, 33)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 }
 
 
@@ -421,7 +421,7 @@ op_07: .byte $07
 // 
 .macro print_debug_print_str(str, row)
 {
-    nv_screen_poke_string(row, 0, str)
+    nv_screen_poke_str(row, 0, str)
     nv_debug_print_str(row, 20, str, true)
 }
 
@@ -432,8 +432,8 @@ op_07: .byte $07
 // 
 .macro print_debug_print_byte(op1, row)
 {
-    nv_screen_print_hex_byte_at_addr(op1, true)
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_hex_byte_mem(op1, true)
+    nv_screen_print_str(equal_str)
 
     nv_debug_print_byte_mem(row, 6, op1, true, true)
 }
@@ -446,7 +446,7 @@ op_07: .byte $07
 .macro print_debug_print_byte_a(op1, row)
 {
     nv_screen_plot_cursor(row, 0)
-    nv_screen_print_hex_byte_at_addr(op1, true)
+    nv_screen_print_hex_byte_mem(op1, true)
     lda op1
     nv_debug_print_byte_a(row, 6, true, true)
 }
@@ -459,7 +459,7 @@ op_07: .byte $07
 .macro print_debug_print_byte_immediate(op1, row)
 {
     nv_screen_plot_cursor(row, 0)
-    nv_screen_print_hex_word_immediate(op1, true)
+    nv_screen_print_hex_word_immed(op1, true)
     nv_debug_print_byte_immed(row, 6, op1, true, true)
 }
 
@@ -470,7 +470,7 @@ op_07: .byte $07
 .macro print_debug_print_word_immediate(op1, row)
 {
     nv_screen_plot_cursor(row, 0)
-    nv_screen_print_hex_word_immediate(op1, true)
+    nv_screen_print_hex_word_immed(op1, true)
     nv_debug_print_word_immed(row, 8, op1, true, true)
 }
 

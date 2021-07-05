@@ -65,7 +65,7 @@ opTwo: .word $0002
 
     nv_screen_clear()
     nv_screen_plot_cursor(row++, 31)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 
     test_hex_word(0)
     test_hex_word_immediate(0)
@@ -80,23 +80,23 @@ opTwo: .word $0002
     .var row = init_row
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_hex_word_str)
+    nv_screen_print_str(title_hex_word_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(word_to_print, true)
+    nv_screen_print_hex_word_mem(word_to_print, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(another_word, false)
+    nv_screen_print_hex_word_mem(another_word, false)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(op1Beef, true)
+    nv_screen_print_hex_word_mem(op1Beef, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(opSmall, true)
+    nv_screen_print_hex_word_mem(opSmall, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word(opBig, true)
+    nv_screen_print_hex_word_mem(opBig, true)
 
     wait_and_clear_at_row(row)
 }
@@ -109,33 +109,33 @@ opTwo: .word $0002
 
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_hex_word_immediate_str)
+    nv_screen_print_str(title_hex_word_immediate_str)
     //////////////////////////////////////////////////////////////////////////
 
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($ABCD, true)
+    nv_screen_print_hex_word_immed($ABCD, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($FFFF, true)
+    nv_screen_print_hex_word_immed($FFFF, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($0000, true)
+    nv_screen_print_hex_word_immed($0000, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($DEAD, true)
+    nv_screen_print_hex_word_immed($DEAD, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($BEEF, true)
+    nv_screen_print_hex_word_immed($BEEF, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($fedc, true)
+    nv_screen_print_hex_word_immed($fedc, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($1234, true)
+    nv_screen_print_hex_word_immed($1234, true)
 
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_hex_word_immediate($0001, true)
+    nv_screen_print_hex_word_immed($0001, true)
 
     wait_and_clear_at_row(row)
 }
@@ -148,14 +148,14 @@ opTwo: .word $0002
     .var row = init_row
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
+    nv_screen_print_str(hit_anykey_str)
 
     nv_screen_wait_anykey()
 
     nv_screen_clear()
     .eval row=0
     nv_screen_plot_cursor(row++, 31)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 }
 
 

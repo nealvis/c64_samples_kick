@@ -128,7 +128,7 @@ op_07: .byte $07
     nv_screen_clear()
 
     nv_screen_plot_cursor(row++, 32)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 
     test_debug_print_str(0)
     test_debug_print_byte(0)
@@ -149,7 +149,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_str_str)
+    nv_screen_print_str(title_debug_print_str_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -176,7 +176,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_byte_str)
+    nv_screen_print_str(title_debug_print_byte_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -215,7 +215,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_word_str)
+    nv_screen_print_str(title_debug_print_word_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -239,7 +239,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_labeled_byte_str)
+    nv_screen_print_str(title_debug_print_labeled_byte_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -297,7 +297,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_debug_print_labeled_word_str)
+    nv_screen_print_str(title_debug_print_labeled_word_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -339,14 +339,14 @@ op_FFFF_label_str: .text  @"op8 ffff\$00"
     .var row = init_row
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
+    nv_screen_print_str(hit_anykey_str)
 
     nv_screen_wait_anykey()
 
     nv_screen_clear()
     .eval row=0
     nv_screen_plot_cursor(row++, 32)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 }
 
 
@@ -364,7 +364,7 @@ op_FFFF_label_str: .text  @"op8 ffff\$00"
 {
 
     // print the string with macro version
-    nv_screen_poke_string(row, 0, str)
+    nv_screen_poke_str(row, 0, str)
 
     // setup the params for the subroutine version as follows:
     //   nv_a8: row position on screen to print at
@@ -402,8 +402,8 @@ op_FFFF_label_str: .text  @"op8 ffff\$00"
 // 
 .macro print_debug_print_byte(op1, row)
 {
-    nv_screen_print_hex_byte_at_addr(op1, true)
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_hex_byte_mem(op1, true)
+    nv_screen_print_str(equal_str)
 
     // setup the params for the subroutine version as follows:
     //   nv_a8: row position on screen to print at
@@ -438,8 +438,8 @@ op_FFFF_label_str: .text  @"op8 ffff\$00"
 // 
 .macro print_debug_print_word(op1, row)
 {
-    nv_screen_print_hex_word(op1, true)
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_hex_word_mem(op1, true)
+    nv_screen_print_str(equal_str)
 
     // setup the params for the subroutine version as follows:
     //   nv_a8: row position on screen to print at

@@ -73,9 +73,10 @@
     jsr NV_SCREEN_PLOT_CURSOR_KERNAL_ADDR   // call kernal function to plot cursor
 } 
 
-
-// print a null terminated string to the current cursor location
-.macro nv_screen_print_string_basic(str_to_print_addr)
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print a null terminated string to the current 
+// cursor location.  Uses BASIC routine to do it.
+.macro nv_screen_print_str(str_to_print_addr)
 {
     lda #<str_to_print_addr                 // LSB of addr of string to print to A
     ldy #>str_to_print_addr                 // MSB of addr of str to print to Y
@@ -86,7 +87,7 @@
 //////////////////////////////////////////////////////////////////////////
 // inline macro to print a hex number that is in the accumulator
 //   include_dollar: pass true to print a '$' before the number
-.macro nv_screen_print_hex_byte(include_dollar)
+.macro nv_screen_print_hex_byte_a(include_dollar)
 {
     .var offset = 0
     .if (include_dollar)
@@ -111,19 +112,19 @@
     sta temp_hex_str+1+offset
     lda #0
     sta temp_hex_str + 2 + offset
-    nv_screen_print_string_basic(temp_hex_str) 
+    nv_screen_print_str(temp_hex_str) 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-.macro nv_screen_print_hex_byte_at_addr(addr, include_dollar)
+.macro nv_screen_print_hex_byte_mem(addr, include_dollar)
 {
     lda addr
-    nv_screen_print_hex_byte(include_dollar)
+    nv_screen_print_hex_byte_a(include_dollar)
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the word value at the address of the low byte given
-.macro nv_screen_print_hex_word(word_low_byte_addr, include_dollar)
+.macro nv_screen_print_hex_word_mem(word_low_byte_addr, include_dollar)
 {
     .if (include_dollar)
     {
@@ -131,18 +132,18 @@
         sta temp_hex_str
         lda #0
         sta temp_hex_str+1
-        nv_screen_print_string_basic(temp_hex_str)
+        nv_screen_print_str(temp_hex_str)
     }
     lda word_low_byte_addr+1
-    nv_screen_print_hex_byte(false)
+    nv_screen_print_hex_byte_a(false)
     lda word_low_byte_addr
-    nv_screen_print_hex_byte(false)
+    nv_screen_print_hex_byte_a(false)
 }
 
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the word value at the address of the low byte given
-.macro nv_screen_print_hex_word_immediate(num, include_dollar)
+.macro nv_screen_print_hex_word_immed(num, include_dollar)
 {
     .if (include_dollar)
     {
@@ -150,12 +151,12 @@
         sta temp_hex_str
         lda #0
         sta temp_hex_str+1
-        nv_screen_print_string_basic(temp_hex_str)
+        nv_screen_print_str(temp_hex_str)
     }
     lda #((num >> 8) & $00ff)
-    nv_screen_print_hex_byte(false)
+    nv_screen_print_hex_byte_a(false)
     lda #(num & $00ff)
-    nv_screen_print_hex_byte(false)
+    nv_screen_print_hex_byte_a(false)
 }
 
 
@@ -190,7 +191,7 @@ ScanLoop:
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars for a string to screen memory
-.macro nv_screen_poke_string(row, col, str_to_poke)
+.macro nv_screen_poke_str(row, col, str_to_poke)
 {
     .var screen_poke_start = SCREEN_START + (40*row) + col 
     
@@ -212,7 +213,7 @@ Done:
 //   col: the screen col
 //   include_dollar: pass true to print a '$' before the number
 //   accum: the byte to poke to screen
-.macro nv_screen_poke_hex_byte(row, col, include_dollar)
+.macro nv_screen_poke_hex_byte_a(row, col, include_dollar)
 {
     .var offset = 0
     .if (include_dollar)
@@ -238,34 +239,34 @@ Done:
     lda #0
     sta temp_hex_str + 2 + offset
 
-    nv_screen_poke_string(row, col, temp_hex_str) 
+    nv_screen_poke_str(row, col, temp_hex_str) 
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that are the 
 // string representation of the hex value of the byte at an address
-.macro nv_screen_poke_hex_byte_at_addr(row, col, addr, include_dollar)
+.macro nv_screen_poke_hex_byte_mem(row, col, addr, include_dollar)
 {
     lda addr
-    nv_screen_poke_hex_byte(row, col, include_dollar)
+    nv_screen_poke_hex_byte_a(row, col, include_dollar)
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that are the 
 // string representation of the hex value of the byte at an address
-.macro nv_screen_poke_hex_word_at_addr(row, col, addr, include_dollar)
+.macro nv_screen_poke_hex_word_mem(row, col, addr, include_dollar)
 {
     lda addr+1
-    nv_screen_poke_hex_byte(row, col, include_dollar)
+    nv_screen_poke_hex_byte_a(row, col, include_dollar)
     .if (include_dollar)
     {
         lda addr
-        nv_screen_poke_hex_byte(row, col+3, false)
+        nv_screen_poke_hex_byte_a(row, col+3, false)
     }
     else
     {
         lda addr
-        nv_screen_poke_hex_byte(row, col+2, false)
+        nv_screen_poke_hex_byte_a(row, col+2, false)
     }
 }
 
@@ -273,16 +274,16 @@ Done:
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that are the 
 // string representation of the immediate hex value passed
-.macro nv_screen_poke_hex_byte_immediate(row, col, immed_value, include_dollar)
+.macro nv_screen_poke_hex_byte_immed(row, col, immed_value, include_dollar)
 {
     lda #immed_value
-    nv_screen_poke_hex_byte(row, col, include_dollar)
+    nv_screen_poke_hex_byte_a(row, col, include_dollar)
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that are the 
 // string representation of the immediate hex value passed
-.macro nv_screen_poke_hex_word_immediate(row, col, immed_value, include_dollar)
+.macro nv_screen_poke_hex_word_immed(row, col, immed_value, include_dollar)
 {
     .var lsb = immed_value & $00FF
     .var msb = (immed_value >> 8) & $00FF
@@ -292,7 +293,7 @@ Done:
         .eval second_col = col + 3
     }
     lda #msb
-    nv_screen_poke_hex_byte(row, col, include_dollar)
+    nv_screen_poke_hex_byte_a(row, col, include_dollar)
     lda #lsb
-    nv_screen_poke_hex_byte(row, second_col, false)
+    nv_screen_poke_hex_byte_a(row, second_col, false)
 }

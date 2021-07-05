@@ -188,12 +188,12 @@ FullSecond:
 NoSetFlag:
         .if (showFrameCounters)
         {
-            nv_screen_poke_hex_word_at_addr(0, 7, second_counter, true)
+            nv_screen_poke_hex_word_mem(0, 7, second_counter, true)
         }
 PartialSecond2:
         .if (showFrameCounters)
         {
-            nv_screen_poke_hex_word_at_addr(0, 0, frame_counter, true)
+            nv_screen_poke_hex_word_mem(0, 0, frame_counter, true)
         }
 
         //// call function to move sprites around based on X and Y velocity
