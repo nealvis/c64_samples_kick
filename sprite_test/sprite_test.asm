@@ -165,6 +165,7 @@ ship_collision_sprite: .byte 0
         jsr asteroid_5.Enable
 
 .var showTiming = false
+.var showFrameCounters = false
 
 MainLoop:
 
@@ -185,14 +186,15 @@ FullSecond:
         lda #1
         sta change_up_flag
 NoSetFlag:
-        //nv_screen_plot_cursor(0, 7)
-        //nv_screen_print_hex_word(second_counter, true)
-        //nv_screen_poke_hex_word_at_addr(0, 7, second_counter, true)
+        .if (showFrameCounters)
+        {
+            nv_screen_poke_hex_word_at_addr(0, 7, second_counter, true)
+        }
 PartialSecond2:
-        //nv_screen_plot_cursor(0, 0)
-        //nv_screen_print_hex_word(frame_counter, true)
-        //nv_screen_poke_hex_word_at_addr(0, 0, frame_counter, true)
-
+        .if (showFrameCounters)
+        {
+            nv_screen_poke_hex_word_at_addr(0, 0, frame_counter, true)
+        }
 
         //// call function to move sprites around based on X and Y velocity
         // but only modify the position in their extra data block not on screen
