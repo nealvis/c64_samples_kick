@@ -89,7 +89,7 @@ op_07: .byte $07
 
     nv_screen_clear()
     nv_screen_plot_cursor(row++, 33)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 
     test_mask_from_bit_num_mem(0)
     test_mask_from_bit_num_a(0)
@@ -105,7 +105,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_mask_from_bit_num_mem_str)
+    nv_screen_print_str(title_mask_from_bit_num_mem_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -152,7 +152,7 @@ op_07: .byte $07
     
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_mask_from_bit_num_a_str)
+    nv_screen_print_str(title_mask_from_bit_num_a_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -200,14 +200,14 @@ op_07: .byte $07
     .var row = init_row
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
+    nv_screen_print_str(hit_anykey_str)
 
     nv_screen_wait_anykey()
 
     nv_screen_clear()
     .eval row=0
     nv_screen_plot_cursor(row++, 33)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 }
 
 
@@ -225,15 +225,15 @@ op_07: .byte $07
 //    BIT $01 = MASK $02
 .macro print_mask_from_bit_num_mem(op1)
 {
-    nv_screen_print_string_basic(bit_str)
-    nv_screen_print_hex_byte_at_addr(op1, true)
-    nv_screen_print_string_basic(equal_str)
-    //nv_screen_print_string_basic(mask_str)
+    nv_screen_print_str(bit_str)
+    nv_screen_print_hex_byte_mem(op1, true)
+    nv_screen_print_str(equal_str)
+    //nv_screen_print_str(mask_str)
     nv_mask_from_bit_num_mem(op1, false)
-    nv_screen_print_hex_byte(true)
-    nv_screen_print_string_basic(negated_str)
+    nv_screen_print_hex_byte_a(true)
+    nv_screen_print_str(negated_str)
     nv_mask_from_bit_num_mem(op1, true)
-    nv_screen_print_hex_byte(true)
+    nv_screen_print_hex_byte_a(true)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -245,18 +245,18 @@ op_07: .byte $07
 //    BIT $01 = MASK $02
 .macro print_mask_from_bit_num_a(op1)
 {
-    nv_screen_print_string_basic(bit_str)
-    nv_screen_print_hex_byte_at_addr(op1, true)
-    nv_screen_print_string_basic(equal_str)
-    //nv_screen_print_string_basic(mask_str)
+    nv_screen_print_str(bit_str)
+    nv_screen_print_hex_byte_mem(op1, true)
+    nv_screen_print_str(equal_str)
+    //nv_screen_print_str(mask_str)
     lda op1
     nv_mask_from_bit_num_a(false)
-    nv_screen_print_hex_byte(true)
+    nv_screen_print_hex_byte_a(true)
 
-    nv_screen_print_string_basic(negated_str)
+    nv_screen_print_str(negated_str)
     lda op1
     nv_mask_from_bit_num_a(true)
-    nv_screen_print_hex_byte(true)
+    nv_screen_print_hex_byte_a(true)
 
 }
 
