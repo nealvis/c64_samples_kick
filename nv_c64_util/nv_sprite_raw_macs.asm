@@ -543,18 +543,8 @@ DebugPrint:
 // macro params:
 //   rel_dist_addr: is the 16 bit addr to a word in memory into which 
 //                  the relative distance will be placed
-temp_x_dist: .word 0
-temp_y_dist: .word 0
-temp_x_a: .word 0
-temp_y_a: .word 0
-temp_x_b: .word 0
-temp_y_b: .word 0
-hold_spt_num_a: .word 0
-hold_spt_num_b: .word 0
-
 .macro nv_sprite_raw_get_rel_dist_reg(rel_dist_addr)
 {
-/*
     .label temp_x_dist = nv_a16
     .label temp_y_dist = nv_b16
     .label temp_x_a = nv_c16
@@ -563,7 +553,7 @@ hold_spt_num_b: .word 0
     .label temp_y_b = nv_f16
     .label hold_spt_num_a = nv_a8
     .label hold_spt_num_b = nv_b8
-*/
+
     stx hold_spt_num_a
     sty hold_spt_num_b
 

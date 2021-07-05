@@ -8,6 +8,7 @@
 #import "nv_math8_macs.asm"
 #import "nv_branch16_macs.asm"
 #import "nv_sprite_raw_macs.asm"
+#import "nv_debug_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to check if there is currently a collision between 
@@ -43,7 +44,6 @@
     // read the raw collision data from the HW register to accum
     nv_sprite_raw_get_sprite_collisions_in_a()
     sta collision_bit
-
     and #sprite_mask
     bne HaveCollisionWithSpriteNum
     jmp ClosestSpriteSet    
@@ -146,8 +146,8 @@ WasSprite5:
     ldy #5
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
     nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite6)
-    
-    // save the new closest rel distance
+
+     // save the new closest rel distance
     nv_xfer16_mem_mem(temp_rel_dist, closest_rel_dist)
 
     // save the new closest sprite
@@ -207,4 +207,13 @@ NvSpriteRawGetRelDistReg:
     nv_sprite_raw_get_rel_dist_reg(nv_g16)
     rts
 
+DebugRelDist:
+    // closest
+    nv_debug_print_labeled_word(6, 0, closest_label_str, 12, nv_a16, true, false)
+    // temp
+    nv_debug_print_labeled_word(7, 0, temp_label_str, 12, nv_g16, true, false)
 
+    //nv_screen_wait_anykey()
+    rts
+closest_label_str: .text  @"closest\$00"
+temp_label_str:  .text  @"temp\$00"

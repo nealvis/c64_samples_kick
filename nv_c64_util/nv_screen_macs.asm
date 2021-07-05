@@ -249,6 +249,25 @@ Done:
     nv_screen_poke_hex_byte(row, col, include_dollar)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars to the screen that are the 
+// string representation of the hex value of the byte at an address
+.macro nv_screen_poke_hex_word_at_addr(row, col, addr, include_dollar)
+{
+    lda addr+1
+    nv_screen_poke_hex_byte(row, col, include_dollar)
+    .if (include_dollar)
+    {
+        lda addr
+        nv_screen_poke_hex_byte(row, col+3, false)
+    }
+    else
+    {
+        lda addr
+        nv_screen_poke_hex_byte(row, col+2, false)
+    }
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that are the 

@@ -187,9 +187,11 @@ FullSecond:
 NoSetFlag:
         //nv_screen_plot_cursor(0, 7)
         //nv_screen_print_hex_word(second_counter, true)
+        //nv_screen_poke_hex_word_at_addr(0, 7, second_counter, true)
 PartialSecond2:
         //nv_screen_plot_cursor(0, 0)
         //nv_screen_print_hex_word(frame_counter, true)
+        //nv_screen_poke_hex_word_at_addr(0, 0, frame_counter, true)
 
 
         //// call function to move sprites around based on X and Y velocity
@@ -302,6 +304,7 @@ CheckShipCollision:
     nv_sprite_raw_check_collision(0)
     lda nv_b8
     sta ship_collision_sprite
+    //jsr DebugShipCollisionSprite
     rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -321,7 +324,7 @@ CheckShipCollision:
         .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
 
 // sprite extra data
-sprite_extra:
+sprite_extra: 
         nv_sprite_extra_data(info)
 
 // subroutine to set sprites location in sprite registers based on the extra data
@@ -647,5 +650,11 @@ SetWrapAllOn:
 #import "../nv_c64_util/nv_sprite_extra_code.asm"
 #import "../nv_c64_util/nv_sprite_raw_collisions_code.asm"
 #import "../nv_c64_util/nv_sprite_raw_code.asm"
-
+//#import "../nv_c64_util/nv_screen_code.asm"
 //#import "../nv_c64_util/nv_sprite_raw_code.asm"
+/*
+ship_collision_label_str: .text  @"ship collision sprite:\$00"
+DebugShipCollisionSprite:
+    nv_debug_print_labeled_byte(0, 0, ship_collision_label_str, 22, nv_b8, true, false)
+    rts
+*/
