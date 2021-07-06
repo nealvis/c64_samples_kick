@@ -23,3 +23,4 @@
 #import "nv_sprite_macs.asm"
 #import "nv_sprite_raw_macs.asm"
 #import "nv_sprite_raw_collisions_macs.asm"
+#import "nv_keyboard_macs.asm"

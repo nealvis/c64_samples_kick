@@ -30,7 +30,9 @@
 // program variables
 title_str: .text @"KEYBOARD TEST\$00"          // null terminated string to print
                                                // via the BASIC routine
-hit_anykey_str: .text @"HIT ANY KEY ...\$00"
+hit_anykey1_str: .text @"HIT ANY KEY AND LOOK\$00"
+hit_anykey2_str: .text @" IN TOP LEFT CORNER\$00"
+hit_anykey3_str: .text @"  PRESS Q  TO QUIT\$00"
 
 
 
@@ -39,6 +41,35 @@ hit_anykey_str: .text @"HIT ANY KEY ...\$00"
     nv_screen_clear()
     nv_screen_plot_cursor(0, 27)
     nv_screen_print_str(title_str)
+    nv_screen_plot_cursor(10, 10)
+    nv_screen_print_str(hit_anykey1_str)
+    nv_screen_plot_cursor(11, 10)
+    nv_screen_print_str(hit_anykey2_str)
+    nv_screen_plot_cursor(12, 10)
+    nv_screen_print_str(hit_anykey3_str)
 
+    nv_key_init()
+
+TopLoop:
+    lda #NV_COLOR_LITE_BLUE                // change border color back to
+    sta $D020                              // visualize timing
+
+    nv_sprite_wait_last_scanline()
+
+    lda #NV_COLOR_GREEN                    // change border color back to
+    sta $D020                              // visualize timing
+
+    nv_key_scan()
+    nv_key_get_last_pressed_a()
+    nv_screen_poke_char_a(0, 0)
+    cmp #$11
+    beq Done
+    jmp TopLoop
+
+Done:
+    lda #NV_COLOR_LITE_BLUE                // change border color back to
+    sta $D020                              // visualize timing
+
+    nv_key_done()
     rts
 
