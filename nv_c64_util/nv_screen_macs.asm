@@ -203,7 +203,46 @@ DirectLoop:
     inx                     // inc to next byte and next screen location 
     jmp DirectLoop          // Go back for next byte
 Done:
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+// inline macro to poke a single char to the screen at row/col
+// does not change any registers
+// macro params:
+//   row: screen row (0-24)
+//   col: screen col (0-39)
+//   Accum: the char to poke
+.macro nv_screen_poke_char_a(row, col)
+{
+    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    sta screen_poke_start
+}
+
+//////////////////////////////////////////////////////////////////////////
+// inline macro to poke a single char to the screen at row/col
+// does not change any registers
+// macro params:
+//   row: screen row (0-24)
+//   col: screen col (0-39)
+//   Y Reg: the char to poke
+.macro nv_screen_poke_char_y(row, col)
+{
+    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    sty screen_poke_start
+}
+
+//////////////////////////////////////////////////////////////////////////
+// inline macro to poke a single char to the screen at row/col
+// does not change any registers
+// macro params:
+//   row: screen row (0-24)
+//   col: screen col (0-39)
+//   X Reg: the char to poke
+.macro nv_screen_poke_char_x(row, col)
+{
+    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    stx screen_poke_start
 }
 
 //////////////////////////////////////////////////////////////////////////
