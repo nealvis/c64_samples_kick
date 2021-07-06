@@ -31,6 +31,7 @@
 // some loop indices
 frame_counter: .word 0
 second_counter: .word 0
+change_up_counter: .word 0
 second_partial_counter: .word 0
 
 
@@ -164,9 +165,10 @@ ship_collision_sprite: .byte 0
         jsr asteroid_4.Enable
         jsr asteroid_5.Enable
 
-.var showTiming = false
-.var showFrameCounters = false
-
+.var showTiming = true
+.var showFrameCounters = true
+        //sei
+        
 MainLoop:
 
         nv_adc16_immediate(frame_counter, 1, frame_counter)
@@ -185,6 +187,13 @@ FullSecond:
         bne NoSetFlag
         lda #1
         sta change_up_flag
+        nv_adc16_immediate(change_up_counter, 1, change_up_counter)
+        .if (showFrameCounters)
+        {
+            nv_screen_poke_hex_word_mem(0, 14, change_up_counter, true)
+        }
+
+        
 NoSetFlag:
         .if (showFrameCounters)
         {
