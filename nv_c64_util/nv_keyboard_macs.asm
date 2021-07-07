@@ -157,14 +157,25 @@ Bottom:
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to copy last pressed key into memory
+// macro params:
+//   addr_for_last: is the memory location to copy the code for last
+//                  pressed key
+//   clear: set to true to clear the last key, or false to leave it
+//          for the next call.  Clearing means until another key
+//          is pressed, calls to this will return NV_KEY_NO_KEY
 .macro nv_key_get_last_pressed(addr_for_last, clear)
 {
     nv_key_get_last_pressed_a(clear)
     sta addr_for_last
 }
 
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to copy last pressed key into accumulator
+// macro params:
+//   clear: set to true to clear the last key, or false to leave it
+//          for the next call.  Clearing means until another key
+//          is pressed, calls to this will return NV_KEY_NO_KEY
 .macro nv_key_get_last_pressed_a(clear)
 {
     lda nv_key_last_pressed
@@ -174,6 +185,7 @@ Bottom:
         sty nv_key_last_pressed
     }
 }
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro that pokes a char based on the bits in the accum
