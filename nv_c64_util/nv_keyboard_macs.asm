@@ -36,7 +36,7 @@
     sta DDRB             
 
     // start out with last pressed as 0
-    ldx #$FF
+    ldx #$66
     stx nv_key_last_pressed
 }
 
