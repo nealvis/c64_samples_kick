@@ -258,6 +258,18 @@ Done:
     nv_debug_restore_state()
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print a single char to the screen at specified location.
+.macro nv_debug_print_char_a(row, col)
+{
+    nv_debug_save_state()
+
+    nv_screen_poke_char_a(row, col)
+
+    nv_debug_restore_state()
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to save state to stack
 .macro nv_debug_save_state()
