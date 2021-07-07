@@ -165,8 +165,8 @@ ship_collision_sprite: .byte 0
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = true
-    .var showFrameCounters = true
+    .var showTiming = false
+    .var showFrameCounters = false
         
     nv_key_init()
         
