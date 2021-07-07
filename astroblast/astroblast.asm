@@ -27,12 +27,20 @@
 .const MAX_SPEED = 6
 .const MIN_SPEED = -6
 .const FPS = 60
+.const KEY_COOL_DURATION = $08
+
+// These are the keys that do something in the game
+.const KEY_SHIP1_SLOW_X = NV_KEY_A
+.const KEY_SHIP1_FAST_X = NV_KEY_D
+.const KEY_QUIT = NV_KEY_Q
 
 // some loop indices
 frame_counter: .word 0
 second_counter: .word 0
 change_up_counter: .word 0
 second_partial_counter: .word 0
+key_cool_counter: .byte 0
+quit_flag: .byte 0                  // set to non zero to quit
 
 
 cycling_color: .byte NV_COLOR_FIRST
@@ -179,6 +187,10 @@ MainLoop:
 PartialSecond1:
         jmp PartialSecond2
 FullSecond:
+        lda quit_flag
+        beq NotQuitting
+        jmp ProgramDone
+NotQuitting:
         lda #0 
         sta second_partial_counter
         sta second_partial_counter+1
@@ -220,24 +232,8 @@ PartialSecond2:
         jsr asteroid_4.MoveInExtraData
         jsr asteroid_5.MoveInExtraData
 
-        nv_key_scan()
+        jsr DoKeyboard
 
-        nv_key_get_last_pressed_a(true)
-        //nv_debug_print_char_a(5, 0)
-        //nv_debug_print_byte_a(5, 5, true, false)
-        cmp #NV_KEY_NO_KEY
-        beq DoneKeys
-        cmp #NV_KEY_A 
-        bne TryD
-WasA:
-        jsr ship_1.DecVelX
-        jmp DoneKeys
-TryD:
-        cmp #NV_KEY_D
-        bne DoneKeys
-WasD:
-        jsr ship_1.IncVelX
-DoneKeys:
 
         lda #1 
         bit change_up_flag
@@ -294,6 +290,50 @@ ProgramDone:
 
         nv_screen_plot_cursor(5, 24)
         rts   // program done, return
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to do all the keyboard stuff
+DoKeyboard: 
+    nv_key_scan()
+
+    lda key_cool_counter
+    beq NotInCoolDown       // not in keyboard cooldown, go scan
+    dec key_cool_counter    // in keyboard cooldown, dec the cntr
+    jmp DoneKeys            // and jmp to skip rest of routine
+NotInCoolDown:
+
+    nv_key_get_last_pressed_a(true)     // get key pressed in accum
+    //nv_debug_print_char_a(5, 0)
+    //nv_debug_print_byte_a(5, 5, 
+    //                      true, false)
+    cmp #NV_KEY_NO_KEY          // check if any key hit
+    beq DoneKeys                // no key hit, skip to end
+    ldy #KEY_COOL_DURATION      // had a key, start cooldown counter        
+    sty key_cool_counter
+
+TryShip1SlowX:
+    cmp #KEY_SHIP1_SLOW_X       // check ship1 slow down X key
+    bne TryShip1FastX           // wasn't A key, try D key
+WasShip1SlowX:
+    jsr ship_1.DecVelX          // slow down the ship X
+    jmp DoneKeys                // and skip to bottom
+
+TryShip1FastX:
+    cmp #KEY_SHIP1_FAST_X      // check ship1 speed up x key
+    bne TryQuit                // not speed up x key, skip to bottom
+WasShip1FastX:
+    jsr ship_1.IncVelX          // inc the ship X velocity
+
+TryQuit:
+    cmp #KEY_QUIT               // check quit key
+    bne DoneKeys                // not quit key, skip to bottom
+WasQuit:
+    lda #1                      // set the quit flag
+    sta quit_flag
+
+DoneKeys:
+    rts
+
 
 
 //////////////////////////////////////////////////////////////////////////////
