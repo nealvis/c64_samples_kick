@@ -62,7 +62,7 @@ TopLoop:
     nv_key_scan()
     nv_key_get_last_pressed_a(true)
     nv_screen_poke_char_a(0, 0)
-    cmp #$11
+    cmp #NV_KEY_Q
     beq Done
     jmp TopLoop
 
