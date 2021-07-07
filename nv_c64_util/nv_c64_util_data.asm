@@ -64,8 +64,8 @@ nv_key_last_pressed: .byte $00
 
 // table of chars to report for col0 keys:  
 nv_key_col0_table: 
-.byte $66,   $66,      $66,      $66, $66, $66, $66, $66
-//    <del>, <return>, <cur LR>,  F7, F1,   F3,  F5, <cur UD>
+.byte $66,   $66,      $66,       $66, $66, $66, $66, $66
+//    <del>, <return>, <cur L/R>,  F7, F1,   F3,  F5, <cur UD>
 
 // table of chars to report for col1 keys:  
 nv_key_col1_table: 
@@ -89,17 +89,17 @@ nv_key_col4_table:
 
 // table of chars to report for col5 keys:
 nv_key_col5_table: 
-.byte $66, $10, $0C, $66, $66, $66, $0, $66
-//     +,   P,   L,   -,   .,   :,   @,   .
+.byte $2B, $10, $0C, $2D, $2E, $3A, $0, $2C
+//     +,   P,   L,   -,   .,   :,   @,  <comma>
 
 // table of chars to report for col6 keys:
 nv_key_col6_table: 
-.byte $66, $66, $66, $66,        $66,      $66, $66,        $66
-//    <lb>, *,   ;,  <CLR HOME>, <RShift>, =,   <up arrow>, /
+.byte $1C, $2A, $3B, $66,        $66,     $3D, $1E,        $2F
+//    <lb>, *,   ;,  <CLR HOME>, <RShift>, =,  <up arrow>, /
 
 // table of chars to report for col7 keys:
 nv_key_col7_table: 
-.byte $31, $66,        $66,   $32, $66,     $66,     $11, $66
+.byte $31, $1F,        $66,   $32, $66,     $66,     $11, $66
 //     1,  <lf arrow>, <ctrl>, 2,  <space>, <cmodor>, Q,  <run st>
 
 // End keyboard data
