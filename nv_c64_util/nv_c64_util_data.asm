@@ -66,6 +66,7 @@ nv_key_last_pressed: .byte $00
 .const NV_KEY_S = $13
 .const NV_KEY_A = $01
 .const NV_KEY_D = $04
+.const NV_KEY_Q = $11
 
 // table of chars to report for col0 keys:  
 nv_key_col0_table: 
@@ -104,8 +105,8 @@ nv_key_col6_table:
 
 // table of chars to report for col7 keys:
 nv_key_col7_table: 
-.byte $31, $1F,        $66,   $32, $66,     $66,     $11, $66
-//     1,  <lf arrow>, <ctrl>, 2,  <space>, <cmodor>, Q,  <run st>
+.byte $31, $1F,        $66,   $32, $66,     $66,     NV_KEY_Q, $66
+//     1,  <lf arrow>, <ctrl>, 2,  <space>, <cmodor>, Q,       <run st>
 
 // End keyboard data
 //////////////////////////////////////////////////////////////////////////////
