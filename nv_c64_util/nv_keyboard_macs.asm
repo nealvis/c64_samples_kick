@@ -14,6 +14,9 @@
 .const PRB  =  $dc01            // CIA#1 (Port Register B)
 .const DDRB =  $dc03            // CIA#1 (Data Direction Register B)
 
+// Special value to use for no key
+.const NV_KEY_NO_KEY = $66
+
 #import "nv_screen_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -36,7 +39,7 @@
     sta DDRB             
 
     // start out with last pressed as 0
-    ldx #$66
+    ldx #NV_KEY_NO_KEY
     stx nv_key_last_pressed
 }
 
@@ -154,17 +157,22 @@ Bottom:
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to copy last pressed key into memory
-.macro nv_key_get_last_pressed(addr_for_last)
+.macro nv_key_get_last_pressed(addr_for_last, clear)
 {
-    nv_key_get_last_pressed_a()
+    nv_key_get_last_pressed_a(clear)
     sta addr_for_last
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to copy last pressed key into accumulator
-.macro nv_key_get_last_pressed_a()
+.macro nv_key_get_last_pressed_a(clear)
 {
     lda nv_key_last_pressed
+    .if (clear)
+    {
+        ldy #NV_KEY_NO_KEY
+        sty nv_key_last_pressed
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
