@@ -62,6 +62,11 @@ nv_key_last_pressed: .byte $00
 // the right value yet) for the corresponding key, 
 // the table byte will be $66 which is just a grid pattern
 
+.const NV_KEY_W = $17
+.const NV_KEY_S = $13
+.const NV_KEY_A = $01
+.const NV_KEY_D = $04
+
 // table of chars to report for col0 keys:  
 nv_key_col0_table: 
 .byte $66,   $66,      $66,       $66, $66, $66, $66, $66
@@ -69,13 +74,13 @@ nv_key_col0_table:
 
 // table of chars to report for col1 keys:  
 nv_key_col1_table: 
-.byte $33, $17, $01, $34, $1A, $13, $05, $66
-//     3,   W,   A,   4,   Z,   S,   E,  <LSHIFT>
+.byte $33, $17, NV_KEY_A, $34, $1A, NV_KEY_S, $05, $66
+//     3,   W,   A,         4,   Z, S,         E,  <LSHIFT>
 
 // table of chars to report for col2 keys:
 nv_key_col2_table: 
-.byte $35, $12, $04, $36, $03, $06, $14, $18
-//     5,   R,   D,   6,   C,   F,   T,   X
+.byte $35, $12, NV_KEY_D, $36, $03, $06, $14, $18
+//     5,   R,  D,        6,   C,   F,   T,   X
 
 // table of chars to report for col3 keys:
 nv_key_col3_table: 
