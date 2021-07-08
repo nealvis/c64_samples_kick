@@ -46,9 +46,6 @@ quit_flag: .byte 0                  // set to non zero to quit
 cycling_color: .byte NV_COLOR_FIRST
 change_up_flag: .byte 0
 
-// will be $FF (no collision) or sprite number of sprite colliding with
-ship_collision_sprite: .byte 0      
-
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -148,6 +145,7 @@ ship_collision_sprite: .byte 0
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
+    jsr ship_2.Setup
 
     // setup everything for the sprite_asteroid so its ready to enable
     jsr asteroid_1.Setup
@@ -159,125 +157,140 @@ ship_collision_sprite: .byte 0
 
     // initialize sprite locations from their extra data blocks 
     jsr ship_1.SetLocationFromExtraData
+    jsr ship_2.SetLocationFromExtraData
     jsr asteroid_1.SetLocationFromExtraData
     jsr asteroid_2.SetLocationFromExtraData
     jsr asteroid_3.SetLocationFromExtraData
     jsr asteroid_4.SetLocationFromExtraData
     jsr asteroid_5.SetLocationFromExtraData
     
+    nv_sprite_set_raw_color_immediate(7, NV_COLOR_BROWN)
+
     // enable sprites
     jsr ship_1.Enable
+    jsr ship_2.Enable
     jsr asteroid_1.Enable
     jsr asteroid_2.Enable
     jsr asteroid_3.Enable
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = false
+    .var showTiming = true
     .var showFrameCounters = false
         
     nv_key_init()
         
 MainLoop:
 
-        nv_adc16_immediate(frame_counter, 1, frame_counter)
-        nv_adc16_immediate(second_partial_counter, 1, second_partial_counter)
-        nv_ble16_immediate(second_partial_counter, FPS, PartialSecond1)
-        jmp FullSecond
+    nv_adc16_immediate(frame_counter, 1, frame_counter)
+    nv_adc16_immediate(second_partial_counter, 1, second_partial_counter)
+    nv_ble16_immediate(second_partial_counter, FPS, PartialSecond1)
+    jmp FullSecond
 PartialSecond1:
-        jmp PartialSecond2
+    jmp PartialSecond2
 FullSecond:
-        lda quit_flag
-        beq NotQuitting
-        jmp ProgramDone
+    lda quit_flag
+    beq NotQuitting
+    jmp ProgramDone
 NotQuitting:
-        lda #0 
-        sta second_partial_counter
-        sta second_partial_counter+1
-        nv_adc16_immediate(second_counter, 1, second_counter)
-        lda #$03
-        and second_counter  //set flag every 4 secs when bits 0 and 1 clear
-        bne NoSetFlag
-        lda #1
-        sta change_up_flag
-        nv_adc16_immediate(change_up_counter, 1, change_up_counter)
-        .if (showFrameCounters)
-        {
-            nv_screen_poke_hex_word_mem(0, 14, change_up_counter, true)
-        }
-
-        
+    lda #0 
+    sta second_partial_counter
+    sta second_partial_counter+1
+    nv_adc16_immediate(second_counter, 1, second_counter)
+    lda #$03
+    and second_counter  //set flag every 4 secs when bits 0 and 1 clear
+    bne NoSetFlag
+    lda #1
+    sta change_up_flag
+    nv_adc16_immediate(change_up_counter, 1, change_up_counter)
+    .if (showFrameCounters)
+    {
+        nv_screen_poke_hex_word_mem(0, 14, change_up_counter, true)
+    }
+   
 NoSetFlag:
-        .if (showFrameCounters)
-        {
-            nv_screen_poke_hex_word_mem(0, 7, second_counter, true)
-        }
+    .if (showFrameCounters)
+    {
+        nv_screen_poke_hex_word_mem(0, 7, second_counter, true)
+    }
 PartialSecond2:
-        .if (showFrameCounters)
-        {
-            nv_screen_poke_hex_word_mem(0, 0, frame_counter, true)
-        }
+    .if (showFrameCounters)
+    {
+        nv_screen_poke_hex_word_mem(0, 0, frame_counter, true)
+    }
 
-        //// call function to move sprites around based on X and Y velocity
-        // but only modify the position in their extra data block not on screen
-        .if (showTiming)
-        {
-            lda #NV_COLOR_LITE_GREEN                      // change border color back to
-            sta $D020                                     // visualize timing
-        }
-        jsr ship_1.MoveInExtraData
-        jsr asteroid_1.MoveInExtraData
-        jsr asteroid_2.MoveInExtraData
-        jsr asteroid_3.MoveInExtraData
-        jsr asteroid_4.MoveInExtraData
-        jsr asteroid_5.MoveInExtraData
+    //// call function to move sprites around based on X and Y velocity
+    // but only modify the position in their extra data block not on screen
+    .if (showTiming)
+    {
+        lda #NV_COLOR_LITE_GREEN                      // change border color back to
+        sta $D020                                     // visualize timing
+    }
+    jsr ship_1.MoveInExtraData
+    jsr ship_2.MoveInExtraData
+    jsr asteroid_1.MoveInExtraData
+    jsr asteroid_2.MoveInExtraData
+    jsr asteroid_3.MoveInExtraData
+    jsr asteroid_4.MoveInExtraData
+    jsr asteroid_5.MoveInExtraData
 
-        jsr DoKeyboard
+    jsr DoKeyboard
 
 
-        lda #1 
-        bit change_up_flag
-        beq NoChangeUp
+    lda #1 
+    bit change_up_flag
+    beq NoChangeUp
 YesChangeUp:
-        // every few seconds change up some sprite properties
-        jsr ChangeUp 
-        lda #0 
-        sta change_up_flag
+    // every few seconds change up some sprite properties
+    jsr ChangeUp 
+    lda #0 
+    sta change_up_flag
 NoChangeUp:
-        // not changing this frame, 
+    // not changing this frame, 
 
-        .if (showTiming)
-        {
-            lda #NV_COLOR_LITE_BLUE                // change border color back to
-            sta $D020                              // visualize timing
-        }
-        nv_sprite_wait_last_scanline()         // wait for particular scanline.
-        .if (showTiming)
-        {
-            lda #NV_COLOR_GREEN                    // change border color to  
-            sta $D020                              // visualize timing
-        }
+    .if (showTiming)
+    {
+        lda #NV_COLOR_LITE_BLUE                // change border color back to
+        sta $D020                              // visualize timing
+    }
+    nv_sprite_wait_last_scanline()         // wait for particular scanline.
+    .if (showTiming)
+    {
+        lda #NV_COLOR_GREEN                    // change border color to  
+        sta $D020                              // visualize timing
+    }
 
-        jsr ship_1.SetLocationFromExtraData
-        jsr asteroid_1.SetLocationFromExtraData
-        jsr asteroid_2.SetLocationFromExtraData
-        jsr asteroid_3.SetLocationFromExtraData
-        jsr asteroid_4.SetLocationFromExtraData
-        jsr asteroid_5.SetLocationFromExtraData
+    //// call routine to update sprite x and y positions on screen
+    jsr ship_1.SetLocationFromExtraData
+    jsr ship_2.SetLocationFromExtraData
+    jsr asteroid_1.SetLocationFromExtraData
+    jsr asteroid_2.SetLocationFromExtraData
+    jsr asteroid_3.SetLocationFromExtraData
+    jsr asteroid_4.SetLocationFromExtraData
+    jsr asteroid_5.SetLocationFromExtraData
 
-        //// call routine to update sprite x and y positions on screen
-        jsr CheckShipCollision
-        lda ship_collision_sprite     // closest_sprite
-        bmi IgnoreCollision
-HandleCollision:
-        nv_sprite_raw_disable_from_mem(ship_collision_sprite)
+    //////////////////////////////////////////////////////////////////////
+    //// check for ship1 collisions
 
-        //nv_screen_plot_cursor(0, 15)
-        //nv_screen_print_hex_byte_at_addr(closest_sprite, true)
-        //nv_screen_wait_anykey()
+    jsr ship_1.CheckShipCollision
+    lda ship_1.collision_sprite     // closest_sprite
+    bmi IgnoreCollisionShip1
+HandleCollisionShip1:
+    nv_sprite_raw_disable_from_mem(ship_1.collision_sprite)
 
-IgnoreCollision:
-        jmp MainLoop
+IgnoreCollisionShip1:
+
+    //////////////////////////////////////////////////////////////////////
+    //// check for ship2 collisions
+    jsr ship_2.CheckShipCollision
+    lda ship_2.collision_sprite     // closest_sprite
+    bmi IgnoreCollisionShip2
+HandleCollisionShip2:
+    nv_sprite_raw_disable_from_mem(ship_2.collision_sprite)
+
+IgnoreCollisionShip2:
+    jmp MainLoop
+
 
 ProgramDone:
         // Done moving sprites, move cursor out of the way 
@@ -355,12 +368,6 @@ SetColor:
         nv_sprite_raw_set_color_from_memory(1, cycling_color)
 
         // change some speeds
-/*
-        dec ship_1.x_vel          // decrement ship speed
-        bne SkipShipMax         // if its not zero yet then skip setting to max
-        lda #MAX_SPEED          // if it is zero then set it back to the max speed
-        sta ship_1.x_vel          // save the new ship speed (max speed)
-*/
 SkipShipMax:                   
         inc asteroid_1.y_vel    // increment asteroid Y velocity 
         lda asteroid_1.y_vel    // load new speed just incremented
@@ -372,14 +379,6 @@ SkipShipMax:
 SkipAsteroidMin:
         rts
 
-//////////////////////////////////////////////////////////////////////////////
-// subroutine to check for collisions with the ship (sprite 0)
-CheckShipCollision:
-    nv_sprite_raw_check_collision(0)
-    lda nv_b8
-    sta ship_collision_sprite
-    //jsr DebugShipCollisionSprite
-    rts
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
@@ -683,6 +682,9 @@ SetWrapAllOn:
 sprite_extra:
         nv_sprite_extra_data(info)
 
+// will be $FF (no collision) or sprite number of sprite colliding with
+collision_sprite: .byte 0 
+
 // subroutine to set the sprites location based on its address in extra block 
 SetLocationFromExtraData:
         lda #>info.base_addr
@@ -716,6 +718,16 @@ SetBounceAllOn:
 SetWrapAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to check for collisions with the ship (sprite 0)
+CheckShipCollision:
+    nv_sprite_raw_check_collision(info.num)
+    lda nv_b8
+    sta ship_1.collision_sprite
+    //jsr DebugShipCollisionSprite
+    rts
+
+
 DecVelX:
     //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_1.x_vel, true, false)
     dec ship_1.x_vel        // decrement ship speed
@@ -736,6 +748,99 @@ DoneIncVelX:
 label_vel_x_str: .text @"vel x: \$00"
 
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// namespace with everything related to ship sprite
+.namespace ship_2
+{
+    .var info = nv_sprite_info_struct("ship_2", 7,  // sprite name, number
+                                        22, 200, 4, 1,  // init x, y, VelX, VelY 
+                                        sprite_ship, 
+                                        sprite_extra, 
+                                        1, 0, 1, 0, // bounce on top, left, bottom, right  
+                                        150, 0, 0, 0) // min/max top, left, bottom, right
+
+    .var sprite_num = info.num
+    .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
+    .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
+    .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
+    .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+    .label base_addr = info.base_addr
+
+
+// the extra data that goes with the sprite
+sprite_extra:
+        nv_sprite_extra_data(info)
+
+// will be $FF (no collision) or sprite number of sprite colliding with
+collision_sprite: .byte 0
+
+// subroutine to set the sprites location based on its address in extra block 
+SetLocationFromExtraData:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetLocationFromExtra
+        rts
+
+// subroutine to setup the sprite so that its ready to be enabled and displayed
+Setup:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        jsr NvSpriteSetupFromExtra
+        rts
+
+// subroutine to move the sprite in memory only (the extra data)
+// this will not update the sprite registers to actually move the sprite, but
+// to do that just call SetShipeLocFromMem
+MoveInExtraData:
+        //lda #>info.base_addr
+        //ldx #<info.base_addr
+        //jsr NvSpriteMoveInExtra
+        //rts
+        nv_sprite_move_any_direction_sr(info)
+
+Enable:
+        nv_sprite_raw_enable_sr(info.num)
+
+SetBounceAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
+
+SetWrapAllOn:
+        nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to check for collisions with the ship (sprite 0)
+CheckShipCollision:
+    nv_sprite_raw_check_collision(info.num)
+    lda nv_b8
+    sta ship_2.collision_sprite
+    //jsr DebugShipCollisionSprite
+    rts
+
+
+DecVelX:
+    //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_1.x_vel, true, false)
+    dec ship_1.x_vel        // decrement ship speed
+    bpl DoneDecVelX         // if its not zero yet then skip setting to max
+    inc ship_1.x_vel
+DoneDecVelX:
+    rts
+
+IncVelX:
+    //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_1.x_vel, true, false)
+    lda ship_1.x_vel        // decrement ship speed
+    cmp #MAX_SPEED         // if its not zero yet then skip setting to max
+    beq DoneIncVelX
+    inc ship_1.x_vel
+DoneIncVelX:
+    rts
+
+label_vel_x_str: .text @"vel x: \$00"
+
+}
+
+
+
 // our sprite routines will goto this address
 *=$3000 "Sprite Code"
 
