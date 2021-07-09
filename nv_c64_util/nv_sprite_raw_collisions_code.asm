@@ -14,12 +14,83 @@
 #import "nv_sprite_raw_macs.asm"
 #import "nv_debug_macs.asm"
 
+// Comment out to prevent debug messages on screen
+//#define DEBUG_COLLISIONS
+
+.macro save_two(one, two)
+{
+/*
+    lda nv_a16
+    pha 
+    lda nv_a16+1
+    pha
+*/
+    lda one
+    pha 
+    lda two
+    pha
+}
+
+.macro save_four(one, two, three, four)
+{
+    lda one
+    pha 
+
+    lda two
+    pha
+
+    lda three
+    pha 
+
+    lda four
+    pha
+}
+
+
+.macro restore_two(one, two)
+{
+    pla
+    sta two
+    pla
+    sta one
+/*
+    pla
+    sta nv_a16+1
+    pla
+    sta nv_a16
+*/
+}
+
+
+.macro restore_four(one, two, three, four)
+{
+
+    pla
+    sta four
+
+    pla
+    sta three
+
+    pla
+    sta two
+    
+    pla
+    sta one
+}
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to check if there is currently a collision between 
 // one sprite and any other sprites.
 // macro parameters:
-//  sprite_num_to_check: this is the sprite number (0-7) for the sprite
-//  we are checking.  
+//   sprite_num_to_check: this is the sprite number (0-7) for the sprite
+//   we are checking
+// subroutine params:
+//   nv_a8: should be set with current HW sprite collisions register 
+//           by calling nv_sprite_raw_get_sprite_collisions_in_a or
+//           similar methods.  it will be modified within though.
 // return: (nv_b8) will contain $FF if no collision with sprite_num sprite
 //         or it will have the sprite number for the colliding sprite
 .macro nv_sprite_raw_check_collision(sprite_num)
@@ -46,26 +117,44 @@
     nv_store8_immediate(closest_sprite, $FF)
 
     // read the raw collision data from the HW register to accum
-    nv_sprite_raw_get_sprite_collisions_in_a()
-    sta collision_bit
+    
+    //nv_sprite_raw_get_sprite_collisions_in_a()
+    //sta collision_bit
+    lda collision_bit
+    nv_debug_print_labeled_byte_mem_coll(10, 0, collision_bit_label1, 17, 
+                                         collision_bit, true, false)    
+
     and #sprite_mask
     bne HaveCollisionWithSpriteNum
     jmp ClosestSpriteSet    
 
 HaveCollisionWithSpriteNum: 
+    //nv_debug_print_byte_mem(8, 0, collision_bit, true, false)
+
+
     // turn off the bit for sprite_num so we don't check for collision 
     // with ourself.
     lda #sprite_mask_negated
     and collision_bit
     sta collision_bit
 
+    nv_debug_print_labeled_byte_mem_coll(11, 0, collision_bit_label2, 17, 
+                                         collision_bit, true, false)    
+
 CheckSprite0:
     ror collision_bit        // rotate bit for sprite 0 (ship) bit to carry
-    bcc CheckSprite1 
+    bcs WasSprite0
+    jmp CheckSprite1 
 WasSprite0:
+    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #0
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
+    nv_debug_print_labeled_word_mem_coll(12, 0, spt_0_dist_label, 14, 
+                                    temp_rel_dist, true, false)    
+
+    
     nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite1)
 
     // save the new closest rel distance
@@ -78,11 +167,17 @@ WasSprite0:
 CheckSprite1:
     // carry is set here
     ror collision_bit        // rotate bit for sprite 1 bit to carry
-    bcc CheckSprite2
+    bcs WasSprite1
+    jmp CheckSprite2
 WasSprite1:
+    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #1
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
+    nv_debug_print_labeled_word_mem_coll(13, 0, spt_1_dist_label, 14, 
+                                    temp_rel_dist, true, false)    
+
     nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite2)
 
     // save the new closest rel distance
@@ -93,12 +188,18 @@ WasSprite1:
 
 CheckSprite2:
     ror collision_bit        // rotate bit for sprite 2 bit to carry
-    bcc CheckSprite3
+    bcs WasSprite2
+    jmp CheckSprite3
 
 WasSprite2:
+    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #2
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
+    nv_debug_print_labeled_word_mem_coll(14, 0, spt_2_dist_label, 14, 
+                                    temp_rel_dist, true, false)    
+
     nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite3)
 
     // save the new closest rel distance
@@ -110,12 +211,18 @@ WasSprite2:
 
 CheckSprite3:
     ror collision_bit        // rotate bit for sprite 3 bit to carry
-    bcc CheckSprite4
+    bcs WasSprite3
+    jmp CheckSprite4
 
 WasSprite3:
+    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #3
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
+    nv_debug_print_labeled_word_mem_coll(15, 0, spt_3_dist_label, 14, 
+                                    temp_rel_dist, true, false)    
+
     nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite4)
 
     // save the new closest rel distance
@@ -126,12 +233,18 @@ WasSprite3:
 
 CheckSprite4:
     ror collision_bit        // rotate bit for sprite 4 bit to carry
-    bcc CheckSprite5
+    bcs WasSprite4
+    jmp CheckSprite5
 
 WasSprite4:
+    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #4
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
+    nv_debug_print_labeled_word_mem_coll(16, 0, spt_4_dist_label, 14, 
+                                    temp_rel_dist, true, false)    
+
     nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite5)
     
     // save the new closest rel distance
@@ -143,12 +256,19 @@ WasSprite4:
 
 CheckSprite5:
     ror collision_bit        // rotate bit for sprite 5 bit to carry
-    bcc CheckSprite6
+    bcs WasSprite5
+    jmp CheckSprite6
 
 WasSprite5:
+    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #5
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    nv_debug_print_labeled_word_mem_coll(17, 21, nv_g16_label, 8, nv_g16, true, false)
+    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
+    nv_debug_print_labeled_word_mem_coll(17, 0, spt_5_dist_label, 14, 
+                                    temp_rel_dist, true, false)    
+
     nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite6)
 
      // save the new closest rel distance
@@ -160,12 +280,18 @@ WasSprite5:
 
 CheckSprite6:
     ror collision_bit        // rotate bit for sprite 6 bit to carry
-    bcc CheckSprite7
+    bcs WasSprite6
+    jmp CheckSprite7
 
 WasSprite6:
+    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #6
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
+    nv_debug_print_labeled_word_mem_coll(18, 0, spt_6_dist_label, 14, 
+                                    temp_rel_dist, true, false)    
+
     nv_bge16(temp_rel_dist, closest_rel_dist, CheckSprite7)
     
     // save the new closest rel distance
@@ -177,12 +303,17 @@ WasSprite6:
 
 CheckSprite7:
     ror collision_bit        // rotate bit for sprite 7 bit to carry
-    bcc DoneChecking
+    bcs WasSprite7
+    jmp DoneChecking
 
 WasSprite7:
+    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #7
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
+    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
+    nv_debug_print_labeled_word_mem_coll(19, 0, spt_7_dist_label, 14, 
+                                    temp_rel_dist, true, false)    
     nv_bge16(temp_rel_dist, closest_rel_dist, DoneChecking)
     
     // save the new closest rel distance
@@ -198,7 +329,27 @@ ClosestSpriteSet:
 
 }
 
+// 
+.macro nv_debug_print_labeled_byte_mem_coll(row, col, label_addr, 
+                                            label_len, value_addr, 
+                                            include_dollar, wait)
+{
+    #if DEBUG_COLLISIONS
+        nv_debug_print_labeled_byte_mem(row, col, label_addr, 
+                                        label_len, value_addr, 
+                                        include_dollar, wait)
+    #endif
+}
 
+.macro nv_debug_print_labeled_word_mem_coll(row, col, label_addr, 
+                                            label_len, value_addr, 
+                                            include_dollar, wait)
+{
+    #if DEBUG_COLLISIONS
+        nv_debug_print_labeled_word_mem(row, col, label_addr, label_len, 
+                                        value_addr, include_dollar, wait)
+    #endif
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to get relative distance between two sprites.
@@ -214,9 +365,9 @@ NvSpriteRawGetRelDistReg:
 /*
 DebugRelDist:
     // closest
-    nv_debug_print_labeled_word_mem(6, 0, closest_label_str, 12, nv_a16, true, false)
+    nv_debug_print_labeled_word_mem_coll(6, 0, closest_label_str, 12, nv_a16, true, false)
     // temp
-    nv_debug_print_labeled_word_mem(7, 0, temp_label_str, 12, nv_g16, true, false)
+    nv_debug_print_labeled_word_mem_coll(7, 0, temp_label_str, 12, nv_g16, true, false)
 
     //nv_screen_wait_anykey()
     rts

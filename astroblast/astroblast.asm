@@ -41,10 +41,13 @@ change_up_counter: .word 0
 second_partial_counter: .word 0
 key_cool_counter: .byte 0
 quit_flag: .byte 0                  // set to non zero to quit
-
+sprite_collision_reg_value: .byte 0 // updated each frame with sprite coll
 
 cycling_color: .byte NV_COLOR_FIRST
 change_up_flag: .byte 0
+
+ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
+nv_b8_label: .text @"nv b8 coll sprite: \$00"
 
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
@@ -142,6 +145,9 @@ change_up_flag: .byte 0
 
     // set the global sprite multi colors        
     nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
+
+    lda #$00
+    sta quit_flag
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
@@ -269,26 +275,45 @@ NoChangeUp:
     jsr asteroid_4.SetLocationFromExtraData
     jsr asteroid_5.SetLocationFromExtraData
 
+    nv_sprite_raw_get_sprite_collisions_in_a()
+    sta sprite_collision_reg_value
+
     //////////////////////////////////////////////////////////////////////
     //// check for ship1 collisions
-
     jsr ship_1.CheckShipCollision
-    lda ship_1.collision_sprite     // closest_sprite
-    bmi IgnoreCollisionShip1
-HandleCollisionShip1:
+    lda ship_1.collision_sprite     // closest_sprite, will be $FF 
+    bmi NoCollisionShip1        // if no collisions so check minus
+HandleCollisionShip1:         
     nv_sprite_raw_disable_from_mem(ship_1.collision_sprite)
 
-IgnoreCollisionShip1:
+NoCollisionShip1:
 
     //////////////////////////////////////////////////////////////////////
     //// check for ship2 collisions
     jsr ship_2.CheckShipCollision
-    lda ship_2.collision_sprite     // closest_sprite
-    bmi IgnoreCollisionShip2
+    lda ship_2.collision_sprite     // closest_sprite, will be $FF
+    bmi NoCollisionShip2        // if no collisions so check minus
 HandleCollisionShip2:
     nv_sprite_raw_disable_from_mem(ship_2.collision_sprite)
+NoCollisionShip2:
 
-IgnoreCollisionShip2:
+
+
+
+    //nv_key_done()
+    //nv_screen_wait_anykey()
+    //nv_key_init()
+/*
+    nv_key_get_last_pressed_a(true)
+KeepScanning:
+    nv_key_scan()
+    nv_key_get_last_pressed_a(true)
+    nv_debug_print_byte_a(20, 0, true, false)
+    cmp #NV_KEY_NO_KEY
+    bne DoneScanning
+    jmp KeepScanning
+DoneScanning:
+*/
     jmp MainLoop
 
 
@@ -721,12 +746,15 @@ SetWrapAllOn:
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to check for collisions with the ship (sprite 0)
 CheckShipCollision:
+    lda sprite_collision_reg_value
+    //nv_debug_print_labeled_byte_mem(0, 0, temp_label, 10, sprite_collision_reg_value, true, false)
+    sta nv_a8
     nv_sprite_raw_check_collision(info.num)
     lda nv_b8
     sta ship_1.collision_sprite
     //jsr DebugShipCollisionSprite
     rts
-
+temp_label: .text @"coll reg: \$00"
 
 DecVelX:
     //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_1.x_vel, true, false)
@@ -811,10 +839,12 @@ SetWrapAllOn:
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to check for collisions with the ship (sprite 0)
 CheckShipCollision:
+    lda sprite_collision_reg_value
+    //nv_debug_print_labeled_byte_mem(0, 0, temp_label, 10, sprite_collision_reg_value, true, false)
+    sta nv_a8
     nv_sprite_raw_check_collision(info.num)
     lda nv_b8
     sta ship_2.collision_sprite
-    //jsr DebugShipCollisionSprite
     rts
 
 
