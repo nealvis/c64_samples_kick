@@ -210,7 +210,7 @@ Done:
 //   include_dollar: pass true for preceding '$'
 //   wait: pass true to wait for a key after printing
 .macro nv_debug_print_labeled_byte_mem(row, col, label_addr, label_len, value_addr, 
-                                   include_dollar, wait)
+                                       include_dollar, wait)
 {
     nv_debug_save_state()
 
