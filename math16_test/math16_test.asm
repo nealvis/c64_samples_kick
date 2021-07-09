@@ -33,6 +33,7 @@
 // program variables
 carry_str: .text @"(C) \$00"
 plus_str: .text @" + \$00"
+minus_str: .text @" - \$00"
 equal_str: .text@" = \$00"
 lsr_str: .text@" >> \$00"
 
@@ -43,6 +44,7 @@ title_adc16_8u_str: .text @"TEST ADC16 8U \$00"
 title_adc16_8s_str: .text @"TEST ADC16 8S \$00"
 title_adc16_immediate_str: .text @"TEST ADC16 IMMED\$00"
 title_lsr16_str: .text @"TEST LSR16 \$00"
+title_sbc16_str: .text @"TEST SBC16 \$00"
 
 hit_anykey_str: .text @"HIT ANY KEY ...\$00"
 
@@ -73,6 +75,7 @@ op_FFFE: .word $FFFE
 op_0080: .word $0080 // 128
 op_0081: .word $0081 // 129
 op_8000: .word $8000 // high bit only set
+op_8001: .word $8001 // high bit only set
 op_FFFF: .word $FFFF // all bits
 
 op8_7F: .byte $7F
@@ -92,6 +95,7 @@ op8_81: .byte $81  // -127
     nv_screen_plot_cursor(row++, 33)
     nv_screen_print_str(title_str)
 
+    test_sbc16(0)
     test_adc16(0)
     test_adc16_immediate(0)
     test_adc16_8u(0)
@@ -99,6 +103,42 @@ op8_81: .byte $81  // -127
     test_lsr16(0)
 
     rts
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_sbc16(init_row)
+{
+    .var row = init_row
+    
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(title_adc16_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_0081, op_0080, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(opTwo, opOne, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_8000, op_8000, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_8000, op_8001, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_8000, op_7FFF, result)
+
+    wait_and_clear_at_row(row)
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -511,9 +551,6 @@ op8_81: .byte $81  // -127
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_lsr16(op_FFFF, 3)
-
-
-
 }
 
 
@@ -539,6 +576,24 @@ op8_81: .byte $81  // -127
 //////////////////////////////////////////////////////////////////////////////
 //                          Print macros 
 //////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the specified addition at the current curor location
+// nv_adc16 us used to do the addition.  
+// it will look like this with no carry:
+//    $3333 - $2222 = $1111
+.macro print_sbc16(op1, op2, result)
+{
+    nv_screen_print_hex_word_mem(op1, true)
+    nv_screen_print_str(minus_str)
+    nv_screen_print_hex_word_mem(op2, true)
+    nv_screen_print_str(equal_str)
+
+    nv_sbc16(op1, op2, result)
+    bcc NoCarry
+    nv_screen_print_str(carry_str)
+NoCarry:
+    nv_screen_print_hex_word_mem(result, true)
+}
 
 
 //////////////////////////////////////////////////////////////////////////////
