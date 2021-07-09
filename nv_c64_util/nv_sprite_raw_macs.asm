@@ -20,6 +20,7 @@
 
 #import "nv_math8_macs.asm"
 #import "nv_math16_macs.asm"
+#import "nv_branch16_macs.asm"
 
 
 // HW reg/address that 
@@ -419,7 +420,7 @@ StayClear:
     tax  
 
     lda NV_SPRITE_0_X_REG_ADDR,x    // load in right sprite's x loc low 8 bits
-    sta sprite_x_addr           // store in the memory addr
+    sta sprite_x_addr               // store in the memory addr
 
     lda NV_SPRITE_0_Y_REG_ADDR,x    // load in right sprites y loc
     sta sprite_y_addr
@@ -429,7 +430,7 @@ StayClear:
 
     tya                                     // sprite number in Accum
     nv_mask_from_bit_num_a(false)           // bitmask for sprite num in Accum
-    bit NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR       // check sprite's high bit
+    bit NV_SPRITE_ALL_X_HIGH_BIT_REG_ADDR   // check sprite's high bit
     beq StayClear                           // if hi bit 0 then done
     inc sprite_x_addr+1                     // if hi bit 1 then set it in mem
 StayClear:
