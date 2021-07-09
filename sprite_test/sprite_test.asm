@@ -41,6 +41,8 @@ change_up_flag: .byte 0
 // will be $FF (no collision) or sprite number of sprite colliding with
 ship_collision_sprite: .byte 0      
 
+sprite_collision_reg_value: .byte 0 // updated each frame with sprite coll
+
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -249,6 +251,10 @@ NoChangeUp:
         jsr asteroid_4.SetLocationFromExtraData
         jsr asteroid_5.SetLocationFromExtraData
 
+        nv_sprite_raw_get_sprite_collisions_in_a()
+        sta sprite_collision_reg_value
+
+
         //// call routine to update sprite x and y positions on screen
         jsr CheckShipCollision
         lda ship_collision_sprite     // closest_sprite
@@ -312,11 +318,14 @@ SkipAsteroidMin:
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to check for collisions with the ship (sprite 0)
 CheckShipCollision:
+    lda sprite_collision_reg_value
+    sta nv_a8
     nv_sprite_raw_check_collision(0)
     lda nv_b8
     sta ship_collision_sprite
-    //jsr DebugShipCollisionSprite
     rts
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
