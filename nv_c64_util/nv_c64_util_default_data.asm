@@ -21,5 +21,5 @@
 // it can go anywhere but this is a good out of the way place
 // at the end of BASIC memory
 
-*=$9F00 "nv_c64_util_data"   
+*=$9C00 "nv_c64_util_data"   
 #import "../nv_c64_util/nv_c64_util_data.asm"
