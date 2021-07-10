@@ -17,69 +17,6 @@
 // Comment out to prevent debug messages on screen
 //#define DEBUG_COLLISIONS
 
-.macro save_two(one, two)
-{
-/*
-    lda nv_a16
-    pha 
-    lda nv_a16+1
-    pha
-*/
-    lda one
-    pha 
-    lda two
-    pha
-}
-
-.macro save_four(one, two, three, four)
-{
-    lda one
-    pha 
-
-    lda two
-    pha
-
-    lda three
-    pha 
-
-    lda four
-    pha
-}
-
-
-.macro restore_two(one, two)
-{
-    pla
-    sta two
-    pla
-    sta one
-/*
-    pla
-    sta nv_a16+1
-    pla
-    sta nv_a16
-*/
-}
-
-
-.macro restore_four(one, two, three, four)
-{
-
-    pla
-    sta four
-
-    pla
-    sta three
-
-    pla
-    sta two
-    
-    pla
-    sta one
-}
-
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to check if there is currently a collision between 
@@ -95,12 +32,22 @@
 //         or it will have the sprite number for the colliding sprite
 .macro nv_sprite_raw_check_collision(sprite_num)
 {
-    .label collision_bit = nv_a8
-    .label closest_sprite = nv_b8
-    .label closest_rel_dist = nv_a16
-    .label temp_rel_dist = nv_g16    // this is the distance returned from sr
-    .label temp_x_dist = nv_c16
-    .label temp_y_dist = nv_d16 
+    // this macro uses the following data variables from 
+    // nv_c64_util_data.asm
+    // collision_bit:
+    // closest_sprite:
+    // closest_rel_dist:
+
+    // The subroutine NvSpriteRawGetRelDistReg will set nv_g16 with the
+    // relative distance between two sprites.  we'll call it 
+    // temp_rel_dist in this routine to try and stay sane.
+    .label temp_rel_dist = nv_g16    
+
+
+    // current HW sprite collisions register value must have
+    // been placed in nv_a8 prior to calling
+    lda nv_a8
+    sta collision_bit
 
     .if (sprite_num > 7)
     {
@@ -109,17 +56,13 @@
     .var sprite_mask = $01 << sprite_num
     .var sprite_mask_negated = sprite_mask ^ $FF
 
-    // set relative distance to largest positive number
+    // initialize closest relative distance to largest positive number
     nv_store16_immediate(closest_rel_dist, $8FFF)
 
-    // set closest sprite to $FF which is an invalid sprite
+    // initialize closest sprite to $FF which is an invalid sprite
     // if its still this at the end, then no collision with sprite_num
     nv_store8_immediate(closest_sprite, $FF)
 
-    // read the raw collision data from the HW register to accum
-    
-    //nv_sprite_raw_get_sprite_collisions_in_a()
-    //sta collision_bit
     lda collision_bit
     nv_debug_print_labeled_byte_mem_coll(10, 0, collision_bit_label1, 17, 
                                          collision_bit, true, false)    
@@ -146,11 +89,9 @@ CheckSprite0:
     bcs WasSprite0
     jmp CheckSprite1 
 WasSprite0:
-    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #0
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
-    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     nv_debug_print_labeled_word_mem_coll(12, 0, spt_0_dist_label, 14, 
                                     temp_rel_dist, true, false)    
 
@@ -170,11 +111,9 @@ CheckSprite1:
     bcs WasSprite1
     jmp CheckSprite2
 WasSprite1:
-    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #1
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
-    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     nv_debug_print_labeled_word_mem_coll(13, 0, spt_1_dist_label, 14, 
                                     temp_rel_dist, true, false)    
 
@@ -192,11 +131,9 @@ CheckSprite2:
     jmp CheckSprite3
 
 WasSprite2:
-    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #2
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
-    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     nv_debug_print_labeled_word_mem_coll(14, 0, spt_2_dist_label, 14, 
                                     temp_rel_dist, true, false)    
 
@@ -215,11 +152,9 @@ CheckSprite3:
     jmp CheckSprite4
 
 WasSprite3:
-    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #3
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
-    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     nv_debug_print_labeled_word_mem_coll(15, 0, spt_3_dist_label, 14, 
                                     temp_rel_dist, true, false)    
 
@@ -237,11 +172,9 @@ CheckSprite4:
     jmp CheckSprite5
 
 WasSprite4:
-    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #4
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
-    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     nv_debug_print_labeled_word_mem_coll(16, 0, spt_4_dist_label, 14, 
                                     temp_rel_dist, true, false)    
 
@@ -260,12 +193,10 @@ CheckSprite5:
     jmp CheckSprite6
 
 WasSprite5:
-    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #5
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
     nv_debug_print_labeled_word_mem_coll(17, 21, nv_g16_label, 8, nv_g16, true, false)
-    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     nv_debug_print_labeled_word_mem_coll(17, 0, spt_5_dist_label, 14, 
                                     temp_rel_dist, true, false)    
 
@@ -284,11 +215,9 @@ CheckSprite6:
     jmp CheckSprite7
 
 WasSprite6:
-    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #6
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
-    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     nv_debug_print_labeled_word_mem_coll(18, 0, spt_6_dist_label, 14, 
                                     temp_rel_dist, true, false)    
 
@@ -307,11 +236,9 @@ CheckSprite7:
     jmp DoneChecking
 
 WasSprite7:
-    save_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     ldx #sprite_num
     ldy #7
     jsr NvSpriteRawGetRelDistReg      // load temp_rel_dist with rel distance
-    restore_four(closest_sprite, collision_bit, nv_a16, nv_a16+1)
     nv_debug_print_labeled_word_mem_coll(19, 0, spt_7_dist_label, 14, 
                                     temp_rel_dist, true, false)    
     nv_bge16(temp_rel_dist, closest_rel_dist, DoneChecking)
@@ -323,10 +250,10 @@ WasSprite7:
     nv_store8_immediate(closest_sprite, 7)
 
 DoneChecking:
-    //ror collision_bit        // rotate one more time to get back to beginning 
 
 ClosestSpriteSet: 
-
+    lda closest_sprite
+    sta nv_b8
 }
 
 // 

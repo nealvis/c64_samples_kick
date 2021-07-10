@@ -53,6 +53,20 @@ nv_f8: .byte 0
 nv_g8: .byte 0
 
 //////////////////////////////////////////////////////////////////////////////
+// data for sprite collision finding in nv_sprite_raw_check_collision
+    
+// current HW sprite collisions register value
+collision_bit: .byte 0
+
+// return this which is the closest colliding sprite number or 
+// it will be $FF if no colliding sprite
+closest_sprite: .byte $FF
+
+// as we check all colliding sprites, we'll keep this as the
+// closest so far and update it with as closer ones are found
+closest_rel_dist: .word $7FFF
+
+//////////////////////////////////////////////////////////////////////////////
 // data for nv_keyboard_*.asm
 nv_key_last_pressed: .byte $00
 
