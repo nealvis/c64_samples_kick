@@ -88,6 +88,41 @@
     nv_debug_restore_state()
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print hex val of byte in memory at a specified position
+// on the screen.  Pokes directly to screen
+// macro params:
+//   row: row position on screen to print at
+//   col: col position on screen to print at
+//   addr: address of the LSB of word to print
+//   include_dollar: pass true for preceding '$'
+//   wait: pass true to wait for a key after printing
+.macro nv_debug_print_word_mem(row, col, addr, include_dollar, wait)
+{
+    nv_debug_save_state()
+
+    .var col2 = col
+    .if (include_dollar)
+    {
+        .eval col2 = col2 + 3
+    }
+    else
+    {
+        .eval col2 = col2 + 2
+    }
+
+    nv_screen_poke_hex_byte_mem(row, col, addr+1, include_dollar)
+    nv_screen_poke_hex_byte_mem(row, col2, addr, false)
+
+    .if (wait != false)
+    {
+        nv_screen_wait_anykey()
+    }
+
+    nv_debug_restore_state()
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print hex value of byte in accum at a specified position

@@ -41,6 +41,7 @@ title_debug_print_str_str: .text @"TEST DEBUG PRINT STR\$00"
 title_debug_print_byte_a_str: .text @"TEST DEBUG PRINT BYTE A\$00"
 title_debug_print_byte_immediate_str: .text @"TEST DEBUG PRINT BYTE IMMED\$00"
 title_debug_print_word_immediate_str: .text @"TEST DEBUG PRINT WORD IMMED\$00"
+title_debug_print_word_str: .text @"TEST DEBUG PRINT WORD\$00"
 title_debug_print_labeled_byte_str: .text @"TEST DEBUG PRINT LABELED BYTE\$00"
 
 
@@ -79,6 +80,17 @@ op_0081: .word $0081 // 129
 op_8000: .word $8000 // high bit only set
 op_FFFF: .word $FFFF // all bits
 
+op_0000: .word $0000 // 
+op_8080: .word $8080 // 
+op_FF80: .word $FF80 // 
+op_01FF: .word $01FF // 
+op_0101: .word $0101 // 
+op_0202: .word $0202 // 
+op_F0F0: .word $F0F0 // 
+op_0F0F: .word $0F0F // 
+op_FEFE: .word $FEFE // 
+op_7F7F: .word $7F7F // 
+
 op8_7F_label_str: .text  @"op8 7f\$00"
 op8_FF_label_str: .text  @"op8 ff\$00"
 op8_0F_label_str: .text  @"op8 0f\$00"
@@ -116,11 +128,13 @@ op_07: .byte $07
 *=$1000 "Main Start"
 
 .var row = 0
+.var wait_each_line = false
 
     nv_screen_clear()
     nv_screen_plot_cursor(row++, 33)
     nv_screen_print_str(title_str)
 
+    test_debug_print_word(0)
     test_debug_print_str(0)
     test_debug_print_byte(0)
     test_debug_print_byte_a(0)
@@ -330,6 +344,57 @@ op_07: .byte $07
     wait_and_clear_at_row(row)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro test_debug_print_word(init_row)
+{
+    .var row = init_row
+    
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(title_debug_print_word_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    /////////////////////////////
+    print_debug_print_word(op_0000, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_0101, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_0202, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_FFFF, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_F0F0, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_0F0F, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_FEFE, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_7F7F, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_8080, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_FF80, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_01FF, row++)
+
+    /////////////////////////////
+    print_debug_print_word(op_8000, row++)
+
+    wait_and_clear_at_row(row)
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -422,7 +487,7 @@ op_07: .byte $07
 .macro print_debug_print_str(str, row)
 {
     nv_screen_poke_str(row, 0, str)
-    nv_debug_print_str(row, 20, str, true)
+    nv_debug_print_str(row, 20, str, wait_each_line)
 }
 
 
@@ -435,7 +500,7 @@ op_07: .byte $07
     nv_screen_print_hex_byte_mem(op1, true)
     nv_screen_print_str(equal_str)
 
-    nv_debug_print_byte_mem(row, 6, op1, true, true)
+    nv_debug_print_byte_mem(row, 6, op1, true, wait_each_line)
 }
 
 
@@ -448,7 +513,7 @@ op_07: .byte $07
     nv_screen_plot_cursor(row, 0)
     nv_screen_print_hex_byte_mem(op1, true)
     lda op1
-    nv_debug_print_byte_a(row, 6, true, true)
+    nv_debug_print_byte_a(row, 6, true, wait_each_line)
 }
 
 
@@ -460,7 +525,7 @@ op_07: .byte $07
 {
     nv_screen_plot_cursor(row, 0)
     nv_screen_print_hex_word_immed(op1, true)
-    nv_debug_print_byte_immed(row, 6, op1, true, true)
+    nv_debug_print_byte_immed(row, 6, op1, true, wait_each_line)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -471,8 +536,22 @@ op_07: .byte $07
 {
     nv_screen_plot_cursor(row, 0)
     nv_screen_print_hex_word_immed(op1, true)
-    nv_debug_print_word_immed(row, 8, op1, true, true)
+    nv_debug_print_word_immed(row, 8, op1, true, wait_each_line)
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the word value in memory and then use the debug
+// function to print the same value 
+// macro params:
+//   op1: the address of the LSB of the 16 bit word to print
+//   row the row to print everything on
+.macro print_debug_print_word(op1, row)
+{
+    nv_screen_plot_cursor(row, 0)
+    nv_screen_print_hex_word_mem(op1, true)
+    nv_debug_print_word_mem(row, 8, op1, true, wait_each_line)
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -481,5 +560,5 @@ op_07: .byte $07
 // 
 .macro print_debug_print_labeled_byte(label_addr, value_addr, row)
 {
-    nv_debug_print_labeled_byte_mem(row, 0, label_addr, 10, value_addr, true, true)
+    nv_debug_print_labeled_byte_mem(row, 0, label_addr, 10, value_addr, true, wait_each_line)
 }
