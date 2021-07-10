@@ -32,6 +32,8 @@
 
 // program variables
 carry_str: .text @"(C) \$00"
+carry_and_overflow_str:  .text @"(CV) \$00"
+overflow_str:  .text @"(V) \$00"
 plus_str: .text @" + \$00"
 minus_str: .text @" - \$00"
 equal_str: .text@" = \$00"
@@ -77,6 +79,16 @@ op_0081: .word $0081 // 129
 op_8000: .word $8000 // high bit only set
 op_8001: .word $8001 // high bit only set
 op_FFFF: .word $FFFF // all bits
+op_0000: .word $0000 // all bits
+op_0001: .word $0001 // all bits
+op_0002: .word $0002 // all bits
+op_00FF: .word $00FF 
+op_0100: .word $0100
+op_0200: .word $0200
+op_0300: .word $0300
+op_3333: .word $3333
+op_2222: .word $2222
+op_FFFD: .word $FFFD // -3
 
 op8_7F: .byte $7F
 op8_FF: .byte $FF
@@ -118,6 +130,14 @@ op8_81: .byte $81  // -127
 
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_0000, op_0001, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_0001, op_0000, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
     print_sbc16(op_0081, op_0080, result)
 
     /////////////////////////////
@@ -135,6 +155,60 @@ op8_81: .byte $81  // -127
     /////////////////////////////
     nv_screen_plot_cursor(row++, 0)
     print_sbc16(op_8000, op_7FFF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_8000, op_0001, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_0001, op_7FFF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_7FFF, op_7FFF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_7FFF, op_0001, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_7FFF, op_0002, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_FFFF, op_FFFF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_0100, op_00FF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_0002, op_FFFD, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_0002, op_8000, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_3333, op_2222, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_0000, op_7FFF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_FFFE, op_7FFF, result)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    print_sbc16(op_7FFF, op_8000, result)
+
+
 
     wait_and_clear_at_row(row)
 }
@@ -578,9 +652,17 @@ op8_81: .byte $81  // -127
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the specified addition at the current curor location
-// nv_adc16 us used to do the addition.  
-// it will look like this with no carry:
-//    $3333 - $2222 = $1111
+// nv_adc16 us used to do the addition.
+// C, V or CV will show up to indicate the carry and overflow  
+// Will look like this with no borrow needed (carry still set) and no overflow
+//    $3333 - $2222 = (C) $1111
+// Will look like this when borrow was required (Carry cleared)
+//    $0001 - $0002 = $FFFF
+// Will look like this when result couldn't result of signed 
+// subtraction resulted in number with wrong sign but no borrow required
+//    $8000 - $0001 = (CV)$7FFF
+// with borrow needed it will look like this
+//    $7FFF - $8000 = (V) $FFFF
 .macro print_sbc16(op1, op2, result)
 {
     nv_screen_print_hex_word_mem(op1, true)
@@ -590,8 +672,23 @@ op8_81: .byte $81  // -127
 
     nv_sbc16(op1, op2, result)
     bcc NoCarry
+Carry:
+    bvs CarryAndOverflow 
+CarryNoOverflow:
     nv_screen_print_str(carry_str)
-NoCarry:
+    jmp PrintResult
+CarryAndOverflow:
+    nv_screen_print_str(carry_and_overflow_str)
+    jmp PrintResult
+NoCarry: 
+    bvc NoCarryNoOverflow
+NoCarryButOverflow:
+    nv_screen_print_str(overflow_str)
+    jmp PrintResult
+NoCarryNoOverflow:
+    // print nothing here
+
+PrintResult:
     nv_screen_print_hex_word_mem(result, true)
 }
 
