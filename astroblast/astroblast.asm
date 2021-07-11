@@ -33,6 +33,7 @@
 .const KEY_SHIP1_SLOW_X = NV_KEY_A
 .const KEY_SHIP1_FAST_X = NV_KEY_D
 .const KEY_QUIT = NV_KEY_Q
+.const KEY_PAUSE = NV_KEY_P
 
 // some loop indices
 frame_counter: .word 0
@@ -297,23 +298,6 @@ HandleCollisionShip2:
     nv_sprite_raw_disable_from_mem(ship_2.collision_sprite)
 NoCollisionShip2:
 
-
-
-
-    //nv_key_done()
-    //nv_screen_wait_anykey()
-    //nv_key_init()
-/*
-    nv_key_get_last_pressed_a(true)
-KeepScanning:
-    nv_key_scan()
-    nv_key_get_last_pressed_a(true)
-    nv_debug_print_byte_a(20, 0, true, false)
-    cmp #NV_KEY_NO_KEY
-    bne DoneScanning
-    jmp KeepScanning
-DoneScanning:
-*/
     jmp MainLoop
 
 
@@ -328,6 +312,13 @@ ProgramDone:
 
         nv_screen_plot_cursor(5, 24)
         rts   // program done, return
+
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to Pause
+DoPause:
+    nv_key_wait_any_key()
+    rts
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to do all the keyboard stuff
@@ -358,9 +349,15 @@ WasShip1SlowX:
 
 TryShip1FastX:
     cmp #KEY_SHIP1_FAST_X      // check ship1 speed up x key
-    bne TryQuit                // not speed up x key, skip to bottom
+    bne TryPause               // not speed up x key, skip to bottom
 WasShip1FastX:
     jsr ship_1.IncVelX          // inc the ship X velocity
+
+TryPause:
+    cmp #KEY_PAUSE             // check the pause key
+    bne TryQuit                // not speed up x key, skip to bottom
+WasPause:
+    jsr DoPause                // jsr to the pause subroutine
 
 TryQuit:
     cmp #KEY_QUIT               // check quit key
