@@ -129,25 +129,16 @@ nv_key_col7_table:
 // End keyboard data
 //////////////////////////////////////////////////////////////////////////////
 
-
+//////////////////////////////////////////////////////////////////////////////
+// nv_debug data
 
 // used to save accum in nv_debug macros
 nv_debug_save_a: .byte $BE // give an arbitrary value
 
-// Debugging labels
-collision_bit_label1: .text  @"nv a8 inside 1: \$00"
-collision_bit_label2: .text  @"nv a8 inside 2: \$00"
-spt_0_dist_label: .text @"sprite0 dist: \$00"
-spt_1_dist_label: .text @"sprite1 dist: \$00"
-spt_2_dist_label: .text @"sprite2 dist: \$00"
-spt_3_dist_label: .text @"sprite3 dist: \$00"
-spt_4_dist_label: .text @"sprite4 dist: \$00"
-spt_5_dist_label: .text @"sprite5 dist: \$00"
-spt_6_dist_label: .text @"sprite6 dist: \$00"
-spt_7_dist_label: .text @"sprite7 dist: \$00"
+// end nv_debug data
+//////////////////////////////////////////////////////////////////////////////
 
-nv_g16_label: .text @"nv g16: \$00"
-// end debugging labels
+
 
 //////////////////////////////////////////////////////////////////////////////
 //                    all data must be above this

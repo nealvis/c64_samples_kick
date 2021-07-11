@@ -256,7 +256,11 @@ ClosestSpriteSet:
     sta nv_b8
 }
 
-// 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to debug collisions by printing a label followed by a byte
+// value at specified row, and col on screen.  Same params as nv_debug_xxx 
+// macro with similar name
+// only outputs when DEBUG_COLLISIONS is defined 
 .macro nv_debug_print_labeled_byte_mem_coll(row, col, label_addr, 
                                             label_len, value_addr, 
                                             include_dollar, wait)
@@ -268,6 +272,11 @@ ClosestSpriteSet:
     #endif
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to debug collisions by printing a label followed by a word
+// value at specified row, and col on screen.  Same params as nv_debug_xxx 
+// macro with similar name
+// only outputs when DEBUG_COLLISIONS is defined 
 .macro nv_debug_print_labeled_word_mem_coll(row, col, label_addr, 
                                             label_len, value_addr, 
                                             include_dollar, wait)
@@ -301,3 +310,23 @@ DebugRelDist:
 closest_label_str: .text  @"closest\$00"
 temp_label_str:  .text  @"temp\$00"
 */
+
+
+//////////////////////////////////////////////////////////////////////////////
+// some data for the code in this file.
+
+
+// Debugging labels for collision code
+collision_bit_label1: .text  @"nv a8 inside 1: \$00"
+collision_bit_label2: .text  @"nv a8 inside 2: \$00"
+spt_0_dist_label: .text @"sprite0 dist: \$00"
+spt_1_dist_label: .text @"sprite1 dist: \$00"
+spt_2_dist_label: .text @"sprite2 dist: \$00"
+spt_3_dist_label: .text @"sprite3 dist: \$00"
+spt_4_dist_label: .text @"sprite4 dist: \$00"
+spt_5_dist_label: .text @"sprite5 dist: \$00"
+spt_6_dist_label: .text @"sprite6 dist: \$00"
+spt_7_dist_label: .text @"sprite7 dist: \$00"
+
+nv_g16_label: .text @"nv g16: \$00"
+// end debugging labels
