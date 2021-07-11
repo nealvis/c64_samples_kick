@@ -12,6 +12,7 @@
 // if data hasn't been imported yet, import it into default location
 #importif !NV_C64_UTIL_DATA "nv_c64_util_default_data.asm"
 
+
 // Basic routine to print text
 .const NV_SCREEN_PRINT_STRING_BASIC_ADDR = $AB1E    
 
@@ -157,30 +158,6 @@
     nv_screen_print_hex_byte_a(false)
     lda #(num & $00ff)
     nv_screen_print_hex_byte_a(false)
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// wait for a key to be pressed.
-// The Accum and X reg will be modified 
-.macro nv_screen_wait_anykey()
-{
-OuterLoop:
-    ldx #20         // wait for the specific scanline this many times
-
-InnerLoop:
-
-ScanLoop:
-    lda $D012
-    cmp #$fa
-    bne ScanLoop
-
-    dex
-    bne InnerLoop
-
-    lda 203
-    cmp #64
-    beq OuterLoop
 }
 
 
@@ -336,3 +313,14 @@ Done:
     lda #lsb
     nv_screen_poke_hex_byte_a(row, second_col, false)
 }
+
+// NPS TODO: remove import of nv_keyboard_macs.asm
+//#import "nv_keyboard_macs.asm"
+//////////////////////////////////////////////////////////////////////////////
+// wait for a key to be pressed.
+// The Accum and X reg will be modified 
+.macro nv_screen_wait_anykey()
+{
+    nv_key_wait_any_key()
+}
+
