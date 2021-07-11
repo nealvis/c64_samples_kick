@@ -3,7 +3,10 @@
 // sprite test program
 //////////////////////////////////////////////////////////////////////////////
 
+// import all nv_c64_util macros and data.  The data
+// will go in default place
 #import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+
 
 *=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.

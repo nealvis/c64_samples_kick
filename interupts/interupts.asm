@@ -37,7 +37,7 @@ save_y: .byte 0
     // clear the screen just to have an empty canvas
     nv_screen_clear()
     nv_screen_plot_cursor(0, 16)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 
     //jmp MainStart
 
@@ -90,7 +90,7 @@ Loaded:
     sta save_accum
     clc                                     // clear carry to specify setting position
     jsr NV_SCREEN_PLOT_CURSOR_KERNAL_ADDR   // call kernal function to plot cursor
-    nv_screen_print_string_basic(one_char_str)
+    nv_screen_print_str(one_char_str)
     lda save_accum 
     ldx save_x 
     ldy save_y 

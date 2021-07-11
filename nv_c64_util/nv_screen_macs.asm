@@ -313,14 +313,3 @@ Done:
     lda #lsb
     nv_screen_poke_hex_byte_a(row, second_col, false)
 }
-
-// NPS TODO: remove import of nv_keyboard_macs.asm
-//#import "nv_keyboard_macs.asm"
-//////////////////////////////////////////////////////////////////////////////
-// wait for a key to be pressed.
-// The Accum and X reg will be modified 
-.macro nv_screen_wait_anykey()
-{
-    nv_key_wait_any_key()
-}
-

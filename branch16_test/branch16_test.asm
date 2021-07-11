@@ -4,6 +4,9 @@
 // will go in default place
 #import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
+#import "../nv_c64_util/nv_screen_macs.asm"
+#import "../nv_c64_util/nv_keyboard_macs.asm"
+
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0
         // location to put a 1 line basic program so we can just
@@ -77,7 +80,7 @@ opLowOnes: .word $00FF
 
     nv_screen_clear()
     nv_screen_plot_cursor(row++, 31)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 
     test_cmp16(0)
     test_beq16(0)
@@ -97,7 +100,7 @@ opLowOnes: .word $00FF
 
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_cmp16_str)
+    nv_screen_print_str(title_cmp16_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -190,7 +193,7 @@ opLowOnes: .word $00FF
 
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_beq16_str)
+    nv_screen_print_str(title_beq16_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -282,7 +285,7 @@ opLowOnes: .word $00FF
         
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_blt16_str)
+    nv_screen_print_str(title_blt16_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -372,7 +375,7 @@ opLowOnes: .word $00FF
 
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_ble16_str)
+    nv_screen_print_str(title_ble16_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -464,7 +467,7 @@ opLowOnes: .word $00FF
 
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_bgt16_str)
+    nv_screen_print_str(title_bgt16_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -556,7 +559,7 @@ opLowOnes: .word $00FF
 
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(title_bge16_str)
+    nv_screen_print_str(title_bge16_str)
     //////////////////////////////////////////////////////////////////////////
     .eval row++
 
@@ -647,14 +650,14 @@ opLowOnes: .word $00FF
     .var row = init_row
     .eval row++
     nv_screen_plot_cursor(row++, 0)
-    nv_screen_print_string_basic(hit_anykey_str)
+    nv_screen_print_str(hit_anykey_str)
 
-    nv_screen_wait_anykey()
+    nv_key_wait_any_key()
 
     nv_screen_clear()
     .eval row=0
     nv_screen_plot_cursor(row++, 31)
-    nv_screen_print_string_basic(title_str)
+    nv_screen_print_str(title_str)
 }
 
 
@@ -668,25 +671,25 @@ opLowOnes: .word $00FF
 // Prints at the current cursor location via a basic call
 .macro print_cmp16(addr1, addr2)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_cmp16(addr1, addr2)
     bne NotEq
 // Equal here
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_str(equal_str)
     jmp PrintOp2
 
 NotEq:
     bcs GreaterOrEqual
 // less than here
-    nv_screen_print_string_basic(less_than_str)
+    nv_screen_print_str(less_than_str)
     jmp PrintOp2
 
 // Greater here
 GreaterOrEqual:
-    nv_screen_print_string_basic(greater_than_str)
+    nv_screen_print_str(greater_than_str)
 
 PrintOp2:
-    nv_screen_print_hex_word(addr2, true)
+    nv_screen_print_hex_word_mem(addr2, true)
 
 }
 
@@ -696,25 +699,25 @@ PrintOp2:
 // Prints at the current cursor location via a basic call
 .macro print_cmp16_immediate(addr1, num)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_cmp16_immediate(addr1, num)
     bne NotEq
 // Equal here
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_str(equal_str)
     jmp PrintOp2
 
 NotEq:
     bcs GreaterOrEqual
 // less than here
-    nv_screen_print_string_basic(less_than_str)
+    nv_screen_print_str(less_than_str)
     jmp PrintOp2
 
 // Greater here
 GreaterOrEqual:
-    nv_screen_print_string_basic(greater_than_str)
+    nv_screen_print_str(greater_than_str)
 
 PrintOp2:
-    nv_screen_print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immed(num, true)
 
 }
 
@@ -726,15 +729,15 @@ PrintOp2:
 //   addr2: is the address of LSB of the other word (addr2+1 is MSB)
 .macro print_beq16(addr1, addr2)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_beq16(addr1, addr2, Same)
-    nv_screen_print_string_basic(not_equal_str)
+    nv_screen_print_str(not_equal_str)
     jmp Done
 Same:
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_str(equal_str)
 
 Done:
-    nv_screen_print_hex_word(addr2, true)
+    nv_screen_print_hex_word_mem(addr2, true)
 }
 
 
@@ -746,15 +749,15 @@ Done:
 //   num: is the immediate value
 .macro print_beq16_immediate(addr1, num)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_beq16_immediate(addr1, num, Same)
-    nv_screen_print_string_basic(not_equal_str)
+    nv_screen_print_str(not_equal_str)
     jmp Done
 Same:
-    nv_screen_print_string_basic(equal_str)
+    nv_screen_print_str(equal_str)
 
 Done:
-    nv_screen_print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immed(num, true)
 }
 
 
@@ -765,15 +768,15 @@ Done:
 //   addr2: is the address of LSB of word2 (addr2+1 is MSB)
 .macro print_blt16(addr1, addr2)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_blt16(addr1, addr2, LessThan)
-    nv_screen_print_string_basic(greater_equal_str)
+    nv_screen_print_str(greater_equal_str)
     jmp Done
 LessThan:
-    nv_screen_print_string_basic(less_than_str)
+    nv_screen_print_str(less_than_str)
 
 Done:
-    nv_screen_print_hex_word(addr2, true)
+    nv_screen_print_hex_word_mem(addr2, true)
 }
 
 
@@ -785,15 +788,15 @@ Done:
 //   addr2: is the address of LSB of word2 (addr2+1 is MSB)
 .macro print_ble16(addr1, addr2)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_ble16(addr1, addr2, LessThanEqual)
-    nv_screen_print_string_basic(greater_than_str)
+    nv_screen_print_str(greater_than_str)
     jmp Done
 LessThanEqual:
-    nv_screen_print_string_basic(less_equal_str)
+    nv_screen_print_str(less_equal_str)
 
 Done:
-    nv_screen_print_hex_word(addr2, true)
+    nv_screen_print_hex_word_mem(addr2, true)
 }
 
 
@@ -804,15 +807,15 @@ Done:
 //   addr2: is the address of LSB of word2 (addr2+1 is MSB)
 .macro print_bgt16(addr1, addr2)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_bgt16(addr1, addr2, GreaterThan)
-    nv_screen_print_string_basic(less_equal_str)
+    nv_screen_print_str(less_equal_str)
     jmp Done
 GreaterThan:
-    nv_screen_print_string_basic(greater_than_str)
+    nv_screen_print_str(greater_than_str)
 
 Done:
-    nv_screen_print_hex_word(addr2, true)
+    nv_screen_print_hex_word_mem(addr2, true)
 }
 
 
@@ -823,30 +826,30 @@ Done:
 //   addr2: is the address of LSB of word2 (addr2+1 is MSB)
 .macro print_bge16(addr1, addr2)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_bge16(addr1, addr2, GreaterThanEqual)
-    nv_screen_print_string_basic(less_than_str)
+    nv_screen_print_str(less_than_str)
     jmp Done
 GreaterThanEqual:
-    nv_screen_print_string_basic(greater_equal_str)
+    nv_screen_print_str(greater_equal_str)
 
 Done:
-    nv_screen_print_hex_word(addr2, true)
+    nv_screen_print_hex_word_mem(addr2, true)
 }
 
 
 //////////////////////////////////////////////////////////////////////////////
 .macro print_blt16_immediate(addr1, num)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_blt16_immediate(addr1, num, LessThan)
-    nv_screen_print_string_basic(greater_equal_str)
+    nv_screen_print_str(greater_equal_str)
     jmp Done
 LessThan:
-    nv_screen_print_string_basic(less_than_str)
+    nv_screen_print_str(less_than_str)
 
 Done:
-    nv_screen_print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immed(num, true)
 
 }
 
@@ -854,43 +857,43 @@ Done:
 //////////////////////////////////////////////////////////////////////////////
 .macro print_ble16_immediate(addr1, num)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_ble16_immediate(addr1, num, LessEqual)
-    nv_screen_print_string_basic(greater_than_str)
+    nv_screen_print_str(greater_than_str)
     jmp Done
 LessEqual:
-    nv_screen_print_string_basic(less_equal_str)
+    nv_screen_print_str(less_equal_str)
 
 Done:
-    nv_screen_print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immed(num, true)
 
 }
 
 //////////////////////////////////////////////////////////////////////////////
 .macro print_bgt16_immediate(addr1, num)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_bgt16_immediate(addr1, num, GreaterThan)
-    nv_screen_print_string_basic(less_equal_str)
+    nv_screen_print_str(less_equal_str)
     jmp Done
 GreaterThan:
-    nv_screen_print_string_basic(greater_than_str)
+    nv_screen_print_str(greater_than_str)
 
 Done:
-    nv_screen_print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immed(num, true)
 }
 
 
 //////////////////////////////////////////////////////////////////////////////
 .macro print_bge16_immediate(addr1, num)
 {
-    nv_screen_print_hex_word(addr1, true)
+    nv_screen_print_hex_word_mem(addr1, true)
     nv_bge16_immediate(addr1, num, GreaterEqual)
-    nv_screen_print_string_basic(less_than_str)
+    nv_screen_print_str(less_than_str)
     jmp Done
 GreaterEqual:
-    nv_screen_print_string_basic(greater_equal_str)
+    nv_screen_print_str(greater_equal_str)
 
 Done:
-    nv_screen_print_hex_word_immediate(num, true)
+    nv_screen_print_hex_word_immed(num, true)
 }

@@ -234,7 +234,7 @@ op_FE: .byte $FE
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_str(hit_anykey_str)
 
-    nv_screen_wait_anykey()
+    nv_key_wait_any_key()
 
     nv_screen_clear()
     .eval row=0

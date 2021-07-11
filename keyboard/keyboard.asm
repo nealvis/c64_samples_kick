@@ -79,17 +79,17 @@ MainStart:
 
     nv_screen_clear()
 
-    .const PRA  =  $dc00            // CIA#1 (Port Register A)
-    .const DDRA =  $dc02            // CIA#1 (Data Direction Register A)
+    .const PORT_REG_A  =  $dc00            // CIA#1 (Port Register A)
+    .const DATA_DIR_REG_A =  $dc02            // CIA#1 (Data Direction Register A)
 
-    .const PRB  =  $dc01            // CIA#1 (Port Register B)
-    .const DDRB =  $dc03            // CIA#1 (Data Direction Register B)
+    .const PORT_REG_B  =  $dc01            // CIA#1 (Port Register B)
+    .const DATA_DIR_REG_B =  $dc03            // CIA#1 (Data Direction Register B)
 
     lda #$FF        // CIA#1 port A = outputs 
-    sta DDRA             
+    sta DATA_DIR_REG_A             
 
     lda #$00        // CIA#1 port B = inputs
-    sta DDRB             
+    sta DATA_DIR_REG_B             
 
 
     ldx #$FF
@@ -101,91 +101,91 @@ Loop:
 
 CheckCol0:
     lda #$FE        // testing column 0 (COL0) of the matrix
-    sta PRA
+    sta PORT_REG_A
 
-    lda PRB
+    lda PORT_REG_B
     cmp #$FF
     beq CheckCol1
 HaveCol0:
     sta last_key
-    test_for_char_with_table(col0_table)
+    test_for_char_via_table(col0_table)
 
 CheckCol1:
     lda #$FD        // testing column 1 (COL1) of the matrix
-    sta PRA
+    sta PORT_REG_A
 
-    lda PRB
+    lda PORT_REG_B
     cmp #$FF
     beq CheckCol2
 HaveCol1:
     sta last_key
-    test_for_char_with_table(col1_table)
+    test_for_char_via_table(col1_table)
 
 CheckCol2:
     lda #$FB        // testing column 2 (COL2) of the matrix
-    sta PRA
+    sta PORT_REG_A
 
-    lda PRB
+    lda PORT_REG_B
     cmp #$FF
     beq CheckCol3
 HaveCol2:
     sta last_key
-    test_for_char_with_table(col2_table)
+    test_for_char_via_table(col2_table)
 
 CheckCol3:
     lda #$F7        // testing column 3 (COL3) of the matrix
-    sta PRA
+    sta PORT_REG_A
 
-    lda PRB
+    lda PORT_REG_B
     cmp #$FF
     beq CheckCol4
 HaveCol3:
     sta last_key
-    test_for_char_with_table(col3_table)
+    test_for_char_via_table(col3_table)
 
 CheckCol4:
     lda #$EF        // testing column 4 (COL4) of the matrix
-    sta PRA
+    sta PORT_REG_A
 
-    lda PRB
+    lda PORT_REG_B
     cmp #$FF
     beq CheckCol5
 HaveCol4:
     sta last_key
-    test_for_char_with_table(col4_table)
+    test_for_char_via_table(col4_table)
 
 CheckCol5:
     lda #$DF        // testing column 5 (COL5) of the matrix
-    sta PRA
+    sta PORT_REG_A
 
-    lda PRB
+    lda PORT_REG_B
     cmp #$FF
     beq CheckCol6
 HaveCol5:
     sta last_key
-    test_for_char_with_table(col5_table)
+    test_for_char_via_table(col5_table)
 
 CheckCol6:
     lda #$BF        // testing column 6 (COL6) of the matrix
-    sta PRA
+    sta PORT_REG_A
 
-    lda PRB
+    lda PORT_REG_B
     cmp #$FF
     beq CheckCol7
 HaveCol6:
     sta last_key
-    test_for_char_with_table(col6_table)
+    test_for_char_via_table(col6_table)
 
 CheckCol7:
     lda #$7F        // testing column 7 (COL7) of the matrix
-    sta PRA
+    sta PORT_REG_A
 
-    lda PRB
+    lda PORT_REG_B
     cmp #$FF
     beq Bottom
 HaveCol7:
     sta last_key
-    test_for_char_with_table(col7_table)
+    test_for_char_via_table(col7_table)
     
 Bottom:
     lda last_key
@@ -220,7 +220,7 @@ ExitLoop:
 //               for example if table_addr holds these 8 values:
 //                 1, 2, 3, 4, 5, 6, 7, 8
 //               and accum has $FB  then a 6 will be poked to the screen
-.macro test_for_char_with_table(table_addr)
+.macro test_for_char_via_table(table_addr)
 {
     ldx #0
 TryBit:
