@@ -119,7 +119,7 @@ nv_key_col6_table:
 
 // table of chars to report for col7 keys:
 nv_key_col7_table: 
-.byte $31, $1F,        $66,   $32, $66,     $66,     NV_KEY_Q, $66
+.byte $31, $1F,        $66,   $32, $20,     $66,     NV_KEY_Q, $66
 //     1,  <lf arrow>, <ctrl>, 2,  <space>, <cmodor>, Q,       <run st>
 
 // End keyboard data
