@@ -17,6 +17,18 @@
 // Special value to use for no key
 .const NV_KEY_NO_KEY = $66
 
+//////////////////////////////////////////////////////////////////////////////
+// kernal keyboard constants. 
+
+// address of the current key being pressed
+.const KERNAL_CUR_KEY_PRESS_ADDR = $00CB
+
+// value when no key is being pressed.  when its a valid key its 
+// between $00-$3F
+.const KERNAL_NO_KEY = $40
+
+//////////////////////////////////////////////////////////////////////////////
+
 #import "nv_screen_macs.asm"
 #import "nv_debug_macs.asm"
 
@@ -57,6 +69,9 @@
     lda #$01
     ora $DC0E
     sta $DC0E
+
+    lda #NV_KEY_UNINITIALIZED
+    sta nv_key_last_pressed
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -220,12 +235,25 @@ Done:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// wait for any key
-.macro nv_key_wait_anykey()
+// inline macro to wait for any key to be pressed.
+// Note: this macro will first wait for no key to be pressed
+//       then wait for any key, and then wait for no key again.
+// Also note: if nv_keyboard hasn't been initialized then it will be
+//            assumed kernal is handling keyboard but will still wait for
+//            any key based on that assumption. 
+.macro nv_key_wait_any_key()
 {
-    nv_key_scan()
-    nv_key_get_last_pressed_a(true)
+    
+    lda nv_key_last_pressed
+    cmp #NV_KEY_UNINITIALIZED
+    bne IsInitialized
+NotInitialized:  
+    // not initialized yet use kernal routine
+    nv_key_wait_any_key_kernal()
+    jmp Done 
 
+IsInitialized:
+    nv_key_wait_no_key()
 Loop:
     nv_key_scan()
     nv_key_get_last_pressed_a(true)
@@ -233,4 +261,49 @@ Loop:
     bne Done 
     jmp Loop
 Done:
+    nv_key_wait_no_key()
 }
+
+
+//////////////////////////////////////////////////////////////////////////////
+// wait for no key to be pressed
+.macro nv_key_wait_no_key()
+{
+Loop:
+    nv_key_scan()
+    nv_key_get_last_pressed_a(true)
+    cmp #NV_KEY_NO_KEY
+    beq Done 
+    jmp Loop
+Done:
+
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// wait for no key to be pressed using kernal keyboard routines
+// Note, this macro will first wait for no key to be pressed
+// then wait for any key, and then wait for no key again.
+.macro nv_key_wait_any_key_kernal()
+{
+    nv_key_wait_no_key_kernal()
+
+WaitAnyKey:
+    lda KERNAL_CUR_KEY_PRESS_ADDR
+    cmp #KERNAL_NO_KEY
+    beq WaitAnyKey
+
+    nv_key_wait_no_key_kernal()
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// wait for no key to be pressed using kernal keyboard routines
+.macro nv_key_wait_no_key_kernal()
+{
+WaitNoKey:    
+    lda KERNAL_CUR_KEY_PRESS_ADDR
+    cmp #KERNAL_NO_KEY
+    bne WaitNoKey
+}
+
+

@@ -33,19 +33,35 @@ title_str: .text @"KEYBOARD TEST\$00"          // null terminated string to prin
 hit_anykey1_str: .text @"HIT ANY KEY AND LOOK\$00"
 hit_anykey2_str: .text @" IN TOP LEFT CORNER\$00"
 hit_anykey3_str: .text @"  PRESS Q  TO QUIT\$00"
-hit_anykey_to_start_str: .text @"HIT ANY KEY TO START\$00"
-
+hit_any2keys_to_start_str: .text @"HIT ANY 2 KEYS TO START\$00"
+hit_any1key_to_start_str: .text @"HIT ANY 1 KEY TO START\$00"
+first_key_pressed_str: .text @"THATS 1 KEY VIA KERNAL\$00"
 
 *=$1000 "Main Start"
-    nv_key_init()
 
     nv_screen_clear()
     nv_screen_plot_cursor(0, 27)
     nv_screen_print_str(title_str)
 
-    nv_screen_plot_cursor(10, 10)
-    nv_screen_print_str(hit_anykey_to_start_str)
-    nv_key_wait_anykey()
+    nv_screen_plot_cursor(10, 8)
+    nv_screen_print_str(hit_any2keys_to_start_str)
+
+    // test waiting while kernal handling keyboard
+    nv_key_wait_any_key()
+
+    // let user know key was detected
+    nv_screen_plot_cursor(10, 8)
+    nv_screen_print_str(hit_any1key_to_start_str)
+    nv_screen_plot_cursor(13, 8)
+    nv_screen_print_str(first_key_pressed_str)
+
+
+    // init nv_keyboard so kernal no longer handling keyboard
+    nv_key_init()
+
+    // wait again for any key via nv_keyboard instead of kernal this time
+    nv_key_wait_any_key()
+
     nv_screen_clear()
     nv_screen_plot_cursor(0, 27)
     nv_screen_print_str(title_str)
