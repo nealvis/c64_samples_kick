@@ -34,7 +34,7 @@ hit_anykey1_str: .text @"HIT ANY KEY AND LOOK\$00"
 hit_anykey2_str: .text @" IN TOP LEFT CORNER\$00"
 hit_anykey3_str: .text @"  PRESS Q  TO QUIT\$00"
 hit_any2keys_to_start_str: .text @"HIT ANY 2 KEYS TO START\$00"
-hit_any1key_to_start_str: .text @"HIT ANY 1 KEY TO START\$00"
+hit_any1key_to_start_str:  .text @"HIT ANY 1 KEY TO START \$00"
 first_key_pressed_str: .text @"THATS 1 KEY VIA KERNAL\$00"
 
 *=$1000 "Main Start"
@@ -54,7 +54,6 @@ first_key_pressed_str: .text @"THATS 1 KEY VIA KERNAL\$00"
     nv_screen_print_str(hit_any1key_to_start_str)
     nv_screen_plot_cursor(13, 8)
     nv_screen_print_str(first_key_pressed_str)
-
 
     // init nv_keyboard so kernal no longer handling keyboard
     nv_key_init()
@@ -84,8 +83,11 @@ TopLoop:
     sta $D020                              // visualize timing
 
     nv_key_scan()
-    nv_key_get_last_pressed_a(true)
+    nv_key_get_last_pressed_a(false)
     nv_screen_poke_char_a(0, 0)
+    nv_key_get_last_pressed_a(false)
+    nv_screen_poke_hex_byte_a(0, 3, true)
+    nv_key_get_last_pressed_a(true)
     cmp #NV_KEY_Q
     beq Done
     jmp TopLoop

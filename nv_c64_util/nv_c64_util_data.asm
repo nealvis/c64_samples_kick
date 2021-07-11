@@ -75,22 +75,24 @@ nv_key_last_pressed: .byte NV_KEY_UNINITIALIZED
 // For all the colX_tables below when there is no reasonable 
 // value to poke to the screen (or when i haven't looked up
 // the right value yet) for the corresponding key, 
-// the table byte will be $66 which is just a grid pattern
+// the table byte will be $40 which is just a grid pattern
 
 .const NV_KEY_W = $17
 .const NV_KEY_S = $13
 .const NV_KEY_A = $01
 .const NV_KEY_D = $04
 .const NV_KEY_Q = $11
+.const NV_KEY_NO_KEY = $40  // Special value for no key
+.const NOKEY = NV_KEY_NO_KEY
 
 // table of chars to report for col0 keys:  
 nv_key_col0_table: 
-.byte $66,   $66,      $66,       $66, $66, $66, $66, $66
-//    <del>, <return>, <cur L/R>,  F7, F1,   F3,  F5, <cur UD>
+.byte NOKEY, NOKEY,   NOKEY,     NOKEY, NOKEY, NOKEY, NOKEY, NOKEY
+//    <del>, <return>,<cur L/R>, F7,    F1,    F3,    F5,    <cur UD>
 
 // table of chars to report for col1 keys:  
 nv_key_col1_table: 
-.byte $33, $17, NV_KEY_A, $34, $1A, NV_KEY_S, $05, $66
+.byte $33, $17, NV_KEY_A, $34, $1A, NV_KEY_S, $05, NOKEY
 //     3,   W,   A,         4,   Z, S,         E,  <LSHIFT>
 
 // table of chars to report for col2 keys:
@@ -115,13 +117,13 @@ nv_key_col5_table:
 
 // table of chars to report for col6 keys:
 nv_key_col6_table: 
-.byte $1C, $2A, $3B, $66,        $66,     $3D, $1E,        $2F
+.byte $1C, $2A, $3B, NOKEY,      NOKEY,   $3D, $1E,        $2F
 //    <lb>, *,   ;,  <CLR HOME>, <RShift>, =,  <up arrow>, /
 
 // table of chars to report for col7 keys:
 nv_key_col7_table: 
-.byte $31, $1F,        $66,   $32, $20,     $66,     NV_KEY_Q, $66
-//     1,  <lf arrow>, <ctrl>, 2,  <space>, <cmodor>, Q,       <run st>
+.byte $31, $1F,        NOKEY,  $32, $20,     NOKEY,    NV_KEY_Q, NOKEY
+//     1,  <lf arrow>, <ctrl>, 2,   <space>, <cmodor>, Q,        <run st>
 
 // End keyboard data
 //////////////////////////////////////////////////////////////////////////////

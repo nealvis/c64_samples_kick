@@ -14,9 +14,6 @@
 .const PRB  =  $dc01            // CIA#1 (Port Register B)
 .const DDRB =  $dc03            // CIA#1 (Data Direction Register B)
 
-// Special value to use for no key
-.const NV_KEY_NO_KEY = $66
-
 //////////////////////////////////////////////////////////////////////////////
 // kernal keyboard constants. 
 
