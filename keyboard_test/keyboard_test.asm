@@ -47,7 +47,8 @@ first_key_pressed_str: .text @"THATS 1 KEY VIA KERNAL\$00"
     nv_screen_print_str(hit_any2keys_to_start_str)
 
     // test waiting while kernal handling keyboard
-    nv_key_wait_any_key()
+    jsr NvKeyWaitAnyKey
+    //nv_key_wait_any_key()
 
     // let user know key was detected
     nv_screen_plot_cursor(10, 8)
@@ -59,7 +60,8 @@ first_key_pressed_str: .text @"THATS 1 KEY VIA KERNAL\$00"
     nv_key_init()
 
     // wait again for any key via nv_keyboard instead of kernal this time
-    nv_key_wait_any_key()
+    //nv_key_wait_any_key()
+    jsr NvKeyWaitAnyKey
 
     nv_screen_clear()
     nv_screen_plot_cursor(0, 27)
@@ -99,3 +101,4 @@ Done:
     nv_key_done()
     rts
 
+#import "../nv_c64_util/nv_keyboard_code.asm"
