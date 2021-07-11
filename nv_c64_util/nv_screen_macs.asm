@@ -35,6 +35,10 @@
 // a somewhat random location in screen memory to write to directly
 .const SCREEN_DIRECT_START = SCREEN_START + $0100 
 
+.const NV_SCREEN_BORDER_COLOR_REG_ADDR = $D020
+.const NV_SCREEN_BACKGROUND_COLOR_REG_ADDR = $D021
+
+
 // clear screen and leave cursor in upper left
 .macro nv_screen_clear()
 {
@@ -313,3 +317,84 @@ Done:
     lda #lsb
     nv_screen_poke_hex_byte_a(row, second_col, false)
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the screen border color to the immediate color
+// passed in.  
+// macro params:
+//   new_color should be one of the 16 supported color see nv_color.asm
+.macro nv_screen_set_border_color_immed(new_color) 
+{
+    lda #new_color                
+    sta NV_SCREEN_BORDER_COLOR_REG_ADDR
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the screen border color to the color in a memory
+// address passed in.  
+// macro params:
+//   new_color_addr: the address of a byte that holds one 16 supported 
+//                   C64 colors. see nv_color.asm
+.macro nv_screen_set_border_color_mem(new_color_addr) 
+{
+    lda new_color_addr                
+    sta NV_SCREEN_BORDER_COLOR_REG_ADDR
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to increment the screen border color to the next 
+// color.    
+.macro nv_screen_inc_border_color()
+{
+    inc NV_SCREEN_BORDER_COLOR_REG_ADDR
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to decrement the screen border color to the next 
+// color.    
+.macro nv_screen_dec_border_color()
+{
+    dec NV_SCREEN_BORDER_COLOR_REG_ADDR
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the screen background color to the immediate color
+// passed in.  
+// macro params:
+//   new_color should be one of the 16 supported color see nv_color.asm
+.macro nv_screen_set_background_color_immed(new_color) 
+{
+    lda #new_color                
+    sta NV_SCREEN_BACKGROUND_COLOR_REG_ADDR
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the screen background color in a memory address
+// passed in.  
+// macro params:
+//   new_color_addr: address of a byte that should hold a value that is
+//                   one of the 16 supported colors. see nv_color.asm
+.macro nv_screen_set_background_color_mem(new_color_addr) 
+{
+    lda new_color_addr                
+    sta NV_SCREEN_BACKGROUND_COLOR_REG_ADDR
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to increment the screen background color to the next 
+// color.    
+.macro nv_screen_inc_background_color()
+{
+    inc NV_SCREEN_BACKGROUND_COLOR_REG_ADDR
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to decrement the screen background color to the next 
+// color.    
+.macro nv_screen_dec_background_color()
+{
+    dec NV_SCREEN_BACKGROUND_COLOR_REG_ADDR
+}
+
