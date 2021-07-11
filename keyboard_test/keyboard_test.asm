@@ -33,14 +33,23 @@ title_str: .text @"KEYBOARD TEST\$00"          // null terminated string to prin
 hit_anykey1_str: .text @"HIT ANY KEY AND LOOK\$00"
 hit_anykey2_str: .text @" IN TOP LEFT CORNER\$00"
 hit_anykey3_str: .text @"  PRESS Q  TO QUIT\$00"
-
+hit_anykey_to_start_str: .text @"HIT ANY KEY TO START\$00"
 
 
 *=$1000 "Main Start"
+    nv_key_init()
 
     nv_screen_clear()
     nv_screen_plot_cursor(0, 27)
     nv_screen_print_str(title_str)
+
+    nv_screen_plot_cursor(10, 10)
+    nv_screen_print_str(hit_anykey_to_start_str)
+    nv_key_wait_anykey()
+    nv_screen_clear()
+    nv_screen_plot_cursor(0, 27)
+    nv_screen_print_str(title_str)
+
     nv_screen_plot_cursor(10, 10)
     nv_screen_print_str(hit_anykey1_str)
     nv_screen_plot_cursor(11, 10)
@@ -48,7 +57,6 @@ hit_anykey3_str: .text @"  PRESS Q  TO QUIT\$00"
     nv_screen_plot_cursor(12, 10)
     nv_screen_print_str(hit_anykey3_str)
 
-    nv_key_init()
 
 TopLoop:
     lda #NV_COLOR_LITE_BLUE                // change border color back to

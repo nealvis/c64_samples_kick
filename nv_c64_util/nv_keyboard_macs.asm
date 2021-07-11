@@ -18,6 +18,7 @@
 .const NV_KEY_NO_KEY = $66
 
 #import "nv_screen_macs.asm"
+#import "nv_debug_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // init everything we need to capture keys.
@@ -215,4 +216,21 @@ TryNextBit:
     beq Done
     jmp TryBit
 Done: 
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// wait for any key
+.macro nv_key_wait_anykey()
+{
+    nv_key_scan()
+    nv_key_get_last_pressed_a(true)
+
+Loop:
+    nv_key_scan()
+    nv_key_get_last_pressed_a(true)
+    cmp #NV_KEY_NO_KEY
+    bne Done 
+    jmp Loop
+Done:
 }
