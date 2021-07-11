@@ -34,6 +34,11 @@
 .const KEY_SHIP1_FAST_X = NV_KEY_D
 .const KEY_QUIT = NV_KEY_Q
 .const KEY_PAUSE = NV_KEY_P
+.const KEY_INC_BORDER_COLOR = NV_KEY_0
+.const KEY_DEC_BORDER_COLOR = NV_KEY_9
+.const KEY_INC_BACKGROUND_COLOR = NV_KEY_8
+.const KEY_DEC_BACKGROUND_COLOR = NV_KEY_7
+
 
 // some loop indices
 frame_counter: .word 0
@@ -50,6 +55,8 @@ change_up_flag: .byte 0
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
 nv_b8_label: .text @"nv b8 coll sprite: \$00"
 
+border_color: .byte NV_COLOR_BLUE
+background_color: .byte NV_COLOR_BLACK
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -144,6 +151,9 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
     // clear the screen just to have an empty canvas
     nv_screen_clear()
 
+    nv_screen_set_border_color_mem(border_color)
+    nv_screen_set_background_color_mem(background_color)
+
     // set the global sprite multi colors        
     nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
 
@@ -182,7 +192,7 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = true
+    .var showTiming = false
     .var showFrameCounters = false
         
     nv_key_init()
@@ -230,8 +240,9 @@ PartialSecond2:
     // but only modify the position in their extra data block not on screen
     .if (showTiming)
     {
-        lda #NV_COLOR_LITE_GREEN                      // change border color back to
-        sta $D020                                     // visualize timing
+        nv_screen_set_border_color_immed(NV_COLOR_LITE_GREEN)
+        //lda #NV_COLOR_LITE_GREEN                      // change border color back to
+        //sta BORDER_COLOR_REG_ADDR                     // visualize timing
     }
     jsr ship_1.MoveInExtraData
     jsr ship_2.MoveInExtraData
@@ -257,14 +268,17 @@ NoChangeUp:
 
     .if (showTiming)
     {
-        lda #NV_COLOR_LITE_BLUE                // change border color back to
-        sta $D020                              // visualize timing
+        //lda #NV_COLOR_LITE_BLUE                // change border color back to
+        //sta BORDER_COLOR_REG_ADDR              // visualize timing
+        nv_screen_set_border_color_mem(border_color)
     }
     nv_sprite_wait_last_scanline()         // wait for particular scanline.
     .if (showTiming)
     {
-        lda #NV_COLOR_GREEN                    // change border color to  
-        sta $D020                              // visualize timing
+        nv_screen_set_border_color_immed(NV_COLOR_GREEN)
+
+        //lda #NV_COLOR_GREEN                    // change border color to  
+        //sta BORDER_COLOR_REG_ADDR              // visualize timing
     }
 
     //// call routine to update sprite x and y positions on screen
@@ -305,8 +319,9 @@ ProgramDone:
         // Done moving sprites, move cursor out of the way 
         // and return, but leave the sprites on the screen
         // also set border color to normal
-        lda #NV_COLOR_LITE_BLUE
-        sta $D020
+        //lda #NV_COLOR_LITE_BLUE
+        //sta BORDER_COLOR_REG_ADDR
+        nv_screen_set_border_color_immed(NV_COLOR_LITE_BLUE)
 
         nv_key_done()
 
@@ -336,7 +351,9 @@ NotInCoolDown:
     //nv_debug_print_byte_a(5, 5, 
     //                      true, false)
     cmp #NV_KEY_NO_KEY          // check if any key hit
-    beq DoneKeys                // no key hit, skip to end
+    bne HaveKey 
+    jmp DoneKeys                // no key hit, skip to end
+HaveKey:
     ldy #KEY_COOL_DURATION      // had a key, start cooldown counter        
     sty key_cool_counter
 
@@ -352,12 +369,52 @@ TryShip1FastX:
     bne TryPause               // not speed up x key, skip to bottom
 WasShip1FastX:
     jsr ship_1.IncVelX          // inc the ship X velocity
+    jmp DoneKeys                // and skip to bottom
 
 TryPause:
     cmp #KEY_PAUSE             // check the pause key
-    bne TryQuit                // not speed up x key, skip to bottom
+    bne TryIncBorder                // not speed up x key, skip to bottom
 WasPause:
     jsr DoPause                // jsr to the pause subroutine
+    jmp DoneKeys                // and skip to bottom
+
+TryIncBorder:
+    cmp #KEY_INC_BORDER_COLOR             
+    bne TryDecBorder                           
+WasIncBorderColor:
+    inc border_color
+    nv_screen_set_border_color_mem(border_color)
+    jsr WaitNoKey
+    jmp DoneKeys                     // and skip to bottom
+              
+TryDecBorder:
+    cmp #KEY_DEC_BORDER_COLOR             
+    bne TryIncBackground                           
+WasDecBorderColor:
+    dec border_color
+    nv_screen_set_border_color_mem(border_color)          
+    jsr WaitNoKey
+    jmp DoneKeys                // and skip to bottom
+
+TryIncBackground:
+    cmp #KEY_INC_BACKGROUND_COLOR             
+    bne TryDecBackground                           
+WasIncBackgroundColor:
+    inc background_color
+    nv_screen_set_background_color_mem(background_color)
+    jsr WaitNoKey
+    jmp DoneKeys                     // and skip to bottom
+              
+TryDecBackground:
+    cmp #KEY_DEC_BACKGROUND_COLOR             
+    bne TryQuit                           
+WasDecBackgroundColor:
+    dec background_color
+    nv_screen_set_background_color_mem(background_color)          
+    jsr WaitNoKey
+    jmp DoneKeys                // and skip to bottom
+
+
 
 TryQuit:
     cmp #KEY_QUIT               // check quit key
@@ -369,7 +426,9 @@ WasQuit:
 DoneKeys:
     rts
 
-
+WaitNoKey:
+    nv_key_wait_no_key()
+    rts
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to cycle the color of a sprite just to show how

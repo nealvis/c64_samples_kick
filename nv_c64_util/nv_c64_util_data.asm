@@ -83,6 +83,10 @@ nv_key_last_pressed: .byte NV_KEY_UNINITIALIZED
 .const NV_KEY_D = $04
 .const NV_KEY_Q = $11
 .const NV_KEY_P = $10
+.const NV_KEY_9 = $39
+.const NV_KEY_8 = $38
+.const NV_KEY_7 = $37
+.const NV_KEY_0 = $30
 .const NV_KEY_NO_KEY = $40  // Special value for no key
 .const NOKEY = NV_KEY_NO_KEY
 
@@ -103,13 +107,13 @@ nv_key_col2_table:
 
 // table of chars to report for col3 keys:
 nv_key_col3_table: 
-.byte $37, $19, $07, $38, $02, $08, $15, $16
-//     7,   Y,   G,   8,   B,   H,   U,   V
+.byte NV_KEY_7, $19, $07, NV_KEY_8, $02, $08, $15, $16
+//     7,        Y,   G,  8,        B,   H,   U,   V
 
 // table of chars to report for col4 keys:
 nv_key_col4_table: 
-.byte $39, $09, $0A, $30, $0D, $0B, $0F, $0E
-//     9,   I,   J,   0,   M,   K,   O,   N
+.byte NV_KEY_9, $09, $0A, NV_KEY_0, $0D, $0B, $0F, $0E
+//    9,         I,   J,  0,         M,   K,   O,   N
 
 // table of chars to report for col5 keys:
 nv_key_col5_table: 
