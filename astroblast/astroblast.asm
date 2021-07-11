@@ -192,8 +192,8 @@ background_color: .byte NV_COLOR_BLACK
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = false
-    .var showFrameCounters = false
+    .var showTiming = true
+    .var showFrameCounters = true
         
     nv_key_init()
         
@@ -322,6 +322,7 @@ ProgramDone:
         //lda #NV_COLOR_LITE_BLUE
         //sta BORDER_COLOR_REG_ADDR
         nv_screen_set_border_color_immed(NV_COLOR_LITE_BLUE)
+        nv_screen_set_background_color_immed(NV_COLOR_BLUE)
 
         nv_key_done()
 
