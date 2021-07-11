@@ -68,7 +68,8 @@ closest_rel_dist: .word $7FFF
 
 //////////////////////////////////////////////////////////////////////////////
 // data for nv_keyboard_*.asm
-nv_key_last_pressed: .byte $00
+.const NV_KEY_UNINITIALIZED = $A0
+nv_key_last_pressed: .byte NV_KEY_UNINITIALIZED
 
 
 // For all the colX_tables below when there is no reasonable 
