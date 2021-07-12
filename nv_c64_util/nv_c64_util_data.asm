@@ -68,15 +68,12 @@ closest_rel_dist: .word $7FFF
 
 //////////////////////////////////////////////////////////////////////////////
 // data for nv_keyboard_*.asm
-.const NV_KEY_UNINITIALIZED = $A0
-nv_key_last_pressed: .byte NV_KEY_UNINITIALIZED
-
 
 // For all the colX_tables below when there is no reasonable 
 // value to poke to the screen (or when i haven't looked up
 // the right value yet) for the corresponding key, 
 // the table byte will be $40 which is just a grid pattern
-
+.const NV_KEY_UNINITIALIZED = $A0
 .const NV_KEY_W = $17
 .const NV_KEY_S = $13
 .const NV_KEY_A = $01
@@ -89,6 +86,9 @@ nv_key_last_pressed: .byte NV_KEY_UNINITIALIZED
 .const NV_KEY_0 = $30
 .const NV_KEY_NO_KEY = $40  // Special value for no key
 .const NOKEY = NV_KEY_NO_KEY
+
+nv_key_last_pressed: .byte NV_KEY_UNINITIALIZED
+nv_key_prev_pressed: .byte NV_KEY_NO_KEY
 
 // table of chars to report for col0 keys:  
 nv_key_col0_table: 

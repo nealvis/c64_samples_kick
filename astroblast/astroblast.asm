@@ -192,8 +192,8 @@ background_color: .byte NV_COLOR_BLACK
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = true
-    .var showFrameCounters = true
+    .var showTiming = false
+    .var showFrameCounters = false
         
     nv_key_init()
         
@@ -347,7 +347,7 @@ DoKeyboard:
     jmp DoneKeys            // and jmp to skip rest of routine
 NotInCoolDown:
 
-    nv_key_get_last_pressed_a(true)     // get key pressed in accum
+    nv_key_get_last_pressed_a()     // get key pressed in accum
     //nv_debug_print_char_a(5, 0)
     //nv_debug_print_byte_a(5, 5, 
     //                      true, false)
@@ -367,10 +367,19 @@ WasShip1SlowX:
 
 TryShip1FastX:
     cmp #KEY_SHIP1_FAST_X      // check ship1 speed up x key
-    bne TryPause               // not speed up x key, skip to bottom
+    bne TryTransitionKeys               // not speed up x key, skip to bottom
 WasShip1FastX:
     jsr ship_1.IncVelX          // inc the ship X velocity
     jmp DoneKeys                // and skip to bottom
+
+//////
+// no repeat keys here only transition keys below this line
+// if its a repeat key then we'll ignore it.
+TryTransitionKeys:
+    nv_key_get_prev_pressed_y() // previou key pressed to Y reg
+    sty scratch_byte            // then to scratch reg to compare with accum
+    cmp scratch_byte            // if prev key == last key then done with keys
+    beq DoneKeys
 
 TryPause:
     cmp #KEY_PAUSE             // check the pause key
@@ -385,7 +394,6 @@ TryIncBorder:
 WasIncBorderColor:
     inc border_color
     nv_screen_set_border_color_mem(border_color)
-    jsr WaitNoKey
     jmp DoneKeys                     // and skip to bottom
               
 TryDecBorder:
@@ -394,7 +402,6 @@ TryDecBorder:
 WasDecBorderColor:
     dec border_color
     nv_screen_set_border_color_mem(border_color)          
-    jsr WaitNoKey
     jmp DoneKeys                // and skip to bottom
 
 TryIncBackground:
@@ -403,7 +410,6 @@ TryIncBackground:
 WasIncBackgroundColor:
     inc background_color
     nv_screen_set_background_color_mem(background_color)
-    jsr WaitNoKey
     jmp DoneKeys                     // and skip to bottom
               
 TryDecBackground:
@@ -412,10 +418,7 @@ TryDecBackground:
 WasDecBackgroundColor:
     dec background_color
     nv_screen_set_background_color_mem(background_color)          
-    jsr WaitNoKey
     jmp DoneKeys                // and skip to bottom
-
-
 
 TryQuit:
     cmp #KEY_QUIT               // check quit key
@@ -427,6 +430,8 @@ WasQuit:
 DoneKeys:
     rts
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to wait for no key currently pressed
 WaitNoKey:
     nv_key_wait_no_key()
     rts

@@ -36,6 +36,9 @@ hit_anykey3_str: .text @"  PRESS Q  TO QUIT\$00"
 hit_any2keys_to_start_str: .text @"HIT ANY 2 KEYS TO START\$00"
 hit_any1key_to_start_str:  .text @"HIT ANY 1 KEY TO START \$00"
 first_key_pressed_str: .text @"THATS 1 KEY VIA KERNAL\$00"
+repeat_str:     .text @"repeat     \$00"
+transition_str: .text @"transition \$00"
+
 
 *=$1000 "Main Start"
 
@@ -85,11 +88,31 @@ TopLoop:
     sta $D020                              // visualize timing
 
     nv_key_scan()
-    nv_key_get_last_pressed_a(false)
+    nv_key_get_last_pressed_a()
+    sta key_pressed
+    nv_key_get_prev_pressed_y()
+    sty key_prev
+
+    lda key_pressed
     nv_screen_poke_char_a(0, 0)
-    nv_key_get_last_pressed_a(false)
+
+    lda key_pressed
     nv_screen_poke_hex_byte_a(0, 3, true)
-    nv_key_get_last_pressed_a(true)
+
+    lda key_prev
+    cmp key_pressed
+    beq RepeatKey    
+    //bne TransitionKey
+
+TransitionKey:
+    nv_screen_poke_str(0, 8, transition_str)
+    jmp CheckQ
+
+RepeatKey:
+    nv_screen_poke_str(0, 8, repeat_str)
+
+CheckQ:
+    lda key_pressed
     cmp #NV_KEY_Q
     beq Done
     jmp TopLoop
@@ -100,5 +123,8 @@ Done:
 
     nv_key_done()
     rts
+
+key_pressed: .byte NV_KEY_NO_KEY
+key_prev: .byte NV_KEY_NO_KEY
 
 #import "../nv_c64_util/nv_keyboard_code.asm"

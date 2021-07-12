@@ -8,6 +8,8 @@
 // if data hasn't been imported yet, import it into default location
 #importif !NV_C64_UTIL_DATA "nv_c64_util_default_data.asm"
 
+#import "nv_screen_macs.asm"
+
 .const PRA  =  $dc00            // CIA#1 (Port Register A)
 .const DDRA =  $dc02            // CIA#1 (Data Direction Register A)
 
@@ -26,8 +28,6 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-#import "nv_screen_macs.asm"
-#import "nv_debug_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // init everything we need to capture keys.
@@ -48,7 +48,7 @@
     lda #$00        // CIA#1 port B = inputs
     sta DDRB             
 
-    // start out with last pressed as 0
+    // start out with last pressed as NO KEY
     ldx #NV_KEY_NO_KEY
     stx nv_key_last_pressed
 }
@@ -76,96 +76,94 @@
 // called repeatedly in order get any keyboard info
 .macro nv_key_scan()
 {
+    // save the previous key pressed first
+    lda nv_key_last_pressed
+    sta nv_key_prev_pressed
+    lda #NV_KEY_NO_KEY
+    sta nv_key_last_pressed
+
 CheckCol0:
     lda #$FE        // testing column 0 (COL0) of the matrix
     sta PRA
 
     lda PRB
-    cmp #$FF
+    cmp #$FF        // If $FF then no keys in this col
     beq CheckCol1
 HaveCol0:
-    //sta nv_g8
-    test_for_char_with_table(nv_key_col0_table)
+    test_for_char_with_table(nv_key_col0_table, nv_key_last_pressed)
 
 CheckCol1:
     lda #$FD        // testing column 1 (COL1) of the matrix
     sta PRA
 
     lda PRB
-    cmp #$FF
+    cmp #$FF        // If $FF then no keys in this col
     beq CheckCol2
 HaveCol1:
-    //sta nv_g8
-    test_for_char_with_table(nv_key_col1_table)
+    test_for_char_with_table(nv_key_col1_table, nv_key_last_pressed)
 
 CheckCol2:
     lda #$FB        // testing column 2 (COL2) of the matrix
     sta PRA
 
     lda PRB
-    cmp #$FF
+    cmp #$FF        // If $FF then no keys in this col
     beq CheckCol3
 HaveCol2:
-    //sta nv_g8
-    test_for_char_with_table(nv_key_col2_table)
+    test_for_char_with_table(nv_key_col2_table, nv_key_last_pressed)
 
 CheckCol3:
     lda #$F7        // testing column 3 (COL3) of the matrix
     sta PRA
 
     lda PRB
-    cmp #$FF
+    cmp #$FF        // If $FF then no keys in this col
     beq CheckCol4
 HaveCol3:
-    //sta nv_g8
-    test_for_char_with_table(nv_key_col3_table)
+    test_for_char_with_table(nv_key_col3_table, nv_key_last_pressed)
 
 CheckCol4:
     lda #$EF        // testing column 4 (COL4) of the matrix
     sta PRA
 
     lda PRB
-    cmp #$FF
+    cmp #$FF        // If $FF then no keys in this col
     beq CheckCol5
 HaveCol4:
-    //sta nv_g8
-    test_for_char_with_table(nv_key_col4_table)
+    test_for_char_with_table(nv_key_col4_table, nv_key_last_pressed)
 
 CheckCol5:
     lda #$DF        // testing column 5 (COL5) of the matrix
     sta PRA
 
     lda PRB
-    cmp #$FF
+    cmp #$FF        // If $FF then no keys in this col
     beq CheckCol6
 HaveCol5:
-    //sta nv_g8
-    test_for_char_with_table(nv_key_col5_table)
+    test_for_char_with_table(nv_key_col5_table, nv_key_last_pressed)
 
 CheckCol6:
     lda #$BF        // testing column 6 (COL6) of the matrix
     sta PRA
 
     lda PRB
-    cmp #$FF
+    cmp #$FF        // If $FF then no keys in this col
     beq CheckCol7
 HaveCol6:
-    //sta nv_g8
-    test_for_char_with_table(nv_key_col6_table)
+    test_for_char_with_table(nv_key_col6_table, nv_key_last_pressed)
 
 CheckCol7:
     lda #$7F        // testing column 7 (COL7) of the matrix
     sta PRA
 
     lda PRB
-    cmp #$FF
+    cmp #$FF        // If $FF then no keys in this col
     beq Bottom
 HaveCol7:
-    //sta nv_g8
-    test_for_char_with_table(nv_key_col7_table)
+    test_for_char_with_table(nv_key_col7_table, nv_key_last_pressed)
     
 Bottom:
-    //nv_screen_poke_hex_byte_mem(2, 0, nv_g8, true)
+Done:
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -173,12 +171,9 @@ Bottom:
 // macro params:
 //   addr_for_last: is the memory location to copy the code for last
 //                  pressed key
-//   clear: set to true to clear the last key, or false to leave it
-//          for the next call.  Clearing means until another key
-//          is pressed, calls to this will return NV_KEY_NO_KEY
-.macro nv_key_get_last_pressed(addr_for_last, clear)
+.macro nv_key_get_last_pressed_mem(addr_for_last)
 {
-    nv_key_get_last_pressed_a(clear)
+    nv_key_get_last_pressed_a()
     sta addr_for_last
 }
 
@@ -186,22 +181,28 @@ Bottom:
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to copy last pressed key into accumulator
 // macro params:
-//   clear: set to true to clear the last key, or false to leave it
-//          for the next call.  Clearing means until another key
-//          is pressed, calls to this will return NV_KEY_NO_KEY
-.macro nv_key_get_last_pressed_a(clear)
+.macro nv_key_get_last_pressed_a()
 {
     lda nv_key_last_pressed
-    .if (clear)
-    {
-        ldy #NV_KEY_NO_KEY
-        sty nv_key_last_pressed
-    }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to copy previous pressed key into Y reg
+// if you call functions in this order you can determine if the key press
+// is repeating or a new key from the last one
+//   nv_key_scan()
+//   nv_key_get_last_pressed_a()
+//   nv_key_get_prev_pressed_y()
+//   *** Here, if (Accum == Y Reg) then repeating, else new key ***
+// macro params:
+.macro nv_key_get_prev_pressed_y()
+{
+    ldy nv_key_prev_pressed
+}
 
 //////////////////////////////////////////////////////////////////////////////
-// inline macro that pokes a char based on the bits in the accum
+// inline macro that stores a char into the last pressed variable 
+// if the bits in the accum indciate that a char was hit.
 // which are assumed to be read from one of the rows of the keyboard 
 // matrix. basically for each 0 bit in the accume a char (the corresponding
 // macro parameter) is poked to the screen 
@@ -213,14 +214,14 @@ Bottom:
 //               for example if table_addr holds these 8 values:
 //                 1, 2, 3, 4, 5, 6, 7, 8
 //               and accum has $FB  then a 6 will be poked to the screen
-.macro test_for_char_with_table(table_addr)
+.macro test_for_char_with_table(table_addr, key_pressed_adder)
 {
     ldx #0
 TryBit:
     ror
     bcs TryNextBit              // this key not hit
-    ldy table_addr, x           // get value to poke to screen from table
-    sty nv_key_last_pressed
+    ldy table_addr, x           // get value of key from table in Y reg
+    sty key_pressed_adder
     //nv_screen_poke_char_y(2, 0) // poke to screen.  
 TryNextBit:
     inx
@@ -253,7 +254,7 @@ IsInitialized:
     nv_key_wait_no_key()
 Loop:
     nv_key_scan()
-    nv_key_get_last_pressed_a(true)
+    nv_key_get_last_pressed_a()
     cmp #NV_KEY_NO_KEY
     bne Done 
     jmp Loop
@@ -268,7 +269,7 @@ Done:
 {
 Loop:
     nv_key_scan()
-    nv_key_get_last_pressed_a(true)
+    nv_key_get_last_pressed_a()
     cmp #NV_KEY_NO_KEY
     beq Done 
     jmp Loop
