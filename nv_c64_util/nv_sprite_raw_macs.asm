@@ -534,7 +534,7 @@ DebugPrint:
     nv_screen_plot_cursor(24,34)
     nv_screen_print_hex_word(rel_dist_addr, true)
 
-    nv_screen_wait_anykey()
+    nv_key_wait_any_key()
 */
 }
 
@@ -604,7 +604,7 @@ DebugPrint:
     nv_screen_plot_cursor(24,34)
     nv_screen_print_hex_word(rel_dist_addr, true)
 
-    nv_screen_wait_anykey()
+    nv_key_wait_any_key()
 */
 }
 

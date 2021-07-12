@@ -267,7 +267,7 @@ HandleCollision:
 
         //nv_screen_plot_cursor(0, 15)
         //nv_screen_print_hex_byte_at_addr(closest_sprite, true)
-        //nv_screen_wait_anykey()
+        //nv_key_wait_any_key()
 
 IgnoreCollision:
         jmp MainLoop

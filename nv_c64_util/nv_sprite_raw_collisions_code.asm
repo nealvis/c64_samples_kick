@@ -305,7 +305,7 @@ DebugRelDist:
     // temp
     nv_debug_print_labeled_word_mem_coll(7, 0, temp_label_str, 12, nv_g16, true, false)
 
-    //nv_screen_wait_anykey()
+    //nv_key_wait_any_key()
     rts
 closest_label_str: .text  @"closest\$00"
 temp_label_str:  .text  @"temp\$00"

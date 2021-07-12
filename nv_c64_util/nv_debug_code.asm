@@ -34,7 +34,7 @@ here7_str: .text @"HERE 7 \$00"
     nv_screen_print_string_basic(here_str)
     .if (wait != false)
     {
-            nv_screen_wait_anykey()
+            nv_key_wait_any_key()
     }
     nv_screen_plot_cursor(row, col)
     nv_screen_print_string_basic(clear_here_str)
@@ -52,7 +52,7 @@ here7_str: .text @"HERE 7 \$00"
     nv_screen_plot_cursor(row, col)
     nv_screen_print_string_basic(here_str)
     nv_screen_print_hex_word_immediate(immed_value, true)
-    nv_screen_wait_anykey()
+    nv_key_wait_any_key()
     nv_debug_restore_state()
 }
 */
@@ -81,7 +81,8 @@ here7_str: .text @"HERE 7 \$00"
     lda nv_e8
     beq NoWait
 Wait:
-    nv_screen_wait_anykey()
+    //nv_key_wait_any_key()
+    jsr NvKeyWaitAnyKey
 
 NoWait:
     nv_debug_restore_state()
@@ -111,7 +112,8 @@ NoWait:
     lda nv_e8
     beq NoWait
 Wait:
-    nv_screen_wait_anykey()
+    //nv_key_wait_any_key()
+    jsr NvKeyWaitAnyKey
 
 NoWait:
     nv_debug_restore_state()
@@ -142,7 +144,8 @@ NoWait:
     lda nv_e8
     beq NoWait
 Wait:
-    nv_screen_wait_anykey()
+    //nv_key_wait_any_key()
+    jsr NvKeyWaitAnyKey
 
 NoWait:
     nv_debug_restore_state()
@@ -197,7 +200,8 @@ NoWait:
     lda nv_e8
     beq NoWait
 Wait:
-    nv_screen_wait_anykey()
+    //nv_key_wait_any_key()
+    jsr NvKeyWaitAnyKey
 
 NoWait:
 
@@ -260,7 +264,8 @@ NoWait:
     lda nv_e8
     beq NoWait
 Wait:
-    nv_screen_wait_anykey()
+    //nv_key_wait_any_key()
+    jsr NvKeyWaitAnyKey
 
 NoWait:
 
@@ -388,6 +393,10 @@ NvDebugPrintByte:
 //   nv_e8: pass true to wait for a key after printing
 NvDebugPrintWord:
     nv_debug_print_word_sr()
+
+
+#import "nv_keyboard_code.asm"
+
 
 //////////////////////////////////////////////////////////////////////////////
 //NvDebugPrintHere:
