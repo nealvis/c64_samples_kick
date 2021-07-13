@@ -150,6 +150,7 @@ background_color: .byte NV_COLOR_BLACK
 
     // clear the screen just to have an empty canvas
     nv_screen_clear()
+    jsr CreateField
 
     nv_screen_set_border_color_mem(border_color)
     nv_screen_set_background_color_mem(background_color)
@@ -196,6 +197,7 @@ background_color: .byte NV_COLOR_BLACK
     .var showFrameCounters = false
         
     nv_key_init()
+    nv_rand_init()
         
 MainLoop:
 
@@ -235,6 +237,7 @@ PartialSecond2:
     {
         nv_screen_poke_hex_word_mem(0, 0, frame_counter, true)
     }
+    jsr UpdateField
 
     //// call function to move sprites around based on X and Y velocity
     // but only modify the position in their extra data block not on screen
@@ -319,14 +322,14 @@ ProgramDone:
         // Done moving sprites, move cursor out of the way 
         // and return, but leave the sprites on the screen
         // also set border color to normal
-        //lda #NV_COLOR_LITE_BLUE
-        //sta BORDER_COLOR_REG_ADDR
         nv_screen_set_border_color_immed(NV_COLOR_LITE_BLUE)
         nv_screen_set_background_color_immed(NV_COLOR_BLUE)
 
         nv_key_done()
+        nv_rand_done()
 
         nv_screen_plot_cursor(5, 24)
+        nv_screen_clear()
         rts   // program done, return
 
 
@@ -442,10 +445,10 @@ WaitNoKey:
 ChangeUp:
         ldx cycling_color
         inx
-        cpx #NV_COLOR_BLUE // blue is default backgroumd, so skip that one
-        bne NotBlue
+        cpx background_color // this is backgroumd, so skip that one
+        bne NotBG
         inx
-NotBlue:
+NotBG:
         cpx #NV_COLOR_LAST + 1
         bne SetColor
         ldx #NV_COLOR_FIRST
@@ -464,8 +467,74 @@ SkipShipMax:
         sta asteroid_1.y_vel
 
 SkipAsteroidMin:
+
         rts
 
+//////////////////////////////////////////////////////////////////////////////
+// CreateField subroutine
+CreateField:
+    lda #46
+    ldx #NV_COLOR_DARK_GREY
+    nv_screen_poke_color_char_ax(3, 12)
+    nv_screen_poke_color_char_ax(10, 35)
+    nv_screen_poke_color_char_ax(4, 20)
+    nv_screen_poke_color_char_ax(15, 25)
+    nv_screen_poke_color_char_ax(20, 37)
+    nv_screen_poke_color_char_ax(23, 27)
+    nv_screen_poke_color_char_ax(7, 15)
+    nv_screen_poke_color_char_ax(22, 38)
+    nv_screen_poke_color_char_ax(6, 4)
+    nv_screen_poke_color_char_ax(24, 5)
+    nv_screen_poke_color_char_ax(12, 28)
+    nv_screen_poke_color_char_ax(6, 17)
+
+    lda #81
+    nv_screen_poke_color_char_ax(14, 22)
+    nv_screen_poke_color_char_ax(07, 9)
+    nv_screen_poke_color_char_ax(21, 14)
+
+    rts
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+UpdateField:
+    nv_rand_color_a()
+    nv_screen_poke_color_a(3, 12)
+    //nv_screen_poke_color_a(10, 35)
+    nv_screen_poke_color_a(4, 20)
+    nv_rand_color_a()
+    nv_screen_poke_color_a(15, 25)
+    //nv_screen_poke_color_a(20, 37)
+    //nv_screen_poke_color_a(23, 27)
+    nv_screen_poke_color_a(7, 15)
+    nv_rand_color_a()
+    nv_screen_poke_color_a(22, 38)
+    nv_screen_poke_color_a(6, 4)
+    nv_rand_color_a()
+    nv_screen_poke_color_a(24, 5)
+    //nv_screen_poke_color_a(12, 28)
+    nv_screen_poke_color_a(6, 17)
+
+    //nv_screen_poke_color_a(14, 22)
+    //nv_rand_color_a()
+    //nv_screen_poke_color_a(07, 9)
+    //nv_screen_poke_color_a(21, 14)
+   
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+// Subroutine to set all character colors for the whole screen to the color
+// in the accumulator
+// subroutine params:
+//   Accum: the color (0-15) to put in screen color memory for all locations 
+SetAllCharColorA:
+    nv_screen_poke_all_color_a()
+    rts
+
+SetAllCharA:
+    nv_screen_poke_all_char_a()
+    rts
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1

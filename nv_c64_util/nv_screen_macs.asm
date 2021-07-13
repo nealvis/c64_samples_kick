@@ -30,7 +30,10 @@
 .const NV_SCREEN_PLOT_CURSOR_KERNAL_ADDR = $FFF0    
 
 // The start of c64 screen memory.  its 1000 bytes long
-.const SCREEN_START = $0400       
+.const SCREEN_START = $0400
+
+// the start of character color memory
+.const SCREEN_COLOR_START = $D800
 
 // a somewhat random location in screen memory to write to directly
 .const SCREEN_DIRECT_START = SCREEN_START + $0100 
@@ -225,6 +228,107 @@ Done:
     .var screen_poke_start = SCREEN_START + (40*row) + col 
     stx screen_poke_start
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// inline macro to poke a the foreground color for a char to the 
+// screen at row/col
+// does not change any registers
+// macro params:
+//   row: screen row (0-24)
+//   col: screen col (0-39)
+//   Accum: the char to poke
+.macro nv_screen_poke_color_a(row, col)
+{
+    .var screen_poke_start = SCREEN_COLOR_START + (40*row) + col 
+    sta screen_poke_start
+}
+
+//////////////////////////////////////////////////////////////////////////
+// inline macro to poke a character and a color to the screen 
+// at row/col
+// does not change any registers
+// macro params:
+//   row: screen row (0-24)
+//   col: screen col (0-39)
+//   Accum: the char to poke
+//   X Reg: the color to poke
+.macro nv_screen_poke_color_char_ax(row, col)
+{
+    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    sta screen_poke_start
+
+    .var screen_poke_color_start = SCREEN_COLOR_START + (40*row) + col 
+    stx screen_poke_color_start
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_screen_poke_all_color_a()
+{
+    .var screen_poke_color_start0 = SCREEN_COLOR_START+(256*0)
+    .var screen_poke_color_start1 = SCREEN_COLOR_START+(256*1)
+    .var screen_poke_color_start2 = SCREEN_COLOR_START+(256*2)
+    .var screen_poke_color_start3 = SCREEN_COLOR_START+(256*3)
+
+    ldx #0
+Loop0:
+    sta screen_poke_color_start0,x
+    inx
+    cpx #0  
+    bne Loop0
+Loop1:
+    sta screen_poke_color_start1,x
+    inx
+    cpx #0  
+    bne Loop1
+Loop2:
+    sta screen_poke_color_start2,x
+    inx
+    cpx #0  
+    bne Loop2
+
+Loop3:
+    sta screen_poke_color_start3,x
+    inx
+    cpx #232
+    bne Loop3
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+.macro nv_screen_poke_all_char_a()
+{
+    .var screen_poke_start0 = SCREEN_START+(256*0)
+    .var screen_poke_start1 = SCREEN_START+(256*1)
+    .var screen_poke_start2 = SCREEN_START+(256*2)
+    .var screen_poke_start3 = SCREEN_START+(256*3)
+
+    ldx #0
+Loop0:
+    sta screen_poke_start0,x
+    inx
+    cpx #0  
+    bne Loop0
+Loop1:
+    sta screen_poke_start1,x
+    inx
+    cpx #0  
+    bne Loop1
+Loop2:
+    sta screen_poke_start2,x
+    inx
+    cpx #0  
+    bne Loop2
+
+Loop3:
+    sta screen_poke_start3,x
+    inx
+    cpx #232
+    bne Loop3
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that represent
