@@ -53,7 +53,7 @@ rand_color_label_str: .text @"RANDOM COLOR: \$00"
     test_random_color_a(0)
 
     nv_rand_done()
-    
+
     rts
 
 
@@ -70,28 +70,49 @@ rand_color_label_str: .text @"RANDOM COLOR: \$00"
     .eval row++
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_byte_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_byte_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_byte_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_byte_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_byte_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_byte_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_byte_a(row++)
+
 
 
     wait_and_clear_at_row(row)
@@ -110,24 +131,81 @@ rand_color_label_str: .text @"RANDOM COLOR: \$00"
     .eval row++
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_color_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_color_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_color_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_color_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
 
     /////////////////////////////
-    nv_screen_plot_cursor(row++, 0)
-    print_rand_color_a()
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
+    /////////////////////////////
+    nv_screen_plot_cursor(row, 0)
+    print_rand_color_a(row++)
+
 
     wait_and_clear_at_row(row)
 }
@@ -159,7 +237,7 @@ rand_color_label_str: .text @"RANDOM COLOR: \$00"
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the random number generated
-.macro print_rand_byte_a()
+.macro print_rand_byte_a(row)
 {
     nv_screen_print_str(rand_byte_label_str)
     nv_screen_plot_cursor_col(15)
@@ -169,11 +247,18 @@ rand_color_label_str: .text @"RANDOM COLOR: \$00"
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to print the random number generated
-.macro print_rand_color_a()
+.macro print_rand_color_a(row)
 {
     nv_screen_print_str(rand_color_label_str)
     nv_screen_plot_cursor_col(15)
     nv_rand_color_a()
+    sta scratch_byte
     nv_screen_print_hex_byte_a(true)
-
+    ldx scratch_byte
+    lda #224
+    nv_screen_poke_color_char_ax(row, 20)
+    nv_screen_poke_color_char_ax(row, 21)
+    nv_screen_poke_color_char_ax(row, 22)
+    nv_screen_poke_color_char_ax(row, 23)
+    nv_screen_poke_color_char_ax(row, 24)
 }
