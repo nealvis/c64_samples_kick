@@ -43,9 +43,10 @@
 
 .macro nv_rand_done()
 {
+/*
     lda #$00                        // back to 0 for these locations
     sta VOICE_3_FREQ_REG_ADDR       
     sta VOICE_3_FREQ_REG_ADDR+1     
     sta VOICE_3_CONTROL_REG_ADDR    
-
+*/
 }

@@ -253,7 +253,7 @@ Done:
 //   col: screen col (0-39)
 //   Accum: the char to poke
 //   X Reg: the color to poke
-.macro nv_screen_poke_color_char_ax(row, col)
+.macro nv_screen_poke_color_char_xa(row, col)
 {
     .var screen_poke_start = SCREEN_START + (40*row) + col 
     sta screen_poke_start

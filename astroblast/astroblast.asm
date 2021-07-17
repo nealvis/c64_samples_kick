@@ -193,11 +193,15 @@ background_color: .byte NV_COLOR_BLACK
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = false
+    .var showTiming = true
     .var showFrameCounters = false
         
     nv_key_init()
     nv_rand_init()
+
+    // initialize song 0
+    lda #0
+    jsr $8000
         
 MainLoop:
 
@@ -284,6 +288,8 @@ NoChangeUp:
         //sta BORDER_COLOR_REG_ADDR              // visualize timing
     }
 
+    jsr $8003
+
     //// call routine to update sprite x and y positions on screen
     jsr ship_1.SetLocationFromExtraData
     jsr ship_2.SetLocationFromExtraData
@@ -324,6 +330,8 @@ ProgramDone:
         // also set border color to normal
         nv_screen_set_border_color_immed(NV_COLOR_LITE_BLUE)
         nv_screen_set_background_color_immed(NV_COLOR_BLUE)
+
+        jsr $8000
 
         nv_key_done()
         nv_rand_done()
@@ -475,23 +483,32 @@ SkipAsteroidMin:
 CreateField:
     lda #46
     ldx #NV_COLOR_DARK_GREY
-    nv_screen_poke_color_char_ax(3, 12)
-    nv_screen_poke_color_char_ax(10, 35)
-    nv_screen_poke_color_char_ax(4, 20)
-    nv_screen_poke_color_char_ax(15, 25)
-    nv_screen_poke_color_char_ax(20, 37)
-    nv_screen_poke_color_char_ax(23, 27)
-    nv_screen_poke_color_char_ax(7, 15)
-    nv_screen_poke_color_char_ax(22, 38)
-    nv_screen_poke_color_char_ax(6, 4)
-    nv_screen_poke_color_char_ax(24, 5)
-    nv_screen_poke_color_char_ax(12, 28)
-    nv_screen_poke_color_char_ax(6, 17)
+    nv_screen_poke_color_char_xa(3, 12)
+    nv_screen_poke_color_char_xa(10, 35)
+    nv_screen_poke_color_char_xa(4, 20)
+    nv_screen_poke_color_char_xa(15, 25)
+    nv_screen_poke_color_char_xa(20, 37)
+    nv_screen_poke_color_char_xa(23, 27)
+    nv_screen_poke_color_char_xa(7, 15)
+    nv_screen_poke_color_char_xa(22, 38)
+    nv_screen_poke_color_char_xa(6, 4)
+    nv_screen_poke_color_char_xa(24, 5)
+    nv_screen_poke_color_char_xa(12, 28)
+    nv_screen_poke_color_char_xa(6, 17)
 
     lda #81
-    nv_screen_poke_color_char_ax(14, 22)
-    nv_screen_poke_color_char_ax(07, 9)
-    nv_screen_poke_color_char_ax(21, 14)
+    nv_screen_poke_color_char_xa(14, 22)
+    nv_screen_poke_color_char_xa(07, 9)
+    nv_screen_poke_color_char_xa(21, 14)
+
+    ldx #NV_COLOR_GREY
+    lda #$7C    // commet head
+    nv_screen_poke_color_char_xa(17, 6)
+
+    ldx #NV_COLOR_LITE_GREY
+    lda #$4E   // commet trail
+    nv_screen_poke_color_char_xa(16, 7)
+
 
     rts
 
@@ -1017,3 +1034,7 @@ DebugShipCollisionSprite:
     nv_debug_print_labeled_byte_mem(0, 0, ship_collision_label_str, 22, nv_b8, true, false)
     rts
 */
+
+
+*=$8000 "music"
+.import binary "astro_sound.bin"
