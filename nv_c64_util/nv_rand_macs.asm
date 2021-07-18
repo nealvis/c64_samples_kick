@@ -16,28 +16,48 @@
 
 .const VOICE_3_FREQ_REG_ADDR = $D40E
 .const VOICE_3_CONTROL_REG_ADDR = $D412
+.const VOICE_3_WAVE_OUTPUT = $D41B
 
 
-.macro nv_rand_init()
+.macro nv_rand_init(pre_calc)
 {
     lda #$FF                        // load accum with max freq value
     sta VOICE_3_FREQ_REG_ADDR       // low byte
     sta VOICE_3_FREQ_REG_ADDR+1     // high byte
     lda #$80                        // value for noise waveform and gate off
     sta VOICE_3_CONTROL_REG_ADDR    // store vals to voice 3 control reg
+    lda #$00
+    sta nv_rand_index
+    .if (pre_calc)
+    {
+        ldx #0
+    Loop:
+        lda VOICE_3_WAVE_OUTPUT
+        sta nv_rand_bytes, x
+        inx
+        bne Loop
+    }
 }
 
 // load accum with random byte
-.macro nv_rand_byte_a()
+.macro nv_rand_byte_a(pre_calc)
 {
-    .const VOICE_3_WAVE_OUTPUT = $D41B
-    lda VOICE_3_WAVE_OUTPUT
+    .if (pre_calc)
+    {
+        inc nv_rand_index
+        ldx nv_rand_index
+        lda nv_rand_bytes, x
+    }
+    else
+    {
+        lda VOICE_3_WAVE_OUTPUT
+    }
 }
 
 // load accum with random byte
-.macro nv_rand_color_a()
+.macro nv_rand_color_a(pre_calc)
 {
-    nv_rand_byte_a()
+    nv_rand_byte_a(pre_calc)
     and #$0F
 }
 

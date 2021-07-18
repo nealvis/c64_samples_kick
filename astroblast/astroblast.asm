@@ -193,11 +193,11 @@ background_color: .byte NV_COLOR_BLACK
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = true
+    .var showTiming = false
     .var showFrameCounters = false
         
     nv_key_init()
-    nv_rand_init()
+    nv_rand_init(true)
 
     // initialize song 0
     lda #0
@@ -516,25 +516,25 @@ CreateField:
 //////////////////////////////////////////////////////////////////////////////
 //
 UpdateField:
-    nv_rand_color_a()
+    nv_rand_color_a(true)
     nv_screen_poke_color_a(3, 12)
     //nv_screen_poke_color_a(10, 35)
     nv_screen_poke_color_a(4, 20)
-    nv_rand_color_a()
+    nv_rand_color_a(true)
     nv_screen_poke_color_a(15, 25)
     //nv_screen_poke_color_a(20, 37)
     //nv_screen_poke_color_a(23, 27)
     nv_screen_poke_color_a(7, 15)
-    nv_rand_color_a()
+    nv_rand_color_a(true)
     nv_screen_poke_color_a(22, 38)
     nv_screen_poke_color_a(6, 4)
-    nv_rand_color_a()
+    nv_rand_color_a(true)
     nv_screen_poke_color_a(24, 5)
     //nv_screen_poke_color_a(12, 28)
     nv_screen_poke_color_a(6, 17)
 
     //nv_screen_poke_color_a(14, 22)
-    //nv_rand_color_a()
+    //nv_rand_color_a(true)
     //nv_screen_poke_color_a(07, 9)
     //nv_screen_poke_color_a(21, 14)
    
