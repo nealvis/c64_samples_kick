@@ -19,6 +19,7 @@
 
 #import "nv_sprite_macs.asm"
 #import "nv_sprite_extra_macs.asm"
+#import "nv_sprite_raw_macs.asm"
 #import "nv_math16_macs.asm"
 
 .macro nv_sprite_load_extra_ptr()
@@ -653,6 +654,62 @@ max_position: .byte 0
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// enable a sprite and update its sprite_enabled flag in its extra data
+// To call subroutine setup the following then JSR
+// Accum: MSB of address of nv_sprite_extra_data
+// X Reg: LSB of address of the nv_sprite_extra_data
+.macro nv_sprite_extra_enable_sr()
+{
+    nv_sprite_standard_save(SaveBlock)
+
+    nv_sprite_load_extra_ptr()
+
+    // set enabled flag in extra
+    lda #$01
+    nv_sprite_a_to_extra(NV_SPRITE_ENABLED_OFFSET)
+
+    // get sprite number in accum
+    nv_sprite_extra_byte_to_a(NV_SPRITE_NUM_OFFSET)
+
+    // now enable the sprite 
+    nv_sprite_raw_enable_from_reg()
+
+    nv_sprite_standard_restore(SaveBlock)
+    rts
+    
+SaveBlock:
+    nv_sprite_standard_alloc()
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// disable a sprite and update its sprite_enabled flag in its extra data
+// To call subroutine setup the following then JSR
+// Accum: MSB of address of nv_sprite_extra_data
+// X Reg: LSB of address of the nv_sprite_extra_data
+.macro nv_sprite_extra_disable_sr()
+{
+    nv_sprite_standard_save(SaveBlock)
+
+    nv_sprite_load_extra_ptr()
+
+    // clear enabled flag in extra
+    lda #$00
+    nv_sprite_a_to_extra(NV_SPRITE_ENABLED_OFFSET)
+
+    // get sprite number in accum
+    nv_sprite_extra_byte_to_a(NV_SPRITE_NUM_OFFSET)
+
+    // now enable the sprite 
+    nv_sprite_raw_disable_from_reg()
+
+    nv_sprite_standard_restore(SaveBlock)
+    rts
+    
+SaveBlock:
+    nv_sprite_standard_alloc()
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Instantiate macros that need to be instantiated below here
@@ -688,8 +745,11 @@ NvSpriteMoveInExtraNegX:
 NvSpriteMoveInExtraPosX:
     nv_sprite_move_in_extra_pos_x_sr()
 
+NvSpriteExtraEnable:
+    nv_sprite_extra_enable_sr()
 
-
+NvSpriteExtraDisable:
+    nv_sprite_extra_disable_sr()
 
 
 

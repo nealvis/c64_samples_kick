@@ -195,6 +195,24 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
+// macro to disable a specified sprite
+// Subroutine params:
+//   Accum: set to the sprite number for the sprite to be dissabled
+//  
+.macro nv_sprite_raw_enable_from_reg()
+{
+    // change sprite number to negated sprite mask
+    nv_mask_from_bit_num_a(false)
+
+    // negated mask now in accum
+    ora NV_SPRITE_ENABLE_REG_ADDR
+    
+    // store back in HW Reg with the bit cleared for this sprite
+    sta NV_SPRITE_ENABLE_REG_ADDR
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
 // inline Macro to set the sprite's one color
 //   sprite_num: is the sprite number (0-7 are valid values)
 //   sprite_data_addr: is the address where the 64 bytes of data for the

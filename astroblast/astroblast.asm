@@ -204,6 +204,8 @@ background_color: .byte NV_COLOR_BLACK
     // initialize song 0
     jsr SoundInit
 
+    lda #$02
+    jsr SoundVolumeSet
         
 MainLoop:
 
@@ -309,8 +311,12 @@ NoChangeUp:
     jsr ship_1.CheckShipCollision
     lda ship_1.collision_sprite     // closest_sprite, will be $FF 
     bmi NoCollisionShip1        // if no collisions so check minus
-HandleCollisionShip1:         
-    nv_sprite_raw_disable_from_mem(ship_1.collision_sprite)
+HandleCollisionShip1:
+    // get extra pointer for the sprite that ship1 collided with loaded
+    // so that we can then disable it
+    ldy ship_1.collision_sprite
+    jsr AstroSpriteExtraPtrToRegs 
+    jsr NvSpriteExtraDisable
 
 NoCollisionShip1:
 
@@ -320,7 +326,12 @@ NoCollisionShip1:
     lda ship_2.collision_sprite     // closest_sprite, will be $FF
     bmi NoCollisionShip2        // if no collisions so check minus
 HandleCollisionShip2:
-    nv_sprite_raw_disable_from_mem(ship_2.collision_sprite)
+    // get extra pointer for the sprite that ship1 collided with loaded
+    // so that we can then disable it
+    ldy ship_2.collision_sprite
+    jsr AstroSpriteExtraPtrToRegs 
+    jsr NvSpriteExtraDisable
+
 NoCollisionShip2:
 
     jmp MainLoop
@@ -471,7 +482,7 @@ WaitNoKey:
 ChangeUp:
         ldx cycling_color
         inx
-        cpx background_color // this is backgroumd, so skip that one
+        cpx background_color // this is background color, so skip that one
         bne NotBG
         inx
 NotBG:
@@ -494,7 +505,13 @@ SkipShipMax:
 
 SkipAsteroidMin:
 
-        rts
+CheckDisabled:
+    jsr asteroid_1.Enable
+    jsr asteroid_2.Enable
+    jsr asteroid_3.Enable
+    jsr asteroid_4.Enable
+    jsr asteroid_5.Enable
+    rts
 
 //////////////////////////////////////////////////////////////////////////////
 // CreateField subroutine
@@ -581,8 +598,8 @@ SetAllCharA:
                                           sprite_asteroid_1, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
-
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          0)          // sprite enabled
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
@@ -591,6 +608,11 @@ SetAllCharA:
 // sprite extra data
 sprite_extra: 
         nv_sprite_extra_data(info)
+
+LoadExtraPtrToRegs:
+    lda #>info.base_addr
+    ldx #<info.base_addr
+    rts
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
@@ -618,7 +640,9 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable_sr(info.num)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_enable_sr()
         
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -636,8 +660,8 @@ SetWrapAllOn:
                                           sprite_asteroid_2, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
-
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          0)          // sprite enabled
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
@@ -646,6 +670,11 @@ SetWrapAllOn:
 // sprite extra data
 sprite_extra:
         nv_sprite_extra_data(info)
+
+LoadExtraPtrToRegs:
+    lda #>info.base_addr
+    ldx #<info.base_addr
+    rts
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
@@ -673,7 +702,9 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable_sr(info.num)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_enable_sr()
         
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -693,7 +724,8 @@ SetWrapAllOn:
                                           sprite_asteroid_3, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          0)          // sprite enabled
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -703,6 +735,12 @@ SetWrapAllOn:
 // sprite extra data
 sprite_extra:
         nv_sprite_extra_data(info)
+
+LoadExtraPtrToRegs:
+    lda #>info.base_addr
+    ldx #<info.base_addr
+    rts
+
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
@@ -730,7 +768,9 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable_sr(info.num)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_enable_sr()
 
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -749,7 +789,8 @@ SetWrapAllOn:
                                           sprite_asteroid_4, 
                                           sprite_extra, 
                                           0, 0, 0, 0, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          0)          // sprite enabled
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -759,6 +800,12 @@ SetWrapAllOn:
 // sprite extra data
 sprite_extra:
         nv_sprite_extra_data(info)
+
+LoadExtraPtrToRegs:
+    lda #>info.base_addr
+    ldx #<info.base_addr
+    rts
+
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
@@ -786,7 +833,9 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable_sr(info.num)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_enable_sr()
 
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -805,7 +854,8 @@ SetWrapAllOn:
                                           sprite_asteroid_5, 
                                           sprite_extra, 
                                           0, 0, 0, 0, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          0)          // sprite enabled
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -815,6 +865,12 @@ SetWrapAllOn:
 // sprite extra data
 sprite_extra:
         nv_sprite_extra_data(info)
+
+LoadExtraPtrToRegs:
+    lda #>info.base_addr
+    ldx #<info.base_addr
+    rts
+
 
 // subroutine to set sprites location in sprite registers based on the extra data
 SetLocationFromExtraData:
@@ -842,7 +898,9 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable_sr(info.num)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_enable_sr()
         
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -861,7 +919,8 @@ SetWrapAllOn:
                                           sprite_ship, 
                                           sprite_extra, 
                                           1, 0, 1, 0, // bounce on top, left, bottom, right  
-                                          0, 0, 75, 0) // min/max top, left, bottom, right
+                                          0, 0, 75, 0, // min/max top, left, bottom, right
+                                          0)          // sprite enabled
 
         .var sprite_num = info.num
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
@@ -876,6 +935,11 @@ sprite_extra:
 
 // will be $FF (no collision) or sprite number of sprite colliding with
 collision_sprite: .byte 0 
+
+LoadExtraPtrToRegs:
+    lda #>info.base_addr
+    ldx #<info.base_addr
+    rts
 
 // subroutine to set the sprites location based on its address in extra block 
 SetLocationFromExtraData:
@@ -902,7 +966,9 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable_sr(info.num)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_enable_sr()
 
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -952,8 +1018,9 @@ label_vel_x_str: .text @"vel x: \$00"
                                         22, 200, 4, 1,  // init x, y, VelX, VelY 
                                         sprite_ship, 
                                         sprite_extra, 
-                                        1, 0, 1, 0, // bounce on top, left, bottom, right  
-                                        150, 0, 0, 0) // min/max top, left, bottom, right
+                                        1, 0, 1, 0,   // bounce on top, left, bottom, right  
+                                        150, 0, 0, 0, // min/max top, left, bottom, right
+                                        0)            // sprite enabled
 
     .var sprite_num = info.num
     .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
@@ -967,8 +1034,16 @@ label_vel_x_str: .text @"vel x: \$00"
 sprite_extra:
         nv_sprite_extra_data(info)
 
+
+
 // will be $FF (no collision) or sprite number of sprite colliding with
 collision_sprite: .byte 0
+
+LoadExtraPtrToRegs:
+    lda #>info.base_addr
+    ldx #<info.base_addr
+    rts
+
 
 // subroutine to set the sprites location based on its address in extra block 
 SetLocationFromExtraData:
@@ -995,7 +1070,9 @@ MoveInExtraData:
         nv_sprite_move_any_direction_sr(info)
 
 Enable:
-        nv_sprite_raw_enable_sr(info.num)
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_enable_sr()
 
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -1036,6 +1113,79 @@ label_vel_x_str: .text @"vel x: \$00"
 
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to load registers with a pointer to the sprite extra data 
+// for the sprite number that is in the Y register
+// Input Params:
+//   Y Reg: the sprite number who's extra pointer should be loaded
+//          this must be a number from 0 to 7
+// Output:
+//   Accum: MSB of the extra pointer for the sprite
+//   X Reg: LSB of the extra pointer for the sprite
+AstroSpriteExtraPtrToRegs:
+    
+TrySprite0:
+    cpy #$00
+    bne TrySprite1
+IsSprite0:
+    jsr ship_1.LoadExtraPtrToRegs
+    jmp SpriteExtraPtrLoaded
+
+TrySprite1:
+    cpy #$01
+    bne TrySprite2
+IsSprite1:
+    jsr asteroid_1.LoadExtraPtrToRegs
+    jmp SpriteExtraPtrLoaded
+
+TrySprite2:
+    cpy #$02
+    bne TrySprite3
+IsSprite2:
+    jsr asteroid_2.LoadExtraPtrToRegs
+    jmp SpriteExtraPtrLoaded
+
+TrySprite3:
+    cpy #$03
+    bne TrySprite4
+IsSprite3:
+    jsr asteroid_3.LoadExtraPtrToRegs
+    jmp SpriteExtraPtrLoaded
+
+TrySprite4:
+    cpy #$04
+    bne TrySprite5
+IsSprite4:
+    jsr asteroid_4.LoadExtraPtrToRegs
+    jmp SpriteExtraPtrLoaded
+
+TrySprite5:
+    cpy #$05
+    bne TrySprite6
+IsSprite5:
+    jsr asteroid_5.LoadExtraPtrToRegs
+    jmp SpriteExtraPtrLoaded
+
+TrySprite6:
+    cpy #$06
+    bne TrySprite7
+IsSprite6:
+    jmp InvalidSpriteNumber
+
+TrySprite7:
+    cpy #$07
+    bne InvalidSpriteNumber
+IsSprite7:
+    jsr ship_2.LoadExtraPtrToRegs
+    jmp SpriteExtraPtrLoaded
+
+InvalidSpriteNumber:
+    // if we get here then an unexptected sprite number was set
+    // prior to calling this subroutine.
+.break
+    nop
+SpriteExtraPtrLoaded:
+    rts
 
 
 // our sprite routines will goto this address

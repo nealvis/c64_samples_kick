@@ -44,7 +44,7 @@
 // No actual memory is created when an instance of the struct is created.
 .struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_ptr, 
                               base_addr, action_top, bounce_left, bounce_bottom, bounce_right,
-                              top_min, left_min, bottom_max, right_max}
+                              top_min, left_min, bottom_max, right_max, enabled}
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -80,6 +80,9 @@
     // right boundry for the sprite
     sprite_right_max_addr: .word spt_info.right_max == 0 ? (spt_info.bounce_right == 1 ? NV_SPRITE_RIGHT_BOUNCE_DEFAULT : NV_SPRITE_RIGHT_WRAP_DEFAULT) : spt_info.right_max
 
+    // sprite enabled flag.  nonzero is enabled, zero is disabled
+    sprite_enabled: .byte 0
+
     // some scratch memory for each sprite     
     sprite_scratch1: .word 0
     sprite_scratch2: .word 0
@@ -103,8 +106,10 @@
 .const NV_SPRITE_BOTTOM_MAX_OFFSET = 15
 .const NV_SPRITE_RIGHT_MAX_OFFSET = 16
 
-.const NV_SPRITE_SCRATCH1_OFFSET = 18
-.const NV_SPRITE_SCRATCH2_OFFSET = 20
+.const NV_SPRITE_ENABLED_OFFSET = 18
+
+.const NV_SPRITE_SCRATCH1_OFFSET = 19
+.const NV_SPRITE_SCRATCH2_OFFSET = 21
 
 //////////////////////////////////////////////////////////////////////////////
 // assembler function to return the address of the sprite number
@@ -861,4 +866,8 @@ Done:
     rts
 }
 
+.macro nv_sprite_enable(info)
+{
+    
+}
 
