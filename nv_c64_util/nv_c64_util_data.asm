@@ -84,6 +84,8 @@ closest_rel_dist: .word $7FFF
 .const NV_KEY_8 = $38
 .const NV_KEY_7 = $37
 .const NV_KEY_0 = $30
+.const NV_KEY_COMMA = $2C
+.const NV_KEY_PERIOD = $2E
 .const NV_KEY_NO_KEY = $40  // Special value for no key
 .const NOKEY = NV_KEY_NO_KEY
 
@@ -117,8 +119,8 @@ nv_key_col4_table:
 
 // table of chars to report for col5 keys:
 nv_key_col5_table: 
-.byte $2B, NV_KEY_P, $0C, $2D, $2E, $3A, $0, $2C
-//     +,  P,        L,   -,   .,   :,   @,  <comma>
+.byte $2B, NV_KEY_P, $0C, $2D, NV_KEY_PERIOD, $3A, $0, NV_KEY_COMMA
+//     +,  P,        L,   -,   <period>,      :,    @, <comma>
 
 // table of chars to report for col6 keys:
 nv_key_col6_table: 

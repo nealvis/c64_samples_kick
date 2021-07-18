@@ -38,6 +38,8 @@
 .const KEY_DEC_BORDER_COLOR = NV_KEY_9
 .const KEY_INC_BACKGROUND_COLOR = NV_KEY_8
 .const KEY_DEC_BACKGROUND_COLOR = NV_KEY_7
+.const KEY_INC_VOLUME = NV_KEY_PERIOD
+.const KEY_DEC_VOLUME = NV_KEY_COMMA
 
 
 // some loop indices
@@ -386,8 +388,8 @@ WasShip1FastX:
     jmp DoneKeys                // and skip to bottom
 
 //////
-// no repeat keys here only transition keys below this line
-// if its a repeat key then we'll ignore it.
+// no repeat key presses handled here, only transition keys below this line
+// if its a repeat key press then we'll ignore it.
 TryTransitionKeys:
     nv_key_get_prev_pressed_y() // previou key pressed to Y reg
     sty scratch_byte            // then to scratch reg to compare with accum
@@ -407,7 +409,6 @@ TryIncBorder:
 WasIncBorderColor:
     inc border_color
     nv_screen_set_border_color_mem(border_color)
-    jsr SoundVolumeUp
     jmp DoneKeys                     // and skip to bottom
               
 TryDecBorder:
@@ -416,7 +417,6 @@ TryDecBorder:
 WasDecBorderColor:
     dec border_color
     nv_screen_set_border_color_mem(border_color)
-    jsr SoundVolumeDown          
     jmp DoneKeys                // and skip to bottom
 
 TryIncBackground:
@@ -429,11 +429,25 @@ WasIncBackgroundColor:
               
 TryDecBackground:
     cmp #KEY_DEC_BACKGROUND_COLOR             
-    bne TryQuit                           
+    bne TryIncVolume                           
 WasDecBackgroundColor:
     dec background_color
     nv_screen_set_background_color_mem(background_color)          
     jmp DoneKeys                // and skip to bottom
+
+TryIncVolume:
+    cmp #KEY_INC_VOLUME             
+    bne TryDecVolume                           
+WasIncVolume:
+    jsr SoundVolumeUp
+    jmp DoneKeys                // and skip to bottom
+
+TryDecVolume:
+    cmp #KEY_DEC_VOLUME             
+    bne TryQuit                           
+WasDecVolume:
+    jsr SoundVolumeDown
+    jmp DoneKeys
 
 TryQuit:
     cmp #KEY_QUIT               // check quit key
