@@ -102,6 +102,43 @@ SoundVolumeSet:
     jsr PrivateSoundVolumeSet
     rts
 
+//////////////////////////////////////////////////////////////
+// subroutine to set mute on
+//  JSR SoundMuteOn
+SoundMuteOn:
+    lda #$01
+    sta sound_mute
+    lda #$00
+    jsr PrivateSoundVolumeSet
+    SoundDoStep()               // step sound once to apply volume
+    rts
+
+//////////////////////////////////////////////////////////////
+// subroutine to set mute off
+//  JSR SoundMuteOff
+SoundMuteOff:
+    lda #$00
+    sta sound_mute
+    lda sound_master_volume
+    jsr PrivateSoundVolumeSet
+    SoundDoStep()               // step sound once to apply volume
+    rts
+
+
+//////////////////////////////////////////////////////////////
+// subroutine to toggle mute 
+//  JSR SoundMuteOff
+SoundMuteToggle:
+    lda sound_mute
+    beq MuteCurrentlyOff
+MuteCurrentlyOn:
+    jsr SoundMuteOff
+    rts
+MuteCurrentlyOff:
+    jsr SoundMuteOn
+    rts
+
+
 ////////////////////////////////////////////////////////////////
 // Call once every raster interupt to play sounds
 .macro SoundDoStep()

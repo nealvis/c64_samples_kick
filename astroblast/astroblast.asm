@@ -193,7 +193,7 @@ background_color: .byte NV_COLOR_BLACK
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = true
+    .var showTiming = false
     .var showFrameCounters = false
         
     nv_key_init()
@@ -344,7 +344,9 @@ ProgramDone:
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to Pause
 DoPause:
+    jsr SoundMuteOn
     nv_key_wait_any_key()
+    jsr SoundMuteOff
     rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -503,6 +505,7 @@ CreateField:
     nv_screen_poke_color_char_xa(07, 9)
     nv_screen_poke_color_char_xa(21, 14)
 
+/*
     ldx #NV_COLOR_GREY
     lda #$7C    // commet head
     nv_screen_poke_color_char_xa(17, 6)
@@ -510,7 +513,7 @@ CreateField:
     ldx #NV_COLOR_LITE_GREY
     lda #$4E   // commet trail
     nv_screen_poke_color_char_xa(16, 7)
-
+*/
 
     rts
 
