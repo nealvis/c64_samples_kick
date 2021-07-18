@@ -193,15 +193,15 @@ background_color: .byte NV_COLOR_BLACK
     jsr asteroid_4.Enable
     jsr asteroid_5.Enable
 
-    .var showTiming = false
+    .var showTiming = true
     .var showFrameCounters = false
         
     nv_key_init()
     nv_rand_init(true)
 
     // initialize song 0
-    lda #0
-    jsr $8000
+    jsr SoundInit
+
         
 MainLoop:
 
@@ -288,7 +288,7 @@ NoChangeUp:
         //sta BORDER_COLOR_REG_ADDR              // visualize timing
     }
 
-    jsr $8003
+    SoundDoStep()
 
     //// call routine to update sprite x and y positions on screen
     jsr ship_1.SetLocationFromExtraData
@@ -331,7 +331,7 @@ ProgramDone:
         nv_screen_set_border_color_immed(NV_COLOR_LITE_BLUE)
         nv_screen_set_background_color_immed(NV_COLOR_BLUE)
 
-        jsr $8000
+        jsr SoundDone
 
         nv_key_done()
         nv_rand_done()
@@ -405,6 +405,7 @@ TryIncBorder:
 WasIncBorderColor:
     inc border_color
     nv_screen_set_border_color_mem(border_color)
+    jsr SoundVolumeUp
     jmp DoneKeys                     // and skip to bottom
               
 TryDecBorder:
@@ -412,7 +413,8 @@ TryDecBorder:
     bne TryIncBackground                           
 WasDecBorderColor:
     dec border_color
-    nv_screen_set_border_color_mem(border_color)          
+    nv_screen_set_border_color_mem(border_color)
+    jsr SoundVolumeDown          
     jmp DoneKeys                // and skip to bottom
 
 TryIncBackground:
@@ -1035,6 +1037,4 @@ DebugShipCollisionSprite:
     rts
 */
 
-
-*=$8000 "music"
-.import binary "astro_sound.bin"
+#import "astro_sound.asm"
