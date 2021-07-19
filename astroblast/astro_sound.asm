@@ -7,6 +7,9 @@
 SoundLoadAddr:
 .import binary "astro_sound.bin"
 
+SoundFxShipHitAsteroid:
+.import binary "ship_hit_asteroid_sound_fx.bin"
+
 sound_master_volume: .byte 7
 sound_mute: .byte 0
 
@@ -32,7 +35,7 @@ sound_mute: .byte 0
 //        LDY #>effect
 //        LDX #channel        ;0, 7 or 14 for channels 1-3
 //        JSR startaddress+6
-.label PrivateSoundFx = SoundLoadAddr + 6
+.label PrivateSoundPlayFx = SoundLoadAddr + 6
 
 //////////////////////////////////////////////////////////////
 // subroutine to set the volume
@@ -146,14 +149,16 @@ MuteCurrentlyOff:
     jsr PrivateSoundStep
 }
 
-/*
-.macro SoundDoVolUp()
-{
-    jsr VolumeUp
-}
 
-.macro SoundDoVolDown()
-{
-    jsr VolumeDown
-}
-*/
+//////////////////////////////////////////////////////////////////////////////
+// play a sound effect
+//        LDA #<effect        ;Start address of sound effect data
+//        LDY #>effect
+//        LDX #channel        ;0, 7 or 14 for channels 1-3
+//        JSR startaddress+6
+SoundPlayShipAsteroidFX:
+    lda #<SoundFxShipHitAsteroid
+    ldy #>SoundFxShipHitAsteroid
+    ldx #14
+    jsr PrivateSoundPlayFx
+    rts 

@@ -317,7 +317,7 @@ HandleCollisionShip1:
     ldy ship_1.collision_sprite
     jsr AstroSpriteExtraPtrToRegs 
     jsr NvSpriteExtraDisable
-
+    jsr SoundPlayShipAsteroidFX
 NoCollisionShip1:
 
     //////////////////////////////////////////////////////////////////////
