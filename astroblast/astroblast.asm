@@ -506,11 +506,41 @@ SkipShipMax:
 SkipAsteroidMin:
 
 CheckDisabled:
+    jsr asteroid_1.LoadEnabledToA
+    bne CheckAster2
+    lda #130
+    sta asteroid_1.y_loc
     jsr asteroid_1.Enable
+
+CheckAster2:
+    jsr asteroid_2.LoadEnabledToA
+    bne CheckAster3
+    lda #130
+    sta asteroid_2.y_loc
     jsr asteroid_2.Enable
+
+CheckAster3:
+    jsr asteroid_3.LoadEnabledToA
+    bne CheckAster4
+    lda #130
+    sta asteroid_3.y_loc
     jsr asteroid_3.Enable
+
+CheckAster4:
+    jsr asteroid_4.LoadEnabledToA
+    bne CheckAster5
+    lda #130
+    sta asteroid_4.y_loc
     jsr asteroid_4.Enable
+
+CheckAster5:
+    jsr asteroid_5.LoadEnabledToA
+    bne DoneCheckingDisabledAsteroids
+    lda #130
+    sta asteroid_5.y_loc
     jsr asteroid_5.Enable
+
+DoneCheckingDisabledAsteroids:
     rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -604,6 +634,7 @@ SetAllCharA:
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
         .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
+        
 
 // sprite extra data
 sprite_extra: 
@@ -643,7 +674,11 @@ Enable:
         lda #>info.base_addr
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
-        
+
+LoadEnabledToA:
+        lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
+        rts
+
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
@@ -705,6 +740,10 @@ Enable:
         lda #>info.base_addr
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
+
+LoadEnabledToA:
+        lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
+        rts
         
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
@@ -772,6 +811,10 @@ Enable:
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
 
+LoadEnabledToA:
+        lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
+        rts
+
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
@@ -837,6 +880,10 @@ Enable:
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
 
+LoadEnabledToA:
+        lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
+        rts
+
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
@@ -901,7 +948,12 @@ Enable:
         lda #>info.base_addr
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
-        
+
+LoadEnabledToA:
+        lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
+        rts
+
+
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
@@ -915,7 +967,7 @@ SetWrapAllOn:
 .namespace ship_1
 {
         .var info = nv_sprite_info_struct("ship_1", 0,
-                                          22, 50, 4, 1,  // init x, y, VelX, VelY 
+                                          22, 50, 3, 1,  // init x, y, VelX, VelY 
                                           sprite_ship, 
                                           sprite_extra, 
                                           1, 0, 1, 0, // bounce on top, left, bottom, right  
@@ -970,6 +1022,10 @@ Enable:
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
 
+LoadEnabledToA:
+        lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
+        rts
+
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
 
@@ -1015,11 +1071,11 @@ label_vel_x_str: .text @"vel x: \$00"
 .namespace ship_2
 {
     .var info = nv_sprite_info_struct("ship_2", 7,  // sprite name, number
-                                        22, 200, 4, 1,  // init x, y, VelX, VelY 
+                                        22, 210, 3, 1,  // init x, y, VelX, VelY 
                                         sprite_ship, 
                                         sprite_extra, 
                                         1, 0, 1, 0,   // bounce on top, left, bottom, right  
-                                        150, 0, 0, 0, // min/max top, left, bottom, right
+                                        200, 0, 0, 0, // min/max top, left, bottom, right
                                         0)            // sprite enabled
 
     .var sprite_num = info.num
@@ -1073,6 +1129,10 @@ Enable:
         lda #>info.base_addr
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
+
+LoadEnabledToA:
+        lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
+        rts
 
 SetBounceAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_BOUNCE)
