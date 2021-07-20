@@ -165,7 +165,10 @@ background_color: .byte NV_COLOR_BLACK
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
+    nv_store16_immediate(ship_1.score, $0000)
+
     jsr ship_2.Setup
+    nv_store16_immediate(ship_1.score, $0000)
 
     // setup everything for the sprite_asteroid so its ready to enable
     jsr asteroid_1.Setup
@@ -318,6 +321,8 @@ HandleCollisionShip1:
     jsr AstroSpriteExtraPtrToRegs 
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip1AsteroidFX
+    nv_adc16_immediate(ship_1.score, $0001, ship_1.score)
+
 NoCollisionShip1:
 
     //////////////////////////////////////////////////////////////////////
@@ -332,9 +337,11 @@ HandleCollisionShip2:
     jsr AstroSpriteExtraPtrToRegs 
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip2AsteroidFX
+    nv_adc16_immediate(ship_2.score, $0001, ship_2.score)
 
 NoCollisionShip2:
 
+    jsr ScoreToScreen
     jmp MainLoop
 
 
@@ -475,6 +482,13 @@ DoneKeys:
 // subroutine to wait for no key currently pressed
 WaitNoKey:
     nv_key_wait_no_key()
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to put the score onto the screen
+ScoreToScreen:
+    nv_screen_poke_hex_word_mem(0, 0, ship_1.score, true)
+    nv_screen_poke_hex_word_mem(24, 0, ship_2.score, true)
     rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -988,6 +1002,7 @@ sprite_extra:
 
 // will be $FF (no collision) or sprite number of sprite colliding with
 collision_sprite: .byte 0 
+score: .word 0
 
 LoadExtraPtrToRegs:
     lda #>info.base_addr
@@ -1095,7 +1110,7 @@ sprite_extra:
 
 // will be $FF (no collision) or sprite number of sprite colliding with
 collision_sprite: .byte 0
-
+score: .word 0
 LoadExtraPtrToRegs:
     lda #>info.base_addr
     ldx #<info.base_addr
