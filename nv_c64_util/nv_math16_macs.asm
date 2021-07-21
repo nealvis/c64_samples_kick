@@ -129,7 +129,8 @@ Loop:
     bne Loop
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to negate a 16 bit number at addr specified
 .macro negate16(addr16, result_addr16)
 {
     lda addr16
@@ -141,22 +142,20 @@ Loop:
     sta result_addr16+1
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to do twos compliment on a 16 but number in memory
+// and place result in specified memory location.
 .macro nv_twos_comp_16(addr16, result_addr16)
 {
     negate16(addr16, result_addr16)
     nv_adc16_immediate(result_addr16, 1, result_addr16)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline mcaro to 
 // subtract contents at addr2 from those at addr1
 .macro nv_sbc16(addr1, addr2, result_addr)
 {
-    // nps todo: look at the sbc instruction, might be better
-    // to use that than to take 2s comp and add.
-   
-    //nv_twos_comp_16(addr2, scratch_word)
-    //nv_adc16(addr1, scratch_word, result_addr)
-
-    // try this
     sec
     lda addr1
     sbc addr2
@@ -164,7 +163,6 @@ Loop:
     lda addr1+1
     sbc addr2+1
     sta result_addr+1
-
 }
 
 
@@ -193,3 +191,50 @@ Loop:
     lda lsb_src_addr+1
     sta lsb_dest_addr+1
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to add two 16 bit BCD values and store the result in another
+// 16bit BCD value.  carry bit will be set if carry occured
+// params:
+//   addr1 is the address of the LSB of op1
+//   addr2 is the address of the LSB of op2
+//   result_addr is the address to store the result.
+// Note: clears decimal mode after the addition is done 
+.macro nv_bcd_adc16(addr1, addr2, result_addr)
+{
+    sed
+    lda addr1
+    clc
+    adc addr2
+    sta result_addr
+    lda addr1+1
+    adc addr2+1
+    sta result_addr+1
+    cld
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to add one 16 bit value in memory to an immediate value
+// and store the result in another 16 bit value in memory.  
+// carry bit will be set if carry occured
+// params:
+//   addr1 is the address of the LSB of 16 bit value in memory
+//   num: is the immeidate number to add.  it must be a valid BCD 
+//        number which is hex values with no letters in any digit.
+//   result_addr is the address of the LSB of the 16 bit memory location 
+//               to store the result.
+.macro nv_bcd_adc16_immediate(addr1, num, result_addr)
+{
+    sed
+    lda addr1
+    clc
+    adc #(num & $00FF)
+    sta result_addr
+    lda addr1+1
+    adc #((num >> 8) & $00FF)
+    sta result_addr+1
+    cld
+}
+
+

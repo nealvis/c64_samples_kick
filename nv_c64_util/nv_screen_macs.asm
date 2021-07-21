@@ -167,7 +167,12 @@
     nv_screen_print_hex_byte_a(false)
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print the immediate BCD value
+.macro nv_screen_print_bcd_word_immed(num)
+{
+    nv_screen_print_hex_word_immed(num, false)
+}
 
 //////////////////////////////////////////////////////////////////////////
 // inline macro to print a byte as a decimal number (BCD) that is 
