@@ -321,7 +321,7 @@ HandleCollisionShip1:
     jsr AstroSpriteExtraPtrToRegs 
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip1AsteroidFX
-    nv_adc16_immediate(ship_1.score, $0001, ship_1.score)
+    nv_bcd_adc16_immediate(ship_1.score, $0001, ship_1.score)
 
 NoCollisionShip1:
 
@@ -337,7 +337,7 @@ HandleCollisionShip2:
     jsr AstroSpriteExtraPtrToRegs 
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip2AsteroidFX
-    nv_adc16_immediate(ship_2.score, $0001, ship_2.score)
+    nv_bcd_adc16_immediate(ship_2.score, $0001, ship_2.score)
 
 NoCollisionShip2:
 
@@ -352,6 +352,7 @@ ProgramDone:
         nv_screen_set_border_color_immed(NV_COLOR_LITE_BLUE)
         nv_screen_set_background_color_immed(NV_COLOR_BLUE)
 
+        jsr SoundMuteOn
         jsr SoundDone
 
         nv_key_done()
@@ -487,8 +488,8 @@ WaitNoKey:
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to put the score onto the screen
 ScoreToScreen:
-    nv_screen_poke_hex_word_mem(0, 0, ship_1.score, true)
-    nv_screen_poke_hex_word_mem(24, 0, ship_2.score, true)
+    nv_screen_poke_bcd_word_mem(0, 0, ship_1.score)
+    nv_screen_poke_bcd_word_mem(24, 0, ship_2.score)
     rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1002,6 +1003,8 @@ sprite_extra:
 
 // will be $FF (no collision) or sprite number of sprite colliding with
 collision_sprite: .byte 0 
+
+// score for this ship in BCD
 score: .word 0
 
 LoadExtraPtrToRegs:
@@ -1110,7 +1113,10 @@ sprite_extra:
 
 // will be $FF (no collision) or sprite number of sprite colliding with
 collision_sprite: .byte 0
+
+// score for this ship in BCD
 score: .word 0
+
 LoadExtraPtrToRegs:
     lda #>info.base_addr
     ldx #<info.base_addr
