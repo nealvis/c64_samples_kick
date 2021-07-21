@@ -36,6 +36,10 @@ title_str: .text @"SCREEN\$00"          // null terminated string to print
                                         // via the BASIC routine
 title_hex_word_str: .text @"TEST PRINT HEX WORD...\$00"
 title_hex_word_immediate_str: .text @"TEST PRINT HEX WORD IMMED\$00"
+title_bcd_byte_str: .text @"TEST PRINT BCD BYTE...\$00"
+title_bcd_word_str: .text @"TEST PRINT DCD WORD...\$00"
+title_poke_bcd_word_str: .text @"TEST POKE BCD WORD MEM\$00"
+title_poke_bcd_byte_str: .text @"TEST POKE BCD BYTE MEM\$00"
 
 hit_anykey_str: .text @"HIT ANY KEY ...\$00"
 
@@ -59,6 +63,32 @@ opMax: .word $ffff
 opOne: .word $0001
 opTwo: .word $0002
 
+dec_00: .byte $00
+dec_01: .byte $01
+dec_02: .byte $02
+dec_09: .byte $09
+dec_10: .byte $10
+dec_11: .byte $11
+dec_12: .byte $12
+dec_19: .byte $19
+dec_20: .byte $20
+dec_21: .byte $21
+dec_22: .byte $22
+dec_99: .byte $99
+
+dec_0000: .word $0000
+dec_0001: .word $0001
+dec_0002: .word $0002
+dec_0009: .word $0009
+dec_0010: .word $0010
+dec_0011: .word $0011
+dec_0012: .word $0012
+dec_0098: .word $0098
+dec_0099: .word $0099
+dec_0100: .word $0100
+dec_0101: .word $0101
+dec_9999: .word $9999
+
 
 *=$1000 "Main Start"
 
@@ -68,10 +98,195 @@ opTwo: .word $0002
     nv_screen_plot_cursor(row++, 31)
     nv_screen_print_str(title_str)
 
+    test_poke_bcd_byte(0)
+    test_poke_bcd_word(0)
+    test_print_bcd_byte(0)
+    test_print_bcd_word(0)
+
     test_hex_word(0)
     test_hex_word_immediate(0)
 
     rts
+
+
+//////////////////////////////////////////////////////////////////////////////
+// test converting word to hex
+.macro test_poke_bcd_word(init_row)
+{
+    .var row = init_row
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(title_poke_bcd_word_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0000)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0001)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0002)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0009)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0010)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0011)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0012)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0098)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0099)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0100)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_0101)
+
+    nv_screen_poke_bcd_word_mem(row++, 0, dec_9999)
+
+    wait_and_clear_at_row(row)
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// test converting word to hex
+.macro test_print_bcd_word(init_row)
+{
+    .var row = init_row
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(title_bcd_word_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0000)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0001)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0002)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0009)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0010)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0011)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0012)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0098)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0099)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0100)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_0101)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_word_mem(dec_9999)
+
+    wait_and_clear_at_row(row)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// test converting word to hex
+.macro test_print_bcd_byte(init_row)
+{
+    .var row = init_row
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(title_bcd_byte_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_00)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_01)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_02)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_09)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_10)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_11)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_12)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_19)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_20)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_21)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_22)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_bcd_byte_mem(dec_99)
+
+    wait_and_clear_at_row(row)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// test converting word to hex
+.macro test_poke_bcd_byte(init_row)
+{
+    .var row = init_row
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(title_poke_bcd_byte_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_00)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_01)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_02)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_09)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_10)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_11)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_12)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_19)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_20)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_21)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_22)
+
+    nv_screen_poke_bcd_byte_mem(row++, 0, dec_99)
+
+    wait_and_clear_at_row(row)
+}
 
 
 //////////////////////////////////////////////////////////////////////////////

@@ -168,6 +168,37 @@
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+// inline macro to print a byte as a decimal number (BCD) that is 
+// in the accumulator
+.macro nv_screen_print_bcd_byte_a()
+{
+    nv_screen_print_hex_byte_a(false)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print a byte as a decimal number (BCD) that is in 
+// a specified memory address. 
+.macro nv_screen_print_bcd_byte_mem(addr)
+{
+    lda addr
+    nv_screen_print_bcd_byte_a()
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to print a byte as a decimal number (BCD) that is in 
+// a specified memory address. 
+.macro nv_screen_print_bcd_word_mem(addr)
+{
+    nv_screen_print_hex_word_mem(addr, false)
+}
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 //                Below here is direct to screen
 //////////////////////////////////////////////////////////////////////////////
@@ -366,6 +397,18 @@ Loop3:
     nv_screen_poke_str(row, col, temp_hex_str) 
 }
 
+//////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars to the screen that represent
+// a decimal (BCD) number that is in the accumulator
+//   row: the screen row 
+//   col: the screen col
+//   accum: the byte to poke to screen
+.macro nv_screen_poke_bcd_byte_a(row, col)
+{
+    nv_screen_poke_hex_byte_a(row, col, false)
+}
+
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that are the 
 // string representation of the hex value of the byte at an address
@@ -374,6 +417,16 @@ Loop3:
     lda addr
     nv_screen_poke_hex_byte_a(row, col, include_dollar)
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars to the screen that are the 
+// string representation of the decimal (BCD) value of the byte at an address
+.macro nv_screen_poke_bcd_byte_mem(row, col, addr)
+{
+    lda addr
+    nv_screen_poke_bcd_byte_a(row, col)
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that are the 
@@ -394,6 +447,13 @@ Loop3:
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars to the screen that are the 
+// string representation of the decimal (BCD) value of the byte at an address
+.macro nv_screen_poke_bcd_word_mem(row, col, addr)
+{
+    nv_screen_poke_hex_word_mem(row, col, addr, false)
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke chars to the screen that are the 
