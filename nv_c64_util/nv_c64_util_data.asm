@@ -74,16 +74,44 @@ closest_rel_dist: .word $7FFF
 // the right value yet) for the corresponding key, 
 // the table byte will be $40 which is just a grid pattern
 .const NV_KEY_UNINITIALIZED = $A0
-.const NV_KEY_W = $17
-.const NV_KEY_S = $13
 .const NV_KEY_A = $01
+.const NV_KEY_B = $02
+.const NV_KEY_C = $03
 .const NV_KEY_D = $04
-.const NV_KEY_Q = $11
+.const NV_KEY_E = $05
+.const NV_KEY_F = $06
+.const NV_KEY_G = $07
+.const NV_KEY_H = $08
+.const NV_KEY_I = $09
+.const NV_KEY_J = $0A
+.const NV_KEY_K = $0B
+.const NV_KEY_L = $0C
+.const NV_KEY_M = $0D
+.const NV_KEY_N = $0E
+.const NV_KEY_O = $0F
 .const NV_KEY_P = $10
-.const NV_KEY_9 = $39
-.const NV_KEY_8 = $38
-.const NV_KEY_7 = $37
+.const NV_KEY_Q = $11
+.const NV_KEY_R = $12
+.const NV_KEY_S = $13
+.const NV_KEY_T = $14
+.const NV_KEY_U = $15
+.const NV_KEY_V = $16
+.const NV_KEY_W = $17
+.const NV_KEY_X = $18
+.const NV_KEY_Y = $19
+.const NV_KEY_Z = $1A
+
 .const NV_KEY_0 = $30
+.const NV_KEY_1 = $31
+.const NV_KEY_2 = $32
+.const NV_KEY_3 = $33
+.const NV_KEY_4 = $34
+.const NV_KEY_5 = $35
+.const NV_KEY_6 = $36
+.const NV_KEY_7 = $37
+.const NV_KEY_8 = $38
+.const NV_KEY_9 = $39
+
 .const NV_KEY_COMMA = $2C
 .const NV_KEY_PERIOD = $2E
 .const NV_KEY_NO_KEY = $40  // Special value for no key
@@ -99,28 +127,28 @@ nv_key_col0_table:
 
 // table of chars to report for col1 keys:  
 nv_key_col1_table: 
-.byte $33, $17, NV_KEY_A, $34, $1A, NV_KEY_S, $05, NOKEY
-//     3,   W,   A,         4,   Z, S,         E,  <LSHIFT>
+.byte NV_KEY_3, NV_KEY_W, NV_KEY_A, NV_KEY_4, NV_KEY_Z, NV_KEY_S, NV_KEY_E, NOKEY
+//    3,        W,        A,        4,        Z,        S,        E,       <LSHIFT>
 
 // table of chars to report for col2 keys:
 nv_key_col2_table: 
-.byte $35, $12, NV_KEY_D, $36, $03, $06, $14, $18
-//     5,   R,  D,        6,   C,   F,   T,   X
+.byte NV_KEY_5, NV_KEY_R, NV_KEY_D, NV_KEY_6, NV_KEY_C, NV_KEY_F, NV_KEY_T, NV_KEY_X
+//    5,        R,        D,        6,        C,        F,        T,        X
 
 // table of chars to report for col3 keys:
 nv_key_col3_table: 
-.byte NV_KEY_7, $19, $07, NV_KEY_8, $02, $08, $15, $16
-//     7,        Y,   G,  8,        B,   H,   U,   V
+.byte NV_KEY_7, NV_KEY_Y, NV_KEY_G, NV_KEY_8, NV_KEY_B, NV_KEY_H, NV_KEY_U, NV_KEY_V
+//    7,        Y,        G,        8,        B,        H,        U,        V
 
 // table of chars to report for col4 keys:
 nv_key_col4_table: 
-.byte NV_KEY_9, $09, $0A, NV_KEY_0, $0D, $0B, $0F, $0E
-//    9,         I,   J,  0,         M,   K,   O,   N
+.byte NV_KEY_9, NV_KEY_I, NV_KEY_J, NV_KEY_0, NV_KEY_M, NV_KEY_K, NV_KEY_0, NV_KEY_N
+//    9,        I,        J,        0,        M,        K,        O,        N
 
 // table of chars to report for col5 keys:
 nv_key_col5_table: 
-.byte $2B, NV_KEY_P, $0C, $2D, NV_KEY_PERIOD, $3A, $0, NV_KEY_COMMA
-//     +,  P,        L,   -,   <period>,      :,    @, <comma>
+.byte $2B, NV_KEY_P, NV_KEY_L, $2D, NV_KEY_PERIOD, $3A, $0, NV_KEY_COMMA
+//     +,  P,        L,          -,  <period>,     :,    @, <comma>
 
 // table of chars to report for col6 keys:
 nv_key_col6_table: 
@@ -129,8 +157,8 @@ nv_key_col6_table:
 
 // table of chars to report for col7 keys:
 nv_key_col7_table: 
-.byte $31, $1F,        NOKEY,  $32, $20,     NOKEY,    NV_KEY_Q, NOKEY
-//     1,  <lf arrow>, <ctrl>, 2,   <space>, <cmodor>, Q,        <run st>
+.byte NV_KEY_1, $1F,        NOKEY,  NV_KEY_2, $20,     NOKEY,    NV_KEY_Q, NOKEY
+//    1,        <lf arrow>, <ctrl>, 2,        <space>, <cmodor>, Q,        <run st>
 
 // End keyboard data
 //////////////////////////////////////////////////////////////////////////////
