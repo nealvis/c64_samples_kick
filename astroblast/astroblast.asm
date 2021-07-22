@@ -40,7 +40,7 @@
 .const KEY_DEC_BACKGROUND_COLOR = NV_KEY_7
 .const KEY_INC_VOLUME = NV_KEY_PERIOD
 .const KEY_DEC_VOLUME = NV_KEY_COMMA
-
+.const KEY_EXPERIMENTAL = NV_KEY_N
 
 // some loop indices
 frame_counter: .word 0
@@ -59,6 +59,20 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 
 border_color: .byte NV_COLOR_BLUE
 background_color: .byte NV_COLOR_BLACK
+
+//////////////////
+// wind variables
+// reduce velocity while count greater than 0
+wind_count: .byte 0
+
+// the initial velocity when wind started
+wind_ship_1_x_vel_start: .byte 0 
+
+// increase velocity this many times after wind burst done
+//wind_recover_count: .byte 0
+
+
+
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -258,6 +272,8 @@ PartialSecond2:
         //lda #NV_COLOR_LITE_GREEN                      // change border color back to
         //sta BORDER_COLOR_REG_ADDR                     // visualize timing
     }
+    jsr WindStep
+
     jsr ship_1.MoveInExtraData
     jsr ship_2.MoveInExtraData
     jsr asteroid_1.MoveInExtraData
@@ -404,7 +420,10 @@ TryShip1FastX:
     cmp #KEY_SHIP1_FAST_X      // check ship1 speed up x key
     bne TryTransitionKeys               // not speed up x key, skip to bottom
 WasShip1FastX:
+    ldx wind_count
+    bne CantIncBecuaseWind
     jsr ship_1.IncVelX          // inc the ship X velocity
+CantIncBecuaseWind:   
     jmp DoneKeys                // and skip to bottom
 
 //////
@@ -464,9 +483,16 @@ WasIncVolume:
 
 TryDecVolume:
     cmp #KEY_DEC_VOLUME             
-    bne TryQuit                           
+    bne TryExperimental                           
 WasDecVolume:
     jsr SoundVolumeDown
+    jmp DoneKeys
+
+TryExperimental:
+    cmp #KEY_EXPERIMENTAL             
+    bne TryQuit                           
+WasWind:
+    jsr WindStart
     jmp DoneKeys
 
 TryQuit:
@@ -631,9 +657,73 @@ SetAllCharColorA:
     nv_screen_poke_all_color_a()
     rts
 
+//////////////////////////////////////////////////////////////////////////////
 SetAllCharA:
     nv_screen_poke_all_char_a()
     rts
+
+
+//////////////////////////////////////////////////////////////////////////////
+.const WIND_FRAMES = 5
+WindStart:
+    lda #WIND_FRAMES
+    sta wind_count
+    lda ship_1.x_vel
+    sta wind_ship_1_x_vel_start
+    
+    rts
+
+
+//////////////////////////////////////////////////////////////////////////////
+// call once per frame while wind is happening
+.const WIND_SHIP_MIN_LEFT = $0019
+
+WindStep:
+    lda ship_1.x_vel
+    bpl Continue
+WindCheckLeft:
+    // if pushing ship off left of screen, then just set its velocity to 1
+    nv_bgt16_immediate(ship_1.x_loc, WIND_SHIP_MIN_LEFT, Continue)
+    lda #$01
+    sta ship_1.x_vel
+    lda #$00
+    sta wind_count
+    jmp WindDoneVelShip1
+
+Continue:
+    lda #$07 
+    bit frame_counter
+    bne WindDoneStep      // if not LSB of 00 then don't do anything
+
+    lda wind_count
+    beq WindDoneStep
+
+    dec wind_count
+    clc
+    lda #$FF // (-1)
+    adc ship_1.x_vel
+    sta ship_1.x_vel
+
+    nv_blt16_immediate(ship_1.x_loc, 200, WindDoneVelShip1)
+    clc
+    lda #$FF // (-1)
+    adc ship_1.x_vel
+    sta ship_1.x_vel
+
+    nv_blt16_immediate(ship_1.x_loc, 240, WindDoneVelShip1)
+    clc
+    lda #$FF // (-1)
+    adc ship_1.x_vel
+    sta ship_1.x_vel
+
+    jmp WindDoneStep
+
+WindDoneVelShip1:
+WindDoneStep:
+    rts
+
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
@@ -1080,6 +1170,7 @@ IncVelX:
     inc ship_1.x_vel
 DoneIncVelX:
     rts
+
 
 label_vel_x_str: .text @"vel x: \$00"
 
