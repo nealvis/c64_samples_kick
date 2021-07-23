@@ -68,9 +68,9 @@ wind_count: .byte 0
 // the initial velocity when wind started
 wind_ship_1_x_vel_start: .byte 0 
 
-// increase velocity this many times after wind burst done
-//wind_recover_count: .byte 0
-
+// amount to decrement velocity for ship 1.  temp
+// just needed during WindStep
+wind_ship1_dec_value: .byte 0
 
 
 
@@ -679,6 +679,7 @@ WindStart:
 .const WIND_SHIP_MIN_LEFT = $0019
 
 WindStep:
+    jsr WindDoGlimmer
     lda ship_1.x_vel
     bpl Continue
 WindCheckLeft:
@@ -697,32 +698,30 @@ Continue:
 
     lda wind_count
     beq WindDoneStep
-
     dec wind_count
-    clc
-    lda #$FF // (-1)
-    adc ship_1.x_vel
-    sta ship_1.x_vel
 
-    nv_blt16_immediate(ship_1.x_loc, 200, WindDoneVelShip1)
-    clc
-    lda #$FF // (-1)
-    adc ship_1.x_vel
-    sta ship_1.x_vel
+    lda #$FF                    // start decrement value at -1 
+    sta wind_ship1_dec_value
+    
+    nv_blt16_immediate(ship_1.x_loc, 200, WindShip1Dec)
+    dec wind_ship1_dec_value    // decrement value to -2
 
-    nv_blt16_immediate(ship_1.x_loc, 240, WindDoneVelShip1)
-    clc
-    lda #$FF // (-1)
-    adc ship_1.x_vel
-    sta ship_1.x_vel
+    nv_blt16_immediate(ship_1.x_loc, 240, WindShip1Dec)
+    dec wind_ship1_dec_value    // decrement value to -3
 
-    jmp WindDoneStep
+WindShip1Dec:
+    clc
+    lda wind_ship1_dec_value // load the value to decrement by -1, -2 or -3
+    adc ship_1.x_vel    // add the negative number to decremnt 
+    sta ship_1.x_vel    // store back into ship velocity
 
 WindDoneVelShip1:
 WindDoneStep:
     rts
 
 
+WindDoGlimmer:
+    rts
 
 
 //////////////////////////////////////////////////////////////////////////////
