@@ -780,6 +780,11 @@ WindGlimmerStep5Check:
     jmp WindGlimmerDoStep5
 
 WindGlimmerStep6Check:
+    cmp #6
+    bne WindGlimmerStep7Check
+    jmp WindGlimmerDoStep6
+
+WindGlimmerStep7Check:
     lda #$FF
     sta wind_glimmer_count
     jmp WindGlimmerReturn
@@ -795,8 +800,8 @@ WindGlimmerDoStep0:
     jmp WindGlimmerDone
 
 WindGlimmerDoStep1:
-    // first blank out the step 0 chars
-    lda background_color
+    // first darken out the step 0 chars
+    lda #NV_COLOR_LITE_GREY
     nv_screen_poke_color_to_coord_list(wind_step0_point_list_addr)
 
     // write step 1 chars
@@ -810,8 +815,13 @@ WindGlimmerDoStep1:
     jmp WindGlimmerDone
 
 WindGlimmerDoStep2:
-    // first blank out the step 1 chars
+
+    // first blackout out the step 0 chars
     lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step0_point_list_addr)
+
+    // darken the step 1 chars
+    lda #NV_COLOR_LITE_GREY
     nv_screen_poke_color_to_coord_list(wind_step1_point_list_addr)
 
     // write step 2 chars
@@ -824,8 +834,13 @@ WindGlimmerDoStep2:
     jmp WindGlimmerDone
 
 WindGlimmerDoStep3:
-    // first blank out the step 2 chars
+
+    // blackout the step 1 chars
     lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step1_point_list_addr)
+
+    // darken the step 2 chars
+    lda #NV_COLOR_LITE_GREY
     nv_screen_poke_color_to_coord_list(wind_step2_point_list_addr)
 
     // write step 3 chars
@@ -833,13 +848,18 @@ WindGlimmerDoStep3:
     nv_screen_poke_char_to_coord_list(wind_step3_point_list_addr)
 
     // set step 3 chars color
-    ldx #NV_COLOR_WHITE
+    ldx #NV_COLOR_LITE_GREY
     nv_screen_poke_color_to_coord_list(wind_step3_point_list_addr)
     jmp WindGlimmerDone
 
 WindGlimmerDoStep4:
-    // first blank out the step 3 chars
+
+    // blackout the step 2 chars
     lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step2_point_list_addr)
+
+    // darken the step 3 chars
+    lda #NV_COLOR_LITE_GREY
     nv_screen_poke_color_to_coord_list(wind_step3_point_list_addr)
 
     // write step 4 chars
@@ -847,14 +867,36 @@ WindGlimmerDoStep4:
     nv_screen_poke_char_to_coord_list(wind_step4_point_list_addr)
 
     // set step 4 chars color
-    ldx #NV_COLOR_WHITE
+    ldx #NV_COLOR_DARK_GREY
     nv_screen_poke_color_to_coord_list(wind_step4_point_list_addr)
     jmp WindGlimmerDone
 
 WindGlimmerDoStep5:
-    // blank out step 4 list
+    // blackout the step 3 chars
+    lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step3_point_list_addr)
+
+    // darken the step 4 chars
+    lda #NV_COLOR_LITE_GREY
+    nv_screen_poke_color_to_coord_list(wind_step4_point_list_addr)
+
+    // write step 5 chars
+    lda #46 // period char
+    nv_screen_poke_char_to_coord_list(wind_step5_point_list_addr)
+
+    // set step 5 chars color
+    ldx #NV_COLOR_DARK_GREY
+    nv_screen_poke_color_to_coord_list(wind_step5_point_list_addr)
+    jmp WindGlimmerDone
+
+WindGlimmerDoStep6:
+    // blackout the step 4 chars
     lda background_color
     nv_screen_poke_color_to_coord_list(wind_step4_point_list_addr)
+
+    // blank out step 5 list
+    lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step5_point_list_addr)
     jmp WindGlimmerDone
 
 
@@ -916,6 +958,13 @@ wind_step4_point_list_addr: .byte 19, 3
                             .byte 16, 21
                             .byte $FF
 
+wind_step5_point_list_addr: .byte 13, 3
+                            .byte 12, 9
+                            .byte 10, 12
+                            .byte 11, 14
+                            .byte 14, 21
+                            .byte 12, 21
+                            .byte $FF
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
@@ -1556,7 +1605,7 @@ SpriteExtraPtrLoaded:
 #import "../nv_c64_util/nv_screen_code.asm"
 
 // our sprite routines will goto this address
-*=$4000 "Sprite Code"
+*=$5000 "Sprite Code"
 
 // put the actual sprite subroutines here
 #import "../nv_c64_util/nv_sprite_extra_code.asm"
