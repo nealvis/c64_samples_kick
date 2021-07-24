@@ -256,11 +256,32 @@ NvScreenPokeChar_xya:
 //                           .byte 1, 1     // screen coord 1, 1
 //                           .byte $FF      // end of list.
 //   accum: the byte to poke to the list of coords
+nv_screen_save_zero_page_lo: .word $0000
 .const NV_SCREEN_ZERO_PAGE_LO = $FB
 .const NV_SCREEN_ZERO_PAGE_HI = $FC
 NvScreenPokeCharToCoordList_axy:
-    nv_screen_poke_char_to_coord_list_axy(NV_SCREEN_ZERO_PAGE_LO, 
-                                          nv_screen_save_zero_page_lo)
+    nv_screen_poke_byte_to_coord_list_axy(NV_SCREEN_ZERO_PAGE_LO, 
+                                          nv_screen_save_zero_page_lo, 
+                                          SCREEN_START)
     rts
     
-nv_screen_save_zero_page_lo: .word $0000
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to poke a color to a list of screen coords
+// params:
+//   X Reg, Y Reg: is the LSB/MSB of the list_addr which is 
+//              the address of the list of coords for the macro.  
+//              this address should point to pairs of bytes that
+//              are (x, y) positions on the screen ie (col, row)
+//              the end of list is marked by negative number ($FF)
+//              typical list may look like this
+//                list_addr: .byte 0, 0     // screen coord 0, 0
+//                           .byte 1, 1     // screen coord 1, 1
+//                           .byte $FF      // end of list.
+//   accum: the byte to poke (color) to each of the bytes specified in
+//          the list of coords
+NvScreenPokeColorToCoordList_axy:
+    nv_screen_poke_byte_to_coord_list_axy(NV_SCREEN_ZERO_PAGE_LO, 
+                                          nv_screen_save_zero_page_lo, 
+                                          SCREEN_COLOR_START)
+    rts
