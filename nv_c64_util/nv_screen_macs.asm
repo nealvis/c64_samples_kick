@@ -426,6 +426,64 @@ Done:
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke a char to a list of screen coords
+// params:
+//   X Reg, Y Reg: is the LSB/MSB of the list_addr which is 
+//              the address of the list of coords for the macro.  
+//              this address should point to pairs of bytes that
+//              are (x, y) positions on the screen ie (col, row)
+//              the end of list is marked by negative number ($FF)
+//              typical list may look like this
+//                list_addr: .byte 0, 0     // screen coord 0, 0
+//                           .byte 1, 1     // screen coord 1, 1
+//                           .byte $FF      // end of list.
+//   accum: the byte to poke to the list of coords
+.macro nv_screen_poke_char_to_coord_list_axy(zero_page_lsb_addr, 
+                                             zero_page_save_lsb_addr)
+{
+    sta nv_b8       // save the char to poke
+
+    .if (true)
+    {
+        lda zero_page_lsb_addr 
+        sta zero_page_save_lsb_addr
+        lda zero_page_lsb_addr+1 
+        sta zero_page_save_lsb_addr+1
+    }
+
+    stx zero_page_lsb_addr
+    sty zero_page_lsb_addr+1
+    ldy #0
+
+Loop:
+    sty nv_a8           // save y index into list in a temp 
+    lda (zero_page_lsb_addr),y  // get the col from the list in accum
+    bpl Continue        // if its negative then done with list
+    jmp Done            // wasn't positive so was negative, done looping
+Continue:
+    tax                 // put col in x reg
+    iny                 // inc index to get the row from list
+    lda (zero_page_lsb_addr),y   // get row from the list in Y reg
+    tay                 // xfer row to y reg
+    lda nv_b8           // load our char to poke into accum
+    nv_screen_poke_char_xya()
+    ldy nv_a8           // restore x from memory temp
+    iny                 // increment it twice to get next x, y pair
+    iny
+    jmp Loop            // jump back to top of loop
+    
+Done:
+    .if (true)
+    {
+        lda zero_page_save_lsb_addr 
+        sta zero_page_lsb_addr
+        lda zero_page_save_lsb_addr+1 
+        sta zero_page_lsb_addr+1
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke a char to a list of screen coords
 // macro params:
 //   list_addr: the address of the list of coords for the macro.  
 //              this address should point to pairs of bytes that
@@ -436,7 +494,6 @@ Done:
 //                           .byte 1, 1     // screen coord 1, 1
 //                           .byte $FF      // end of list.
 // accum: the byte to poke to the list of coords
-// 
 .macro nv_screen_poke_char_to_coord_list(list_addr)
 {
     sta nv_b8       // char to poke in b8

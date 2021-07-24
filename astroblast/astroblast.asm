@@ -800,7 +800,10 @@ WindGlimmerDoStep0:
     nv_screen_poke_color_to_coord_list(wind_step0_point_list_addr)
 
     lda #$3A    // colon
-    nv_screen_poke_char_to_coord_list(wind_step0_point_list_addr)
+    ldx #<wind_step0_point_list_addr
+    ldy #>wind_step0_point_list_addr
+    jsr NvScreenPokeCharToCoordList_axy
+    //nv_screen_poke_char_to_coord_list(wind_step0_point_list_addr)
 
     jmp WindGlimmerDone
 
@@ -811,7 +814,11 @@ WindGlimmerDoStep1:
 
     // write step 1 chars
     lda #$3A     // colon    #46 // period char
-    nv_screen_poke_char_to_coord_list(wind_step1_point_list_addr)
+    //nv_screen_poke_char_to_coord_list(wind_step1_point_list_addr)
+    ldx #<wind_step1_point_list_addr
+    ldy #>wind_step1_point_list_addr
+    jsr NvScreenPokeCharToCoordList_axy
+
 
     // set step 1 chars color
     ldx #NV_COLOR_WHITE
@@ -831,7 +838,11 @@ WindGlimmerDoStep2:
 
     // write step 2 chars
     lda #46 // period char
-    nv_screen_poke_char_to_coord_list(wind_step2_point_list_addr)
+    //nv_screen_poke_char_to_coord_list(wind_step2_point_list_addr)
+    ldx #<wind_step2_point_list_addr
+    ldy #>wind_step2_point_list_addr
+    jsr NvScreenPokeCharToCoordList_axy
+
 
     // set step 2 chars color
     ldx #NV_COLOR_WHITE
@@ -850,7 +861,11 @@ WindGlimmerDoStep3:
 
     // write step 3 chars
     lda #46 // period char
-    nv_screen_poke_char_to_coord_list(wind_step3_point_list_addr)
+    //nv_screen_poke_char_to_coord_list(wind_step3_point_list_addr)
+    ldx #<wind_step3_point_list_addr
+    ldy #>wind_step3_point_list_addr
+    jsr NvScreenPokeCharToCoordList_axy
+
 
     // set step 3 chars color
     ldx #NV_COLOR_LITE_GREY
@@ -869,7 +884,11 @@ WindGlimmerDoStep4:
 
     // write step 4 chars
     lda #46 // period char
-    nv_screen_poke_char_to_coord_list(wind_step4_point_list_addr)
+    //nv_screen_poke_char_to_coord_list(wind_step4_point_list_addr)
+    ldx #<wind_step4_point_list_addr
+    ldy #>wind_step4_point_list_addr
+    jsr NvScreenPokeCharToCoordList_axy
+
 
     // set step 4 chars color
     ldx #NV_COLOR_DARK_GREY
@@ -887,7 +906,11 @@ WindGlimmerDoStep5:
 
     // write step 5 chars
     lda #46 // period char
-    nv_screen_poke_char_to_coord_list(wind_step5_point_list_addr)
+    //nv_screen_poke_char_to_coord_list(wind_step5_point_list_addr)
+    ldx #<wind_step5_point_list_addr
+    ldy #>wind_step5_point_list_addr
+    jsr NvScreenPokeCharToCoordList_axy
+
 
     // set step 5 chars color
     ldx #NV_COLOR_DARK_GREY
