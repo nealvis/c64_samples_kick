@@ -41,6 +41,8 @@
 .const NV_SCREEN_BORDER_COLOR_REG_ADDR = $D020
 .const NV_SCREEN_BACKGROUND_COLOR_REG_ADDR = $D021
 
+// 40 chars per row in default screen mode.
+.const NV_SCREEN_CHARS_PER_ROW = 40
 
 // clear screen and leave cursor in upper left
 .macro nv_screen_clear()
@@ -213,7 +215,7 @@
 // inline macro to poke chars for a string to screen memory
 .macro nv_screen_poke_str(row, col, str_to_poke)
 {
-    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    .var screen_poke_start = SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
     
     ldx #0                  // use x reg as loop index start at 0
 DirectLoop:
@@ -235,7 +237,7 @@ Done:
 //   Accum: the char to poke
 .macro nv_screen_poke_char_a(row, col)
 {
-    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    .var screen_poke_start = SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
     sta screen_poke_start
 }
 
@@ -248,7 +250,7 @@ Done:
 //   Y Reg: the char to poke
 .macro nv_screen_poke_char_y(row, col)
 {
-    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    .var screen_poke_start = SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
     sty screen_poke_start
 }
 
@@ -261,7 +263,7 @@ Done:
 //   X Reg: the char to poke
 .macro nv_screen_poke_char_x(row, col)
 {
-    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    .var screen_poke_start = SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
     stx screen_poke_start
 }
 
@@ -276,7 +278,7 @@ Done:
 //   Accum: the char to poke
 .macro nv_screen_poke_color_a(row, col)
 {
-    .var screen_poke_start = SCREEN_COLOR_START + (40*row) + col 
+    .var screen_poke_start = SCREEN_COLOR_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
     sta screen_poke_start
 }
 
@@ -291,13 +293,263 @@ Done:
 //   X Reg: the color to poke
 .macro nv_screen_poke_color_char_xa(row, col)
 {
-    .var screen_poke_start = SCREEN_START + (40*row) + col 
+    .var screen_poke_start = SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
     sta screen_poke_start
 
-    .var screen_poke_color_start = SCREEN_COLOR_START + (40*row) + col 
+    .var screen_poke_color_start = SCREEN_COLOR_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
     stx screen_poke_color_start
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke a char to a location on the screen
+// params:
+//   X Reg: screen column
+//   Y Reg: screen row
+//   Accum: char to poke
+.macro nv_screen_poke_char_xya()
+{
+    // row 0 - 5, and row 6 when col < 16
+    .var screen_poke_start0 = SCREEN_START+(256*0)
+    
+    // row 6 col >= 16 through row 12 when col < 32
+    .var screen_poke_start1 = SCREEN_START+(256*1)
+
+    // row 12 col 32, through row 19 col 7
+    .var screen_poke_start2 = SCREEN_START+(256*2)
+    
+    // row 19 col 8 and beyond to row 24 col 39
+    .var screen_poke_start3 = SCREEN_START+(256*3)
+    
+TryBank0:
+    cpy #7
+    bcs TryBank1    // greater than or equal to row 7 try next bank
+    cpy #6           // if row 6 could still be bank 0
+    bne UseBank0     // if not row 6 then its bank 0
+    cpx #16          // row  = 6 and col >= 16 is beyond this bank 
+    bcs TryBank1
+UseBank0:
+    nv_screen_poke_xya_from_base(screen_poke_start0, 0, 0)
+    jmp Done
+
+TryBank1:
+    cpy #13
+    bcs TryBank2     // greater than or equal to row 13 try next bank
+    cpy #12          // if row 12 could still be this bank
+    bne UseBank1     // if not row 12 then its this bank
+    cpx #32          // row = 12 and col >= 32 is beyond bank 1
+    bcs TryBank2
+UseBank1:
+    nv_screen_poke_xya_from_base(screen_poke_start1, 6, 16)
+    jmp Done
+
+TryBank2:
+    cpy #20
+    bcs UseBank3     // greater than or equal to row 20 then its last bank
+    cpy #19          // if row = 19 could still be this bank
+    bne UseBank2     // if not row 19 then its this bank
+    cpx #8           // row = 19 and col >= 8 is beyond this bank
+    bcs UseBank3
+
+UseBank2:
+    nv_screen_poke_xya_from_base(screen_poke_start2, 12, 32)
+    jmp Done
+
+UseBank3:
+    nv_screen_poke_xya_from_base(screen_poke_start3, 19, 8)
+    jmp Done
+
+Done:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke a color to a location on the screen
+// params:
+//   X Reg: screen column
+//   Y Reg: screen row
+//   Accum: color to poke
+.macro nv_screen_poke_color_xya()
+{
+    // row 0 - 5, and row 6 when col < 16
+    .var screen_poke_start0 = SCREEN_COLOR_START+(256*0)
+    
+    // row 6 col >= 16 through row 12 when col < 32
+    .var screen_poke_start1 = SCREEN_COLOR_START+(256*1)
+
+    // row 12 col 32, through row 19 col 7
+    .var screen_poke_start2 = SCREEN_COLOR_START+(256*2)
+    
+    // row 19 col 8 and beyond to row 24 col 39
+    .var screen_poke_start3 = SCREEN_COLOR_START+(256*3)
+    
+TryBank0:
+    cpy #7
+    bcs TryBank1    // greater than or equal to row 7 try next bank
+    cpy #6           // if row 6 could still be bank 0
+    bne UseBank0     // if not row 6 then its bank 0
+    cpx #16          // row  = 6 and col >= 16 is beyond this bank 
+    bcs TryBank1
+UseBank0:
+    nv_screen_poke_xya_from_base(screen_poke_start0, 0, 0)
+    jmp Done
+
+TryBank1:
+    cpy #13
+    bcs TryBank2     // greater than or equal to row 13 try next bank
+    cpy #12          // if row 12 could still be this bank
+    bne UseBank1     // if not row 12 then its this bank
+    cpx #32          // row = 12 and col >= 32 is beyond bank 1
+    bcs TryBank2
+UseBank1:
+    nv_screen_poke_xya_from_base(screen_poke_start1, 6, 16)
+    jmp Done
+
+TryBank2:
+    cpy #20
+    bcs UseBank3     // greater than or equal to row 20 then its last bank
+    cpy #19          // if row = 19 could still be this bank
+    bne UseBank2     // if not row 19 then its this bank
+    cpx #8           // row = 19 and col >= 8 is beyond this bank
+    bcs UseBank3
+
+UseBank2:
+    nv_screen_poke_xya_from_base(screen_poke_start2, 12, 32)
+    jmp Done
+
+UseBank3:
+    nv_screen_poke_xya_from_base(screen_poke_start3, 19, 8)
+    jmp Done
+
+Done:
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke a char to a list of screen coords
+// macro params:
+//   list_addr: the address of the list of coords for the macro.  
+//              this address should point to pairs of bytes that
+//              are (x, y) positions on the screen ie (col, row)
+//              the end of list is marked by negative number ($FF)
+//              typical list may look like this
+//                list_addr: .byte 0, 0     // screen coord 0, 0
+//                           .byte 1, 1     // screen coord 1, 1
+//                           .byte $FF      // end of list.
+// accum: the byte to poke to the list of coords
+// 
+.macro nv_screen_poke_char_to_coord_list(list_addr)
+{
+    sta nv_b8       // char to poke in b8
+    ldx #0
+Loop:
+    stx nv_a8           // save x index into list in a temp 
+    lda list_addr, x    // get x position from list into accum
+    bpl Continue        // if its negative then done with list
+    jmp Done            // wasn't positive so was negative, done looping
+Continue:
+    inx                 // inc index to y position
+    ldy list_addr, x    // get y position in Y reg
+    tax                 // xfer x position to x reg
+    lda nv_b8           // load our char to poke into accum
+    nv_screen_poke_char_xya()
+    ldx nv_a8           // restore x from memory temp
+    inx                 // increment it twice to get next x, y pair
+    inx
+    jmp Loop            // jump back to top of loop
+    
+Done:
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke a color to a list of screen coords
+// macro params:
+//   list_addr: the address of the list of coords for the macro.  
+//              this address should point to pairs of bytes that
+//              are (x, y) positions on the screen ie (col, row)
+//              the end of list is marked by negative number ($FF)
+//              typical list may look like this
+//                list_addr: .byte 0, 0     // screen coord 0, 0
+//                           .byte 1, 1     // screen coord 1, 1
+//                           .byte $FF      // end of list.
+// accum: the color byte to poke to each coord in the list of coords
+// 
+.macro nv_screen_poke_color_to_coord_list(list_addr)
+{
+    sta nv_b8       // char to poke in b8
+    ldx #0
+Loop:
+    stx nv_a8           // save x index into list in a temp 
+    lda list_addr, x    // get x position from list into accum
+    bpl Continue        // if its negative then done with list
+    jmp Done            // wasn't positive so was negative, done looping
+Continue:
+    inx                 // inc index to y position
+    ldy list_addr, x    // get y position in Y reg
+    tax                 // xfer x position to x reg
+    lda nv_b8           // load our char to poke into accum
+    nv_screen_poke_color_xya()
+    ldx nv_a8           // restore x from memory temp
+    inx                 // increment it twice to get next x, y pair
+    inx
+    jmp Loop            // jump back to top of loop
+    
+Done:
+}
+
+
+////////////////////////////////////////////////////////////////////////
+// inline macro to poke char in accum to x, y location on screen
+// or a color in accum to x, y location on screen.  
+// if the base address passed is in screen char memory then it will 
+// be a char, if its in screen color memory then it will be a color
+// macro params:
+//   base_address: is the start of screen memory or color memor for
+//                 this bank of 256 bytes
+//   first_row: is the row of the first char in this bank
+//   first_col: is the col of the first char in this bank.
+// subroutine params:
+//   Accum: pass the char to poke to the screen. value preserved
+//   Y Reg: The row for the char to be poked at. value not preserved
+//   X Reg: the col for the char to be poked at. value not preserved
+.macro nv_screen_poke_xya_from_base(base_addr, first_row, first_col)
+{
+    // save byte to poke so that we can use accum for math
+    pha
+
+    // adjust the row (y reg) based on the first row
+    tya
+    sec
+    sbc #first_row
+    tay
+
+    // adjust the col (x reg) base on first col
+    txa
+    sec
+    sbc #first_col
+    tax
+
+    // after above adjustments x reg and y reg are both zero if
+    // we are poking to the first byte in the bank.
+
+    lda #0  // start accum at zero and add bytes per row for each row
+            // beyond first row of the bank.
+
+    cpy #0  // if zero then we've added enough for the rows
+RowLoop0:
+    beq DoneRowLoop0
+    clc
+    adc #NV_SCREEN_CHARS_PER_ROW 
+    dey 
+    jmp RowLoop0
+DoneRowLoop0:
+
+    stx scratch_byte
+    clc
+    adc scratch_byte
+    tax
+    pla
+    sta base_addr,x
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //

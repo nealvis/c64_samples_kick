@@ -231,3 +231,13 @@ NvScreenPokeHexByte:
 //   nv_d8: set to 1 to include dollar sign
 NvScreenPokeHexWord:
     nv_screen_poke_hex_word_sr()
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to poke a char to a location on the screen
+// params:
+//   X Reg: screen column
+//   Y Reg: screen row
+//   Accum: char to poke
+NvScreenPokeChar_xya:
+    nv_screen_poke_char_xya()
+    rts
