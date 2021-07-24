@@ -735,8 +735,13 @@ Continue2:
 WindShip1Dec:
     clc
     lda wind_ship1_dec_value // load the value to decrement by -1, -2 or -3
-    adc ship_1.x_vel    // add the negative number to decremnt 
-    sta ship_1.x_vel    // store back into ship velocity
+    adc ship_1.x_vel         // add the negative number to decremnt 
+    bpl WindSetVelShip1      // if velocity still positive then ok to set
+    cmp #$FE                 // velocity max neg value -2
+    bcs WindSetVelShip1      // if we are setting to -2 or -1 its ok
+    lda #$FE                 // cap max neg velocity at -2
+WindSetVelShip1:
+    sta ship_1.x_vel         // store back into ship velocity
 
 WindDoneVelShip1:
 WindDoneStep:
