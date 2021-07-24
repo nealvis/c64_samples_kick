@@ -666,11 +666,15 @@ SetAllCharA:
 //////////////////////////////////////////////////////////////////////////////
 .const WIND_FRAMES = 5
 WindStart:
+    lda wind_count
+    bne WindAlreadyStarted
     lda #WIND_FRAMES
     sta wind_count
     lda ship_1.x_vel
     sta wind_ship_1_x_vel_start
-    
+    lda #0
+    sta wind_glimmer_count
+WindAlreadyStarted:
     rts
 
 
@@ -679,9 +683,9 @@ WindStart:
 .const WIND_SHIP_MIN_LEFT = $0019
 
 WindStep:
-    jsr WindDoGlimmer
     lda ship_1.x_vel
     bpl Continue
+
 WindCheckLeft:
     // if pushing ship off left of screen, then just set its velocity to 1
     nv_bgt16_immediate(ship_1.x_loc, WIND_SHIP_MIN_LEFT, Continue)
@@ -692,6 +696,15 @@ WindCheckLeft:
     jmp WindDoneVelShip1
 
 Continue:
+    lda #$03
+    bit frame_counter
+    bne Continue2 
+    jsr WindGlimmerStep 
+
+    lda wind_count 
+    beq WindDoneStep
+
+Continue2:
     lda #$07 
     bit frame_counter
     bne WindDoneStep      // if not LSB of 00 then don't do anything
@@ -720,8 +733,140 @@ WindDoneStep:
     rts
 
 
-WindDoGlimmer:
+wind_glimmer_count: .byte  0
+
+WindGlimmerStep:
+    lda wind_glimmer_count 
+    bpl WindGlimmerActive
+    jmp WindGlimmerReturn
+WindGlimmerActive:
+    bne WindGlimmerStep1Check
+    jmp WindGlimmerDoStep0
+
+WindGlimmerStep1Check:
+    cmp #1 
+    bne WindGlimmerStep2Check
+    jmp WindGlimmerDoStep1
+
+WindGlimmerStep2Check:
+    cmp #2 
+    bne WindGlimmerStep3Check
+    jmp WindGlimmerDoStep2
+
+WindGlimmerStep3Check:
+    cmp #3 
+    bne WindGlimmerStep4Check
+    jmp WindGlimmerDoStep3
+
+WindGlimmerStep4Check:
+    cmp #4 
+    bne WindGlimmerStep5Check
+    jmp WindGlimmerDoStep4
+
+
+WindGlimmerStep5Check:
+    lda #$FF
+    sta wind_glimmer_count
+    jmp WindGlimmerReturn
+
+WindGlimmerDoStep0:
+
+    lda #NV_COLOR_WHITE
+    nv_screen_poke_color_to_coord_list(wind_step0_point_list_addr)
+
+    lda #$3a 
+    nv_screen_poke_char_to_coord_list(wind_step0_point_list_addr)
+
+    jmp WindGlimmerDone
+
+WindGlimmerDoStep1:
+    // first blank out the step 0 chars
+    lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step0_point_list_addr)
+
+    // write step 1 chars
+    lda #46 // period char
+    nv_screen_poke_char_to_coord_list(wind_step1_point_list_addr)
+
+    // set step 1 chars color
+    ldx #NV_COLOR_WHITE
+    nv_screen_poke_color_to_coord_list(wind_step1_point_list_addr)
+
+    jmp WindGlimmerDone
+
+WindGlimmerDoStep2:
+    // first blank out the step 1 chars
+    lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step1_point_list_addr)
+
+    // write step 2 chars
+    lda #46 // period char
+    nv_screen_poke_char_to_coord_list(wind_step2_point_list_addr)
+
+    // set step 2 chars color
+    ldx #NV_COLOR_WHITE
+    nv_screen_poke_color_to_coord_list(wind_step2_point_list_addr)
+    jmp WindGlimmerDone
+
+WindGlimmerDoStep3:
+    // first blank out the step 2 chars
+    lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step2_point_list_addr)
+
+    // write step 3 chars
+    lda #46 // period char
+    nv_screen_poke_char_to_coord_list(wind_step3_point_list_addr)
+
+    // set step 3 chars color
+    ldx #NV_COLOR_WHITE
+    nv_screen_poke_color_to_coord_list(wind_step3_point_list_addr)
+    jmp WindGlimmerDone
+
+WindGlimmerDoStep4:
+
+    // blank out step 3 list
+    lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step3_point_list_addr)
+    jmp WindGlimmerDone
+
+WindGlimmerDone:
+    inc wind_glimmer_count
+WindGlimmerReturn:
     rts
+
+
+wind_step0_point_list_addr: .byte 38, 3     // x, y ie col, row
+                            .byte 36, 5
+                            .byte 39, 9
+                            .byte 35, 15
+                            .byte 37, 18
+                            .byte 38, 21
+                            .byte $FF
+
+wind_step1_point_list_addr: .byte 33, 3
+                            .byte 31, 5
+                            .byte 34, 9
+                            .byte 30, 14
+                            .byte 32, 18
+                            .byte 33, 21
+                            .byte $FF
+
+wind_step2_point_list_addr: .byte 28, 3
+                            .byte 26, 5
+                            .byte 29, 9
+                            .byte 25, 14
+                            .byte 27, 18
+                            .byte 27, 21
+                            .byte $FF
+
+wind_step3_point_list_addr: .byte 25, 3
+                            .byte 22, 5
+                            .byte 25, 9
+                            .byte 21, 14
+                            .byte 24, 18
+                            .byte 24, 21
+                            .byte $FF
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1360,8 +1505,10 @@ SpriteExtraPtrLoaded:
     rts
 
 
+#import "../nv_c64_util/nv_screen_code.asm"
+
 // our sprite routines will goto this address
-*=$3000 "Sprite Code"
+*=$4000 "Sprite Code"
 
 // put the actual sprite subroutines here
 #import "../nv_c64_util/nv_sprite_extra_code.asm"
