@@ -72,7 +72,7 @@ wind_ship_1_x_vel_start: .byte 0
 // just needed during WindStep
 wind_ship1_dec_value: .byte 0
 
-
+wind_glimmer_count: .byte $FF
 
 // set the address for our sprite, sprite_0 aka sprite_ship.  It must be evenly divisible by 64
 // since code starts at $1000 there is room for 4 sprites between $0900 and $1000
@@ -176,6 +176,10 @@ wind_ship1_dec_value: .byte 0
 
     lda #$00
     sta quit_flag
+
+    // don't start with wind glimmer.  neg value means not active
+    lda #$FF
+    sta wind_glimmer_count
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
@@ -664,6 +668,7 @@ SetAllCharA:
 
 
 //////////////////////////////////////////////////////////////////////////////
+// subroutine to start the wind effect
 .const WIND_FRAMES = 5
 WindStart:
     lda wind_count
@@ -679,9 +684,14 @@ WindAlreadyStarted:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// call once per frame while wind is happening
+// subroutine to call once per raster frame while wind is happening
+// if wind_count is zero and wind_glimmer_count is $FF then this routine
+// will do nothing. continually calling the routine will eventually get to 
+// the state of wind_count = 0 and wind_glimmer_count = $FF so its safe
+// to call this once every raster frame regardless of if wind is active
+// or not.  It is possible for wind_count to get to zero before 
+// wind_glimmer_count is $FF so its not sufficient to just check wind_count
 .const WIND_SHIP_MIN_LEFT = $0019
-
 WindStep:
     lda ship_1.x_vel
     bpl Continue
@@ -732,9 +742,9 @@ WindDoneVelShip1:
 WindDoneStep:
     rts
 
-
-wind_glimmer_count: .byte  0
-
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to call once every time the glimmer effect should be advanced
+// call it more often for faster effect or less often for slower
 WindGlimmerStep:
     lda wind_glimmer_count 
     bpl WindGlimmerActive
@@ -765,6 +775,11 @@ WindGlimmerStep4Check:
 
 
 WindGlimmerStep5Check:
+    cmp #5 
+    bne WindGlimmerStep6Check
+    jmp WindGlimmerDoStep5
+
+WindGlimmerStep6Check:
     lda #$FF
     sta wind_glimmer_count
     jmp WindGlimmerReturn
@@ -774,7 +789,7 @@ WindGlimmerDoStep0:
     lda #NV_COLOR_WHITE
     nv_screen_poke_color_to_coord_list(wind_step0_point_list_addr)
 
-    lda #$3a 
+    lda #$3A    // colon
     nv_screen_poke_char_to_coord_list(wind_step0_point_list_addr)
 
     jmp WindGlimmerDone
@@ -785,7 +800,7 @@ WindGlimmerDoStep1:
     nv_screen_poke_color_to_coord_list(wind_step0_point_list_addr)
 
     // write step 1 chars
-    lda #46 // period char
+    lda #$3A     // colon    #46 // period char
     nv_screen_poke_char_to_coord_list(wind_step1_point_list_addr)
 
     // set step 1 chars color
@@ -823,11 +838,25 @@ WindGlimmerDoStep3:
     jmp WindGlimmerDone
 
 WindGlimmerDoStep4:
-
-    // blank out step 3 list
+    // first blank out the step 3 chars
     lda background_color
     nv_screen_poke_color_to_coord_list(wind_step3_point_list_addr)
+
+    // write step 4 chars
+    lda #46 // period char
+    nv_screen_poke_char_to_coord_list(wind_step4_point_list_addr)
+
+    // set step 4 chars color
+    ldx #NV_COLOR_WHITE
+    nv_screen_poke_color_to_coord_list(wind_step4_point_list_addr)
     jmp WindGlimmerDone
+
+WindGlimmerDoStep5:
+    // blank out step 4 list
+    lda background_color
+    nv_screen_poke_color_to_coord_list(wind_step4_point_list_addr)
+    jmp WindGlimmerDone
+
 
 WindGlimmerDone:
     inc wind_glimmer_count
@@ -835,38 +864,57 @@ WindGlimmerReturn:
     rts
 
 
-wind_step0_point_list_addr: .byte 38, 3     // x, y ie col, row
+wind_step0_point_list_addr: .byte 37, 1     // x, y ie col, row
+                            .byte 38, 3
                             .byte 36, 5
+                            .byte 38, 7
                             .byte 39, 9
+                            .byte 38, 11
+                            .byte 37, 12
                             .byte 35, 15
                             .byte 37, 18
                             .byte 38, 21
+                            .byte 36, 24
                             .byte $FF
 
-wind_step1_point_list_addr: .byte 33, 3
-                            .byte 31, 5
+wind_step1_point_list_addr: .byte 33, 1
+                            .byte 31, 3
+                            .byte 32, 5
                             .byte 34, 9
+                            .byte 32, 12
                             .byte 30, 14
                             .byte 32, 18
                             .byte 33, 21
+                            .byte 31, 23
                             .byte $FF
 
 wind_step2_point_list_addr: .byte 28, 3
                             .byte 26, 5
                             .byte 29, 9
+                            .byte 26, 12
                             .byte 25, 14
                             .byte 27, 18
                             .byte 27, 21
+                            .byte 26, 22
                             .byte $FF
 
-wind_step3_point_list_addr: .byte 25, 3
+wind_step3_point_list_addr: .byte 24, 3
                             .byte 22, 5
-                            .byte 25, 9
+                            .byte 24, 9
+                            .byte 20, 12
                             .byte 21, 14
                             .byte 24, 18
-                            .byte 24, 21
+                            .byte 23, 21
+                            .byte 20, 21
                             .byte $FF
 
+wind_step4_point_list_addr: .byte 19, 3
+                            .byte 18, 9
+                            .byte 15, 12
+                            .byte 16, 14
+                            .byte 19, 21
+                            .byte 16, 21
+                            .byte $FF
 
 
 //////////////////////////////////////////////////////////////////////////////
