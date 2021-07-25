@@ -5,7 +5,7 @@
 
 #import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
-*=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
+*=$0800 "BASIC Start"  // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
         // will just call assembled program at correct location
         //    10 SYS (4096)
@@ -15,6 +15,7 @@
         // of the program which will be at $1000 or 4096 decimal
         // basic line is: 
         // 10 SYS (4096)
+        .byte $00                // first byte of basic area should be 0
         .byte $0E, $08           // Forward address to next basic line
         .byte $0A, $00           // this will be line 10 ($0A)
         .byte $9E                // basic token for SYS
@@ -292,6 +293,88 @@ ProgramDone:
     nv_screen_clear()
     rts   // program done, return
 
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to wait for no key currently pressed
+WaitNoKey:
+    nv_key_wait_no_key()
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to put the score onto the screen
+ScoreToScreen:
+    nv_screen_poke_bcd_word_mem(0, 0, ship_1.score)
+    nv_screen_poke_bcd_word_mem(24, 0, ship_2.score)
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to cycle the color of a sprite just to show how
+// the nv_sprite_set_color_from_memory macro works.
+ChangeUp:
+        ldx cycling_color
+        inx
+        cpx background_color // this is background color, so skip that one
+        bne NotBG
+        inx
+NotBG:
+        cpx #NV_COLOR_LAST + 1
+        bne SetColor
+        ldx #NV_COLOR_FIRST
+        stx cycling_color
+SetColor:
+        stx cycling_color
+        nv_sprite_raw_set_color_from_memory(1, cycling_color)
+
+        // change some speeds
+SkipShipMax:                   
+        inc asteroid_1.y_vel    // increment asteroid Y velocity 
+        lda asteroid_1.y_vel    // load new speed just incremented
+        cmp #MAX_SPEED+1        // compare new spead with max +1
+        bne SkipAsteroidMin     // if we haven't reached max + 1 then skip setting to min
+        lda #MIN_SPEED          // else, we have reached max+1 so need to reset it back min
+        sta asteroid_1.y_vel
+
+SkipAsteroidMin:
+
+CheckDisabled:
+    jsr asteroid_1.LoadEnabledToA
+    bne CheckAster2
+    lda #130
+    sta asteroid_1.y_loc
+    jsr asteroid_1.Enable
+
+CheckAster2:
+    jsr asteroid_2.LoadEnabledToA
+    bne CheckAster3
+    lda #130
+    sta asteroid_2.y_loc
+    jsr asteroid_2.Enable
+
+CheckAster3:
+    jsr asteroid_3.LoadEnabledToA
+    bne CheckAster4
+    lda #130
+    sta asteroid_3.y_loc
+    jsr asteroid_3.Enable
+
+CheckAster4:
+    jsr asteroid_4.LoadEnabledToA
+    bne CheckAster5
+    lda #130
+    sta asteroid_4.y_loc
+    jsr asteroid_4.Enable
+
+CheckAster5:
+    jsr asteroid_5.LoadEnabledToA
+    bne DoneCheckingDisabledAsteroids
+    lda #130
+    sta asteroid_5.y_loc
+    jsr asteroid_5.Enable
+
+DoneCheckingDisabledAsteroids:
+    rts
+
+
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to Pause
 DoPause:
@@ -299,6 +382,83 @@ DoPause:
     nv_key_wait_any_key()
     jsr SoundMuteOff
     rts
+
+//////////////////////////////////////////////////////////////////////////////
+// CreateField subroutine
+CreateField:
+    lda #46
+    ldx #NV_COLOR_DARK_GREY
+    nv_screen_poke_color_char_xa(3, 12)
+    nv_screen_poke_color_char_xa(10, 35)
+    nv_screen_poke_color_char_xa(4, 20)
+    nv_screen_poke_color_char_xa(15, 25)
+    nv_screen_poke_color_char_xa(20, 37)
+    nv_screen_poke_color_char_xa(23, 27)
+    nv_screen_poke_color_char_xa(7, 15)
+    nv_screen_poke_color_char_xa(22, 38)
+    nv_screen_poke_color_char_xa(6, 4)
+    nv_screen_poke_color_char_xa(24, 5)
+    nv_screen_poke_color_char_xa(12, 28)
+    nv_screen_poke_color_char_xa(6, 17)
+
+    lda #81
+    nv_screen_poke_color_char_xa(14, 22)
+    nv_screen_poke_color_char_xa(07, 9)
+    nv_screen_poke_color_char_xa(21, 14)
+
+/*
+    ldx #NV_COLOR_GREY
+    lda #$7C    // commet head
+    nv_screen_poke_color_char_xa(17, 6)
+
+    ldx #NV_COLOR_LITE_GREY
+    lda #$4E   // commet trail
+    nv_screen_poke_color_char_xa(16, 7)
+*/
+
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+//
+UpdateField:
+    nv_rand_color_a(true)
+    nv_screen_poke_color_a(3, 12)
+    //nv_screen_poke_color_a(10, 35)
+    nv_screen_poke_color_a(4, 20)
+    nv_rand_color_a(true)
+    nv_screen_poke_color_a(15, 25)
+    //nv_screen_poke_color_a(20, 37)
+    //nv_screen_poke_color_a(23, 27)
+    nv_screen_poke_color_a(7, 15)
+    nv_rand_color_a(true)
+    nv_screen_poke_color_a(22, 38)
+    nv_screen_poke_color_a(6, 4)
+    nv_rand_color_a(true)
+    nv_screen_poke_color_a(24, 5)
+    //nv_screen_poke_color_a(12, 28)
+    nv_screen_poke_color_a(6, 17)
+
+    //nv_screen_poke_color_a(14, 22)
+    //nv_rand_color_a(true)
+    //nv_screen_poke_color_a(07, 9)
+    //nv_screen_poke_color_a(21, 14)
+   
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+// Subroutine to set all character colors for the whole screen to the color
+// in the accumulator
+// subroutine params:
+//   Accum: the color (0-15) to put in screen color memory for all locations 
+SetAllCharColorA:
+    nv_screen_poke_all_color_a()
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+SetAllCharA:
+    nv_screen_poke_all_char_a()
+    rts
+
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to do all the keyboard stuff
@@ -418,163 +578,6 @@ WasQuit:
 DoneKeys:
     rts
 
-//////////////////////////////////////////////////////////////////////////////
-// subroutine to wait for no key currently pressed
-WaitNoKey:
-    nv_key_wait_no_key()
-    rts
-
-//////////////////////////////////////////////////////////////////////////////
-// subroutine to put the score onto the screen
-ScoreToScreen:
-    nv_screen_poke_bcd_word_mem(0, 0, ship_1.score)
-    nv_screen_poke_bcd_word_mem(24, 0, ship_2.score)
-    rts
-
-//////////////////////////////////////////////////////////////////////////////
-// subroutine to cycle the color of a sprite just to show how
-// the nv_sprite_set_color_from_memory macro works.
-ChangeUp:
-        ldx cycling_color
-        inx
-        cpx background_color // this is background color, so skip that one
-        bne NotBG
-        inx
-NotBG:
-        cpx #NV_COLOR_LAST + 1
-        bne SetColor
-        ldx #NV_COLOR_FIRST
-        stx cycling_color
-SetColor:
-        stx cycling_color
-        nv_sprite_raw_set_color_from_memory(1, cycling_color)
-
-        // change some speeds
-SkipShipMax:                   
-        inc asteroid_1.y_vel    // increment asteroid Y velocity 
-        lda asteroid_1.y_vel    // load new speed just incremented
-        cmp #MAX_SPEED+1        // compare new spead with max +1
-        bne SkipAsteroidMin     // if we haven't reached max + 1 then skip setting to min
-        lda #MIN_SPEED          // else, we have reached max+1 so need to reset it back min
-        sta asteroid_1.y_vel
-
-SkipAsteroidMin:
-
-CheckDisabled:
-    jsr asteroid_1.LoadEnabledToA
-    bne CheckAster2
-    lda #130
-    sta asteroid_1.y_loc
-    jsr asteroid_1.Enable
-
-CheckAster2:
-    jsr asteroid_2.LoadEnabledToA
-    bne CheckAster3
-    lda #130
-    sta asteroid_2.y_loc
-    jsr asteroid_2.Enable
-
-CheckAster3:
-    jsr asteroid_3.LoadEnabledToA
-    bne CheckAster4
-    lda #130
-    sta asteroid_3.y_loc
-    jsr asteroid_3.Enable
-
-CheckAster4:
-    jsr asteroid_4.LoadEnabledToA
-    bne CheckAster5
-    lda #130
-    sta asteroid_4.y_loc
-    jsr asteroid_4.Enable
-
-CheckAster5:
-    jsr asteroid_5.LoadEnabledToA
-    bne DoneCheckingDisabledAsteroids
-    lda #130
-    sta asteroid_5.y_loc
-    jsr asteroid_5.Enable
-
-DoneCheckingDisabledAsteroids:
-    rts
-
-//////////////////////////////////////////////////////////////////////////////
-// CreateField subroutine
-CreateField:
-    lda #46
-    ldx #NV_COLOR_DARK_GREY
-    nv_screen_poke_color_char_xa(3, 12)
-    nv_screen_poke_color_char_xa(10, 35)
-    nv_screen_poke_color_char_xa(4, 20)
-    nv_screen_poke_color_char_xa(15, 25)
-    nv_screen_poke_color_char_xa(20, 37)
-    nv_screen_poke_color_char_xa(23, 27)
-    nv_screen_poke_color_char_xa(7, 15)
-    nv_screen_poke_color_char_xa(22, 38)
-    nv_screen_poke_color_char_xa(6, 4)
-    nv_screen_poke_color_char_xa(24, 5)
-    nv_screen_poke_color_char_xa(12, 28)
-    nv_screen_poke_color_char_xa(6, 17)
-
-    lda #81
-    nv_screen_poke_color_char_xa(14, 22)
-    nv_screen_poke_color_char_xa(07, 9)
-    nv_screen_poke_color_char_xa(21, 14)
-
-/*
-    ldx #NV_COLOR_GREY
-    lda #$7C    // commet head
-    nv_screen_poke_color_char_xa(17, 6)
-
-    ldx #NV_COLOR_LITE_GREY
-    lda #$4E   // commet trail
-    nv_screen_poke_color_char_xa(16, 7)
-*/
-
-    rts
-
-
-//////////////////////////////////////////////////////////////////////////////
-//
-UpdateField:
-    nv_rand_color_a(true)
-    nv_screen_poke_color_a(3, 12)
-    //nv_screen_poke_color_a(10, 35)
-    nv_screen_poke_color_a(4, 20)
-    nv_rand_color_a(true)
-    nv_screen_poke_color_a(15, 25)
-    //nv_screen_poke_color_a(20, 37)
-    //nv_screen_poke_color_a(23, 27)
-    nv_screen_poke_color_a(7, 15)
-    nv_rand_color_a(true)
-    nv_screen_poke_color_a(22, 38)
-    nv_screen_poke_color_a(6, 4)
-    nv_rand_color_a(true)
-    nv_screen_poke_color_a(24, 5)
-    //nv_screen_poke_color_a(12, 28)
-    nv_screen_poke_color_a(6, 17)
-
-    //nv_screen_poke_color_a(14, 22)
-    //nv_rand_color_a(true)
-    //nv_screen_poke_color_a(07, 9)
-    //nv_screen_poke_color_a(21, 14)
-   
-    rts
-
-//////////////////////////////////////////////////////////////////////////////
-// Subroutine to set all character colors for the whole screen to the color
-// in the accumulator
-// subroutine params:
-//   Accum: the color (0-15) to put in screen color memory for all locations 
-SetAllCharColorA:
-    nv_screen_poke_all_color_a()
-    rts
-
-//////////////////////////////////////////////////////////////////////////////
-SetAllCharA:
-    nv_screen_poke_all_char_a()
-    rts
-
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to start the wind effect
@@ -654,6 +657,11 @@ WindSetVelShip1:
 WindDoneVelShip1:
 WindDoneStep:
     rts
+
+
+*=$3000 "charset start"
+lda #9
+*=$3800 "beyond charset"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1076,7 +1084,6 @@ SpriteExtraPtrLoaded:
     rts
 
 
-#import "../nv_c64_util/nv_screen_code.asm"
 
 // our sprite routines will goto this address
 *=$5000 "Sprite Code"
@@ -1085,6 +1092,10 @@ SpriteExtraPtrLoaded:
 #import "../nv_c64_util/nv_sprite_extra_code.asm"
 #import "../nv_c64_util/nv_sprite_raw_collisions_code.asm"
 #import "../nv_c64_util/nv_sprite_raw_code.asm"
+
+#import "../nv_c64_util/nv_screen_code.asm"
+
+
 //#import "../nv_c64_util/nv_screen_code.asm"
 //#import "../nv_c64_util/nv_sprite_raw_code.asm"
 /*
