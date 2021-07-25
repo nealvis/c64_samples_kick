@@ -369,6 +369,103 @@ Done:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke a color and char to coord(col, row) 
+// position within a 40x25 coord system (ie screen or color memory)
+// macro params:
+//   col_row_color_char_addr is the address of a block of memory that
+//                           contains 4 bytes in this order
+//                           screen col, screen row, color, character
+// params:
+.macro nv_screen_poke_col_row_color_char(col_row_color_char_addr)
+{
+    // row 0 - 5, and row 6 when col < 16
+    .var screen_poke_start0 = SCREEN_START+(256*0)
+    .var color_poke_start0 = SCREEN_COLOR_START+(256*0)
+    
+    // row 6 col >= 16 through row 12 when col < 32
+    .var screen_poke_start1 = SCREEN_START+(256*1)
+    .var color_poke_start1 = SCREEN_COLOR_START+(256*1)
+
+    // row 12 col 32, through row 19 col 7
+    .var screen_poke_start2 = SCREEN_START+(256*2)
+    .var color_poke_start2 = SCREEN_COLOR_START+(256*2)
+
+    // row 19 col 8 and beyond to row 24 col 39
+    .var screen_poke_start3 = SCREEN_START+(256*3)
+    .var color_poke_start3 = SCREEN_COLOR_START+(256*3)
+    
+    ldx col_row_color_char_addr
+    ldy col_row_color_char_addr+1
+
+TryBank0:
+    cpy #7
+    bcs TryBank1    // greater than or equal to row 7 try next bank
+    cpy #6           // if row 6 could still be bank 0
+    bne UseBank0     // if not row 6 then its bank 0
+    cpx #16          // row  = 6 and col >= 16 is beyond this bank 
+    bcs TryBank1
+UseBank0:
+    nv_screen_poke_to_char_color_banks(screen_poke_start0, color_poke_start0,
+                                       0, 0,    // first row, first col
+                                       col_row_color_char_addr)
+    //lda col_row_color_char_addr+3
+    //nv_screen_poke_xya_from_base(screen_poke_start0, 0, 0)
+    //lda col_row_color_char_addr+2
+    //nv_screen_poke_xya_from_base(color_poke_start0, 0, 0)
+    jmp Done
+
+TryBank1:
+    cpy #13
+    bcs TryBank2     // greater than or equal to row 13 try next bank
+    cpy #12          // if row 12 could still be this bank
+    bne UseBank1     // if not row 12 then its this bank
+    cpx #32          // row = 12 and col >= 32 is beyond bank 1
+    bcs TryBank2
+UseBank1:
+    nv_screen_poke_to_char_color_banks(screen_poke_start1, color_poke_start1,
+                                       6, 16,    // first row, first col
+                                       col_row_color_char_addr)
+
+    //lda col_row_color_char_addr+3
+    //nv_screen_poke_xya_from_base(screen_poke_start1, 6, 16)
+    //lda col_row_color_char_addr+2
+    //nv_screen_poke_xya_from_base(color_poke_start1, 6, 16)
+    jmp Done
+
+TryBank2:
+    cpy #20
+    bcs UseBank3     // greater than or equal to row 20 then its last bank
+    cpy #19          // if row = 19 could still be this bank
+    bne UseBank2     // if not row 19 then its this bank
+    cpx #8           // row = 19 and col >= 8 is beyond this bank
+    bcs UseBank3
+
+UseBank2:
+    nv_screen_poke_to_char_color_banks(screen_poke_start2, color_poke_start2,
+                                       12, 32,    // first row, first col
+                                       col_row_color_char_addr)
+
+    //lda col_row_color_char_addr+3
+    //nv_screen_poke_xya_from_base(screen_poke_start2, 12, 32)
+    //lda col_row_color_char_addr+2
+    //nv_screen_poke_xya_from_base(color_poke_start2, 12, 32)
+    jmp Done
+
+UseBank3:
+    nv_screen_poke_to_char_color_banks(screen_poke_start3, color_poke_start3,
+                                       19, 8,    // first row, first col
+                                       col_row_color_char_addr)
+
+    //lda col_row_color_char_addr+3
+    //nv_screen_poke_xya_from_base(screen_poke_start3, 19, 8)
+    //lda col_row_color_char_addr+2
+    //nv_screen_poke_xya_from_base(color_poke_start3, 19, 8)
+    jmp Done
+
+Done:
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to poke a char to a location on the screen
@@ -461,6 +558,73 @@ Done:
 
 
 //////////////////////////////////////////////////////////////////////////////
+// inline macro to poke the same char and color to a list of screen coords
+// macro params:
+//   zero_page_lsb_addr: this is the LSB of a word in zero page
+//                       that should be used for pointer indirection
+//   zero_page_save_lsb_addr: this is the LSB of a word in memory
+//                            that should be used to save the previous
+//                            contents of the zero page word so it can 
+//                            be restored.
+//   mem_block_addr: the address of a 7 byte block that can be used
+//                   internally to store these things throughout
+//                   col, row, color, char, y index, zero page lsb, msb
+// reg params:
+//   X Reg/Y Reg: is the LSB/MSB of the list_addr which points to bytes 
+//                in this structure:
+//                list_addr: .byte <color>, <char> // color byte, char byte
+//                           .byte 0, 0     // screen coord 0, 0
+//                           .byte 1, 1     // screen coord 1, 1
+//                           .byte $FF      // end of list.
+.macro nv_screen_poke_coord_list(zero_page_lsb_addr, 
+                                 //zero_page_save_lsb_addr,
+                                 mem_block_addr) // x, y, color, char
+{
+    // save current contents of zero page pointer we will use
+    lda zero_page_lsb_addr 
+    sta mem_block_addr + 5         // zero_page_save_lsb_addr
+    lda zero_page_lsb_addr+1 
+    sta mem_block_addr + 6         // zero_page_save_lsb_addr+1
+
+    stx zero_page_lsb_addr
+    sty zero_page_lsb_addr+1
+    ldy #0
+    lda (zero_page_lsb_addr), y     // read color byte from list
+    sta mem_block_addr +2           // store color in mem block
+    iny
+    lda (zero_page_lsb_addr), y     // read character byte from list
+    sta mem_block_addr + 3          // store character in block    
+    iny                             // move index to first coord
+    
+// now start looping through coords
+Loop:
+    sty mem_block_addr + 4      // save y index into list in a temp 
+    lda (zero_page_lsb_addr),y  // get the col from the list in accum
+    bpl Continue                // if its negative then done with list
+    jmp Done                    // wasn't positive, was neg, exit loop
+Continue:
+    sta mem_block_addr+0        // put col in first byte of block
+    iny                         // inc index to get the row from list
+    lda (zero_page_lsb_addr),y  // get row from the list in Y reg
+    sta mem_block_addr+1        // put row in second byte of mem block
+
+    nv_screen_poke_col_row_color_char(mem_block_addr)
+
+    ldy mem_block_addr + 4      // restore index from memory temp
+    iny                         // increment it twice to get next x, y pair
+    iny
+    jmp Loop                    // jump back to top of loop
+    
+Done:
+    // restore zero page memory pointer that we used
+    lda mem_block_addr + 5        // zero_page_save_lsb_addr 
+    sta zero_page_lsb_addr
+    lda mem_block_addr + 6        // zero_page_save_lsb_addr+1 
+    sta zero_page_lsb_addr+1
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
 // inline macro to poke a char to a list of screen coords
 // macro params:
 //   list_addr: the address of the list of coords for the macro.  
@@ -533,7 +697,7 @@ Done:
 
 
 ////////////////////////////////////////////////////////////////////////
-// inline macro to poke char in accum to x, y location on screen
+// inline macro to poke byte in accum to x, y location on screen
 // or a color in accum to x, y location on screen.  
 // if the base address passed is in screen char memory then it will 
 // be a char, if its in screen color memory then it will be a color
@@ -585,6 +749,64 @@ DoneRowLoop0:
     pla
     sta base_addr,x
 }
+
+////////////////////////////////////////////////////////////////////////
+// inline macro to poke byte in accum to x, y location on screen
+// or a color in accum to x, y location on screen.  
+// if the base address passed is in screen char memory then it will 
+// be a char, if its in screen color memory then it will be a color
+// macro params:
+//   base_address: is the start of screen memory or color memor for
+//                 this bank of 256 bytes
+//   first_row: is the row of the first char in this bank
+//   first_col: is the col of the first char in this bank.
+// subroutine params:
+//   Accum: pass the char to poke to the screen. value preserved
+//   Y Reg: The row for the char to be poked at. value not preserved
+//   X Reg: the col for the char to be poked at. value not preserved
+.macro nv_screen_poke_to_char_color_banks(char_base_addr, color_base_addr,
+                                          first_row, first_col,
+                                          col_row_color_char_addr) // x, y, color_char
+{
+    // adjust the row (y reg) based on the first row
+    tya
+    sec
+    sbc #first_row
+    tay
+
+    // adjust the col (x reg) base on first col
+    txa
+    sec
+    sbc #first_col
+    tax
+
+    // after above adjustments x reg and y reg are both zero if
+    // we are poking to the first byte in the bank.
+
+    lda #0  // start accum at zero and add bytes per row for each row
+            // beyond first row of the bank.
+
+    cpy #0  // if zero then we've added enough for the rows
+RowLoop0:
+    beq DoneRowLoop0
+    clc
+    adc #NV_SCREEN_CHARS_PER_ROW 
+    dey 
+    jmp RowLoop0
+DoneRowLoop0:
+
+    stx scratch_byte
+    clc
+    adc scratch_byte
+    tax
+    
+    // do the pokes.  X reg has the correct offset from the base addrs
+    lda col_row_color_char_addr + 3
+    sta char_base_addr,x
+    lda col_row_color_char_addr + 2
+    sta color_base_addr, x
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 //

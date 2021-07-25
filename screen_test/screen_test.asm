@@ -40,7 +40,7 @@ title_bcd_byte_str: .text @"TEST PRINT BCD BYTE...\$00"
 title_bcd_word_str: .text @"TEST PRINT DCD WORD...\$00"
 title_poke_bcd_word_str: .text @"TEST POKE BCD WORD MEM\$00"
 title_poke_bcd_byte_str: .text @"TEST POKE BCD BYTE MEM\$00"
-
+title_poke_coord_list_str: .text @"TEST POKE COORD LIST\$00"
 hit_anykey_str: .text @"HIT ANY KEY ...\$00"
 
 word_to_print: .word $DEAD
@@ -89,6 +89,118 @@ dec_0100: .word $0100
 dec_0101: .word $0101
 dec_9999: .word $9999
 
+coord_list1:
+    .byte NV_COLOR_WHITE, $01 // red and 'A'
+    .byte 0, 3                // col, row
+    .byte 1, 4
+    .byte 2, 5
+    .byte 3, 6
+    .byte 4, 7
+    .byte 5, 8
+    .byte 6, 9
+    .byte 7, 10
+    .byte 8, 11
+    .byte 9, 12
+    .byte 10, 13
+    .byte 11, 14
+    .byte 12, 15
+    .byte 13, 16
+    .byte 14, 17
+    .byte 15, 18
+    .byte 16, 19
+    .byte 17, 20
+    .byte 18, 21
+    .byte 19, 22
+    .byte 20, 23
+    .byte 21, 24
+    .byte $FF
+
+coord_list2:
+    .byte NV_COLOR_GREEN, $02 // green, 'B'
+    .byte 39, 2              // col, row
+    .byte 39, 3
+    .byte 39, 0
+    .byte 39, 1
+    .byte 39, 4
+    .byte 39, 5
+    .byte 39, 6
+    .byte 39, 7
+    .byte 39, 8
+    .byte 39, 9
+    .byte 39, 10
+    .byte 39, 11
+    .byte 39, 12
+    .byte 39, 13
+    .byte 39, 14
+    .byte 39, 15
+    .byte 39, 16
+    .byte 39, 17
+    .byte 39, 18
+    .byte 39, 19
+    .byte 39, 20
+    .byte 39, 21
+    .byte 39, 22
+    .byte 39, 23
+    .byte 39, 24
+    .byte $FF
+
+coord_list3:
+    .byte NV_COLOR_RED, $03 // red, 'C'
+    .byte 0, 0              // col, row
+    .byte 0, 1
+    .byte 0, 2
+    .byte 0, 3
+    .byte 0, 4
+    .byte 0, 5
+    .byte 0, 6
+    .byte 0, 7
+    .byte 0, 8
+    .byte 0, 9
+    .byte 0, 10
+    .byte 0, 11
+    .byte 0, 12
+    .byte 0, 13
+    .byte 0, 14
+    .byte 0, 15
+    .byte 0, 16
+    .byte 0, 17
+    .byte 0, 18
+    .byte 0, 19
+    .byte 0, 20
+    .byte 0, 21
+    .byte 0, 22
+    .byte 0, 23
+    .byte 0, 24
+    .byte $FF
+
+coord_list4:
+    .byte NV_COLOR_BROWN, $04 // brown, 'D'
+    .byte 0, 6              // col, row
+    .byte 1, 6
+    .byte 2, 6
+    .byte 3, 6
+    .byte 4, 6
+    .byte 5, 6
+    .byte 6, 6
+    .byte 7, 6
+    .byte 8, 6
+    .byte 9, 6
+    .byte 10,6 
+    .byte 11,6 
+    .byte 12,6 
+    .byte 13, 6
+    .byte 14, 6
+    .byte 15, 6
+    .byte 16, 6
+    .byte 17, 6
+    .byte 18, 6
+    .byte 19, 6
+    .byte 20, 6
+    .byte 21, 6
+    .byte 22, 6
+    .byte 23, 6
+    .byte 24, 6
+    .byte $FF
 
 *=$1000 "Main Start"
 
@@ -98,6 +210,7 @@ dec_9999: .word $9999
     nv_screen_plot_cursor(row++, 31)
     nv_screen_print_str(title_str)
 
+    test_poke_coord_list(0)
     test_poke_bcd_byte(0)
     test_poke_bcd_word(0)
     test_print_bcd_byte(0)
@@ -108,6 +221,47 @@ dec_9999: .word $9999
 
     rts
 
+
+.macro test_poke_coord_list(init_row)
+{
+    .var row = init_row
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(title_poke_coord_list_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
+
+    ldx #<coord_list1
+    ldy #>coord_list1
+    jsr NvScreenPokeCoordList
+
+    ldx #<coord_list2
+    ldy #>coord_list2
+    jsr NvScreenPokeCoordList
+
+    ldx #<coord_list3
+    ldy #>coord_list3
+    jsr NvScreenPokeCoordList
+
+    ldx #<coord_list4
+    ldy #>coord_list4
+    jsr NvScreenPokeCoordList
+
+
+    nv_screen_plot_cursor(23, 5)
+    //nv_screen_print_str(hit_anykey_str)
+    wait_and_clear_at_row(23)
+
+
+}
+
+
+NvScreenPokeCoordList:
+    nv_screen_poke_coord_list(ZERO_PAGE_LO, my_mem_block)
+    rts
+
+// 7 byte block for nv_screen_poke_coord_list per comments
+my_mem_block: .byte 0, 0, 0, 0, 0, 0, 0   // x, y, color, char
 
 //////////////////////////////////////////////////////////////////////////////
 // test converting word to hex
