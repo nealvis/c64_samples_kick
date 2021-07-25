@@ -6,6 +6,8 @@
 #import "../nv_c64_util/nv_screen_code.asm"
 #import "astro_vars_data.asm"
 
+.const WIND_GLIMMER_DARKEN_COLOR = NV_COLOR_DARK_GREY
+
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to call once before using wind glimmer
 WindGlimmerInit:
@@ -76,7 +78,7 @@ WindGlimmerDoStep0:
 
 WindGlimmerDoStep1:
     // first darken out the step 0 chars
-    lda #NV_COLOR_LITE_GREY
+    lda #WIND_GLIMMER_DARKEN_COLOR
     ldx #<wind_step0_point_list_addr
     ldy #>wind_step0_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
@@ -95,7 +97,7 @@ WindGlimmerDoStep2:
     jsr NvScreenPokeColorToCoordList_axy
 
     // darken the step 1 chars
-    lda #NV_COLOR_LITE_GREY
+    lda #WIND_GLIMMER_DARKEN_COLOR
     ldx #<wind_step1_point_list_addr
     ldy #>wind_step1_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
@@ -115,7 +117,7 @@ WindGlimmerDoStep3:
     jsr NvScreenPokeColorToCoordList_axy
 
     // darken the step 2 chars
-    lda #NV_COLOR_LITE_GREY
+    lda #WIND_GLIMMER_DARKEN_COLOR
     ldx #<wind_step2_point_list_addr
     ldy #>wind_step2_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
@@ -134,7 +136,7 @@ WindGlimmerDoStep4:
     jsr NvScreenPokeColorToCoordList_axy
 
     // darken the step 3 chars
-    lda #NV_COLOR_LITE_GREY
+    lda #WIND_GLIMMER_DARKEN_COLOR
     ldx #<wind_step3_point_list_addr
     ldy #>wind_step3_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
@@ -153,7 +155,7 @@ WindGlimmerDoStep5:
     jsr NvScreenPokeColorToCoordList_axy
 
     // darken the step 4 chars
-    lda #NV_COLOR_LITE_GREY
+    lda #WIND_GLIMMER_DARKEN_COLOR
     ldx #<wind_step4_point_list_addr
     ldy #>wind_step4_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
