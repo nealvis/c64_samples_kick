@@ -27,7 +27,8 @@
         .byte $20, $28, $34, $30, $39, $36, $29 // ASCII for " (4096)"
         .byte $00, $00, $00      // end of basic program (addr $080E from above)
 
-*=$0820 "Vars"
+*=$1000 "Main Start"
+jmp RealStart 
 
 .const dollar_sign = $24
 
@@ -41,7 +42,11 @@ title_bcd_word_str: .text @"TEST PRINT DCD WORD...\$00"
 title_poke_bcd_word_str: .text @"TEST POKE BCD WORD MEM\$00"
 title_poke_bcd_byte_str: .text @"TEST POKE BCD BYTE MEM\$00"
 title_poke_coord_list_str: .text @"TEST POKE COORD LIST\$00"
+title_custom_charset_str: .text @"TEST CUSTOM CHARSET\$00"
 hit_anykey_str: .text @"HIT ANY KEY ...\$00"
+pre_copy_str: .text @"ABOUT TO GO CUSTOM CHARSET.\$00"
+post_copy_str: .text @"CUSTOM CHARSET IN PLACE AT: \$00"
+
 
 word_to_print: .word $DEAD
 another_word:  .word $BEEF
@@ -202,7 +207,20 @@ coord_list4:
     .byte 24, 6
     .byte $FF
 
-*=$1000 "Main Start"
+// basic program to call the ML program
+BasicProgram:
+    .byte $00                // first byte start of basic should be 0
+    .byte $0E, $08           // Forward address to next basic line
+    .byte $0A, $00           // this will be line 10 ($0A)
+    .byte $9E                // basic token for SYS
+    .byte $20, $28, $34, $30, $39, $36, $29 // ASCII for " (4096)"
+    .byte $00, $00, $00      // end of basic program (addr $080E from above)
+    .byte $FF                // marker to end copying will be ok as long as 
+                             // no $FF in the actual program above
+
+*=$4001 "RealStart"
+RealStart:
+
 
 .var row = 0
 
@@ -210,6 +228,7 @@ coord_list4:
     nv_screen_plot_cursor(row++, 31)
     nv_screen_print_str(title_str)
 
+    test_custom_charset(0)
     test_poke_coord_list(0)
     test_poke_bcd_byte(0)
     test_poke_bcd_word(0)
@@ -219,9 +238,62 @@ coord_list4:
     test_hex_word(0)
     test_hex_word_immediate(0)
 
+    // copy the 1 line basic program back to basic memory
+    ldx 0
+CopyBasicProgramLoop:
+    lda BasicProgram, x
+    cmp #$FF
+    beq Done
+    sta $0800, x
+    inx
+    jmp CopyBasicProgramLoop
+Done:
+
+    nv_screen_custom_charset_done()
+
     rts
 
+//////////////////////////////////////////////////////////////////////////////
+// test pokeing a color and char to a list of screen coordinates
+.macro test_custom_charset(init_row)
+{
+    .var row = init_row
+    //////////////////////////////////////////////////////////////////////////
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(title_custom_charset_str)
+    //////////////////////////////////////////////////////////////////////////
+    .eval row++
 
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(pre_copy_str)
+
+    nv_screen_custom_charset_init(1, true)
+
+    nv_screen_plot_cursor(row++, 0)
+    nv_screen_print_str(post_copy_str)
+    nv_screen_print_hex_word_immed($0800, true)
+
+    .var char
+    .var col = 0
+    .for(char = 0; char<80; char++)
+    {
+        ldy #char
+        nv_screen_poke_char_y(row, col++)
+        
+        .if (char == 40)
+        {
+            .eval col = 0
+            .eval row = row + 1
+        }
+    }
+
+    nv_screen_plot_cursor(23, 5)
+    wait_and_clear_at_row(23)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// test pokeing a color and char to a list of screen coordinates
 .macro test_poke_coord_list(init_row)
 {
     .var row = init_row
@@ -249,9 +321,7 @@ coord_list4:
 
 
     nv_screen_plot_cursor(23, 5)
-    //nv_screen_print_str(hit_anykey_str)
     wait_and_clear_at_row(23)
-
 
 }
 

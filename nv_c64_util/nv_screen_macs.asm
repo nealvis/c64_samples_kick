@@ -1071,3 +1071,132 @@ Loop3:
     dec NV_SCREEN_BACKGROUND_COLOR_REG_ADDR
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// macros for custom char sets below
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// initialize the system pointer to use a custom charset
+// macro params: 
+//   charset_bank: specifies address of the custom charset.
+//                 the actual address will be determined by this 
+//                 table  (only values 0-7 are valid) and a few
+//                 of the values always get read from ROM
+//                  0 : charset is at $0000
+//                  1 : charset is at $0800
+//                  2 : charset is at $1000  (Always read from ROM)
+//                  3 : charset is at $1800  (Always read from ROM)
+//                  4 : charset is at $2000
+//                  5 : charset is at $2800
+//                  6 : charset is at $3000
+//                  7 : charset is at $3800
+//  copy_rom_chars: pass true to copy the rom charset to the new location
+//                  in ram
+.macro nv_screen_custom_charset_init(charset_bank, copy_rom_chars)
+{
+    .if(charset_bank > 7)
+    {
+        .error("ERROR - nv_screen_init_custom_charset: invalid charset bank")
+    }
+
+    .var charset_location_mask = ((charset_bank << 1) & $0E)
+
+    .var new_charset_addr = $0000
+    .if (charset_bank == 1)
+    {
+        .eval new_charset_addr = $0800
+    }
+    else .if (charset_bank == 2)
+    {
+        .eval new_charset_addr = $1000
+    }
+    else .if (charset_bank == 3)
+    {
+        .eval new_charset_addr = $1800
+    }
+    else .if (charset_bank == 4)
+    {
+        .eval new_charset_addr = $2000
+    }
+    else .if (charset_bank == 5)
+    {
+        .eval new_charset_addr = $2800
+    }
+    else .if (charset_bank == 6)
+    {
+        .eval new_charset_addr = $3000
+    }
+    else .if (charset_bank == 7)
+    {
+        .eval new_charset_addr = $3800
+    }
+    else
+    {
+        .error("ERROR - nv_screen_init_custom_charset: invalid charset bank")
+    }
+
+    lda $D018                   // special memory location, the low 4 bits
+                                // specify which bank of memory holds the 
+                                // charset in use.  the lowest bit (bit 0)
+                                // isn't used but the bits 1-3 will be set 
+                                // to the charset_bank value passed in
+
+    and #$F1                    // clear the 3 bits that we'll set to bank
+    ora #charset_location_mask  // now set 3 bits to the charset_bank value
+    sta $D018                   // write back to the special location
+    
+    .if (copy_rom_chars)
+    {
+        nv_screen_custom_charset_copy_from_rom(new_charset_addr)
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to copy the ROM char set to a location in RAM
+// the new location will get 2048 bytes copied to it
+// macro params:
+//   new_charset_addr: destination address to which charset will be copied
+//   save_block_addr 
+.macro nv_screen_custom_charset_copy_from_rom(new_charset_addr)
+{
+    sei                     // irqs off
+
+    // Save byte at $01 which configures how ROMs are visible
+    lda $0001
+    pha
+
+    // Set byte at $01 to value which allows ROMs to be visible 
+    // to CPU at $D000
+    lda #$33                // configure so ROMS visible to CPU
+    sta $0001 
+
+    // now copy ROMs to new charset
+
+    // do it in 256 byte chunks since our index (x reg) is 
+    // limited to 8 bits
+.var offset
+.for (offset = $0000; offset < $0800; offset = offset + 256)   
+{ 
+    ldx #0
+Loop1:
+    lda $D000+offset, x
+    sta new_charset_addr+offset, x
+    inx
+    bne Loop1
+}
+    // restore byte at $01 so ROMS no longer visible to CPU
+    pla
+    sta $0001
+
+    cli                     // irqs back on
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to replace the pointer to charset so that it points 
+// to the ROM charset instead of custom char set in RAM.
+// call this to undo the nv_screen_custom_charset_init() macro
+.macro nv_screen_custom_charset_done()
+{
+    lda #$15        // this is the normal value for $D018
+    sta $D018       // store it back so charset is in ROM again.
+}
