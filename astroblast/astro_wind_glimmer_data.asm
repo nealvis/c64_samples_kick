@@ -10,10 +10,13 @@
 .const CHAR_DASH = $2D
 .const CHAR_PERIOD = $2E
 
+.const CHAR_CUSTOM_1 = $1B
+.const CHAR_CUSTOM_2 = $1C
+
 wind_glimmer_count: .byte $FF
 
 wind_step0_point_list_with_color_char: .byte NV_COLOR_WHITE // color to poke
-wind_step0_point_list_with_char:       .byte CHAR_COLON     // char to poke
+wind_step0_point_list_with_char:       .byte CHAR_CUSTOM_1     // char to poke
 wind_step0_point_list_addr: .byte 37, 1     // x, y ie col, row
                             .byte 38, 3
                             .byte 36, 5
@@ -28,7 +31,7 @@ wind_step0_point_list_addr: .byte 37, 1     // x, y ie col, row
                             .byte $FF
 
 wind_step1_point_list_with_color_char: .byte NV_COLOR_WHITE // poke color
-wind_step1_point_list_with_char:       .byte CHAR_DASH // poke char
+wind_step1_point_list_with_char:       .byte CHAR_CUSTOM_1 // poke char
 wind_step1_point_list_addr: .byte 33, 1
                             .byte 31, 3
                             .byte 32, 5
@@ -41,7 +44,7 @@ wind_step1_point_list_addr: .byte 33, 1
                             .byte $FF
 
 wind_step2_point_list_with_color_char: .byte NV_COLOR_WHITE // poke color
-wind_step2_point_list_with_char:       .byte CHAR_MED_LINE  // poke char
+wind_step2_point_list_with_char:       .byte CHAR_CUSTOM_1  // poke char
 wind_step2_point_list_addr: .byte 28, 3
                             .byte 26, 5
                             .byte 29, 9
@@ -53,7 +56,7 @@ wind_step2_point_list_addr: .byte 28, 3
                             .byte $FF
 
 wind_step3_point_list_with_color_char: .byte NV_COLOR_WHITE // poke color
-wind_step3_point_list_with_char:       .byte CHAR_DASH      // poke char
+wind_step3_point_list_with_char:       .byte CHAR_CUSTOM_1      // poke char
 wind_step3_point_list_addr: .byte 24, 3
                             .byte 22, 5
                             .byte 24, 9
@@ -65,7 +68,7 @@ wind_step3_point_list_addr: .byte 24, 3
                             .byte $FF
 
 wind_step4_point_list_with_color_char: .byte NV_COLOR_WHITE // Poke color
-wind_step4_point_list_with_char:       .byte CHAR_DASH      // Poke char
+wind_step4_point_list_with_char:       .byte CHAR_CUSTOM_2      // Poke char
 wind_step4_point_list_addr: .byte 19, 3
                             .byte 18, 9
                             .byte 15, 12
@@ -75,7 +78,7 @@ wind_step4_point_list_addr: .byte 19, 3
                             .byte $FF
 
 wind_step5_point_list_with_color_char: .byte NV_COLOR_WHITE // poke color
-wind_step5_point_list_with_char:       .byte CHAR_PERIOD    // poke char
+wind_step5_point_list_with_char:       .byte CHAR_CUSTOM_2    // poke char
 wind_step5_point_list_addr: .byte 13, 3
                             .byte 12, 9
                             .byte 10, 12
