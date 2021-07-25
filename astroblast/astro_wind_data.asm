@@ -1,5 +1,8 @@
 // astro_wind_data
 #importonce
+#import "../nv_c64_util/nv_color_macs.asm"
+
+wind_glimmer_count: .byte $FF
 
 wind_step0_point_list_with_color_char: .byte NV_COLOR_WHITE // white color
 wind_step0_point_list_with_char:       .byte $3A            // colon char
@@ -59,15 +62,15 @@ wind_step4_point_list_addr: .byte 19, 3
                             .byte 18, 9
                             .byte 15, 12
                             .byte 16, 14
-                            .byte 19, 21
-                            .byte 16, 21
+                            .byte 19, 20
+                            .byte 16, 22
                             .byte $FF
 wind_step5_point_list_with_color_char: .byte NV_COLOR_WHITE // white color
-wind_step5_point_list_with_char:       .byte $2D            // dash lowest char
+wind_step5_point_list_with_char:       .byte $2E            // dash lowest char
 wind_step5_point_list_addr: .byte 13, 3
                             .byte 12, 9
                             .byte 10, 12
                             .byte 11, 14
                             .byte 13, 21
-                            .byte 12, 21
+                            .byte 12, 23
                             .byte $FF
