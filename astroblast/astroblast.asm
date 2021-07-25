@@ -79,6 +79,8 @@ wind_ship1_dec_value: .byte 0
 
 RealStart:
 
+    nv_screen_custom_charset_init(6, false)
+
     // clear the screen just to have an empty canvas
     nv_screen_clear()
     jsr CreateField
@@ -289,6 +291,8 @@ ProgramDone:
     nv_key_done()
     nv_rand_done()
 
+    nv_screen_custom_charset_done()
+
     nv_screen_plot_cursor(5, 24)
     nv_screen_clear()
     rts   // program done, return
@@ -305,6 +309,9 @@ WaitNoKey:
 ScoreToScreen:
     nv_screen_poke_bcd_word_mem(0, 0, ship_1.score)
     nv_screen_poke_bcd_word_mem(24, 0, ship_2.score)
+
+    lda #$25
+    nv_screen_poke_char_a(1, 0)
     rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -660,8 +667,8 @@ WindDoneStep:
 
 
 *=$3000 "charset start"
-lda #9
-*=$3800 "beyond charset"
+.import binary "astro_charset.bin"
+//*=$3800 "beyond charset"
 
 
 //////////////////////////////////////////////////////////////////////////////
