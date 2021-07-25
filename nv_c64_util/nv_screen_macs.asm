@@ -562,10 +562,6 @@ Done:
 // macro params:
 //   zero_page_lsb_addr: this is the LSB of a word in zero page
 //                       that should be used for pointer indirection
-//   zero_page_save_lsb_addr: this is the LSB of a word in memory
-//                            that should be used to save the previous
-//                            contents of the zero page word so it can 
-//                            be restored.
 //   mem_block_addr: the address of a 7 byte block that can be used
 //                   internally to store these things throughout
 //                   col, row, color, char, y index, zero page lsb, msb
@@ -577,8 +573,7 @@ Done:
 //                           .byte 1, 1     // screen coord 1, 1
 //                           .byte $FF      // end of list.
 .macro nv_screen_poke_coord_list(zero_page_lsb_addr, 
-                                 //zero_page_save_lsb_addr,
-                                 mem_block_addr) // x, y, color, char
+                                 mem_block_addr) 
 {
     // save current contents of zero page pointer we will use
     lda zero_page_lsb_addr 

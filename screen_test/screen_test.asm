@@ -255,7 +255,21 @@ coord_list4:
 
 }
 
-
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke the same char and color to a list of screen coords
+// macro params:
+//   zero_page_lsb_addr: this is the LSB of a word in zero page
+//                       that should be used for pointer indirection
+//   mem_block_addr: the address of a 7 byte block that can be used
+//                   internally to store these things throughout
+//                   col, row, color, char, y index, zero page lsb, msb
+// reg params:
+//   X Reg/Y Reg: is the LSB/MSB of the list_addr which points to bytes 
+//                in this structure:
+//                list_addr: .byte <color>, <char> // color byte, char byte
+//                           .byte 0, 0     // screen coord 0, 0
+//                           .byte 1, 1     // screen coord 1, 1
+//                           .byte $FF      // end of list.
 NvScreenPokeCoordList:
     nv_screen_poke_coord_list(ZERO_PAGE_LO, my_mem_block)
     rts

@@ -285,3 +285,13 @@ NvScreenPokeColorToCoordList_axy:
                                           nv_screen_save_zero_page_lo, 
                                           SCREEN_COLOR_START)
     rts
+
+NvScreenPokeCoordList:
+    nv_screen_poke_coord_list(NV_SCREEN_ZERO_PAGE_LO, 
+                              nv_screen_poke_coord_list_mem_block)
+    rts
+
+// 7 byte block for nv_screen_poke_coord_list to use internally
+// per comments for the macro.
+nv_screen_poke_coord_list_mem_block: 
+    .byte 0, 0, 0, 0, 0, 0, 0   // x, y, color, char, Y index, zero lsb, msb

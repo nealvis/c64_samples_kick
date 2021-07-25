@@ -796,16 +796,16 @@ WindGlimmerStep7Check:
 
 WindGlimmerDoStep0:
 
-    lda #NV_COLOR_WHITE
+    //lda #NV_COLOR_WHITE
     //nv_screen_poke_color_to_coord_list(wind_step0_point_list_addr)
-    ldx #<wind_step0_point_list_addr
-    ldy #>wind_step0_point_list_addr
-    jsr NvScreenPokeColorToCoordList_axy
+    ldx #<wind_step0_point_list_with_color_char
+    ldy #>wind_step0_point_list_with_color_char
+    jsr NvScreenPokeCoordList
 
-    lda #$3A    // colon
-    ldx #<wind_step0_point_list_addr
-    ldy #>wind_step0_point_list_addr
-    jsr NvScreenPokeCharToCoordList_axy
+    //lda #$3A    // colon
+    //ldx #<wind_step0_point_list_addr
+    //ldy #>wind_step0_point_list_addr
+    //jsr NvScreenPokeCharToCoordList_axy
     //nv_screen_poke_char_to_coord_list(wind_step0_point_list_addr)
 
     jmp WindGlimmerDone
@@ -818,20 +818,26 @@ WindGlimmerDoStep1:
     ldy #>wind_step0_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
 
+    // poke step 1 chars and colors
+    ldx #<wind_step1_point_list_with_color_char
+    ldy #>wind_step1_point_list_with_color_char
+    jsr NvScreenPokeCoordList
+
+
     // write step 1 chars
-    lda #$3A     // colon    #46 // period char
+    //lda #$3A     // colon    #46 // period char
     //nv_screen_poke_char_to_coord_list(wind_step1_point_list_addr)
-    ldx #<wind_step1_point_list_addr
-    ldy #>wind_step1_point_list_addr
-    jsr NvScreenPokeCharToCoordList_axy
+    //ldx #<wind_step1_point_list_addr
+    //ldy #>wind_step1_point_list_addr
+    //jsr NvScreenPokeCharToCoordList_axy
 
 
     // set step 1 chars color
-    lda #NV_COLOR_WHITE
+    //lda #NV_COLOR_WHITE
     //nv_screen_poke_color_to_coord_list(wind_step1_point_list_addr)
-    ldx #<wind_step1_point_list_addr
-    ldy #>wind_step1_point_list_addr
-    jsr NvScreenPokeColorToCoordList_axy
+    //ldx #<wind_step1_point_list_addr
+    //ldy #>wind_step1_point_list_addr
+    //jsr NvScreenPokeColorToCoordList_axy
 
     jmp WindGlimmerDone
 
@@ -851,20 +857,26 @@ WindGlimmerDoStep2:
     ldy #>wind_step1_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
 
+    // poke step 2 chars and colors
+    ldx #<wind_step2_point_list_with_color_char
+    ldy #>wind_step2_point_list_with_color_char
+    jsr NvScreenPokeCoordList
+
+
     // write step 2 chars
-    lda #46 // period char
+    //lda #46 // period char
     //nv_screen_poke_char_to_coord_list(wind_step2_point_list_addr)
-    ldx #<wind_step2_point_list_addr
-    ldy #>wind_step2_point_list_addr
-    jsr NvScreenPokeCharToCoordList_axy
+    //ldx #<wind_step2_point_list_addr
+    //ldy #>wind_step2_point_list_addr
+    //jsr NvScreenPokeCharToCoordList_axy
 
 
     // set step 2 chars color
-    lda #NV_COLOR_WHITE
+    //lda #NV_COLOR_WHITE
     //nv_screen_poke_color_to_coord_list(wind_step2_point_list_addr)
-    ldx #<wind_step2_point_list_addr
-    ldy #>wind_step2_point_list_addr
-    jsr NvScreenPokeColorToCoordList_axy
+    //ldx #<wind_step2_point_list_addr
+    //ldy #>wind_step2_point_list_addr
+    //jsr NvScreenPokeColorToCoordList_axy
 
     jmp WindGlimmerDone
 
@@ -884,20 +896,26 @@ WindGlimmerDoStep3:
     ldy #>wind_step2_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
 
+    // poke step 3 chars and colors
+    ldx #<wind_step3_point_list_with_color_char
+    ldy #>wind_step3_point_list_with_color_char
+    jsr NvScreenPokeCoordList
+
+
     // write step 3 chars
-    lda #46 // period char
+    //lda #46 // period char
     //nv_screen_poke_char_to_coord_list(wind_step3_point_list_addr)
-    ldx #<wind_step3_point_list_addr
-    ldy #>wind_step3_point_list_addr
-    jsr NvScreenPokeCharToCoordList_axy
+    //ldx #<wind_step3_point_list_addr
+    //ldy #>wind_step3_point_list_addr
+    //jsr NvScreenPokeCharToCoordList_axy
 
 
     // set step 3 chars color
-    lda #NV_COLOR_LITE_GREY
+    //lda #NV_COLOR_LITE_GREY
     //nv_screen_poke_color_to_coord_list(wind_step3_point_list_addr)
-    ldx #<wind_step3_point_list_addr
-    ldy #>wind_step3_point_list_addr
-    jsr NvScreenPokeColorToCoordList_axy
+    //ldx #<wind_step3_point_list_addr
+    //ldy #>wind_step3_point_list_addr
+    //jsr NvScreenPokeColorToCoordList_axy
 
     jmp WindGlimmerDone
 
@@ -917,20 +935,25 @@ WindGlimmerDoStep4:
     ldy #>wind_step3_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
 
+    // poke step 4 chars and colors
+    ldx #<wind_step4_point_list_with_color_char
+    ldy #>wind_step4_point_list_with_color_char
+    jsr NvScreenPokeCoordList
+
     // write step 4 chars
-    lda #46 // period char
+    //lda #46 // period char
     //nv_screen_poke_char_to_coord_list(wind_step4_point_list_addr)
-    ldx #<wind_step4_point_list_addr
-    ldy #>wind_step4_point_list_addr
-    jsr NvScreenPokeCharToCoordList_axy
+    //ldx #<wind_step4_point_list_addr
+    //ldy #>wind_step4_point_list_addr
+    //jsr NvScreenPokeCharToCoordList_axy
 
 
     // set step 4 chars color
-    lda #NV_COLOR_DARK_GREY
+    //lda #NV_COLOR_DARK_GREY
     //nv_screen_poke_color_to_coord_list(wind_step4_point_list_addr)
-    ldx #<wind_step4_point_list_addr
-    ldy #>wind_step4_point_list_addr
-    jsr NvScreenPokeColorToCoordList_axy
+    //ldx #<wind_step4_point_list_addr
+    //ldy #>wind_step4_point_list_addr
+    //jsr NvScreenPokeColorToCoordList_axy
 
     jmp WindGlimmerDone
 
@@ -949,20 +972,26 @@ WindGlimmerDoStep5:
     ldy #>wind_step4_point_list_addr
     jsr NvScreenPokeColorToCoordList_axy
 
+    // poke step 5 chars and colors
+    ldx #<wind_step5_point_list_with_color_char
+    ldy #>wind_step5_point_list_with_color_char
+    jsr NvScreenPokeCoordList
+
+
     // write step 5 chars
-    lda #46 // period char
+    //lda #46 // period char
     //nv_screen_poke_char_to_coord_list(wind_step5_point_list_addr)
-    ldx #<wind_step5_point_list_addr
-    ldy #>wind_step5_point_list_addr
-    jsr NvScreenPokeCharToCoordList_axy
+    //ldx #<wind_step5_point_list_addr
+    //ldy #>wind_step5_point_list_addr
+    //jsr NvScreenPokeCharToCoordList_axy
 
 
     // set step 5 chars color
-    lda #NV_COLOR_DARK_GREY
+    //lda #NV_COLOR_DARK_GREY
     //nv_screen_poke_color_to_coord_list(wind_step5_point_list_addr)
-    ldx #<wind_step5_point_list_addr
-    ldy #>wind_step5_point_list_addr
-    jsr NvScreenPokeColorToCoordList_axy
+    //ldx #<wind_step5_point_list_addr
+    //ldy #>wind_step5_point_list_addr
+    //jsr NvScreenPokeColorToCoordList_axy
     
     jmp WindGlimmerDone
 
@@ -988,7 +1017,8 @@ WindGlimmerDone:
 WindGlimmerReturn:
     rts
 
-
+wind_step0_point_list_with_color_char: .byte NV_COLOR_WHITE // white color
+wind_step0_point_list_with_char:       .byte $3A            // colon char
 wind_step0_point_list_addr: .byte 37, 1     // x, y ie col, row
                             .byte 38, 3
                             .byte 36, 5
@@ -1002,6 +1032,8 @@ wind_step0_point_list_addr: .byte 37, 1     // x, y ie col, row
                             .byte 36, 24
                             .byte $FF
 
+wind_step1_point_list_with_color_char: .byte NV_COLOR_WHITE // white color
+wind_step1_point_list_with_char:       .byte $46            // line lowest char
 wind_step1_point_list_addr: .byte 33, 1
                             .byte 31, 3
                             .byte 32, 5
@@ -1013,6 +1045,8 @@ wind_step1_point_list_addr: .byte 33, 1
                             .byte 31, 23
                             .byte $FF
 
+wind_step2_point_list_with_color_char: .byte NV_COLOR_WHITE // white color
+wind_step2_point_list_with_char:       .byte $43            // line low char
 wind_step2_point_list_addr: .byte 28, 3
                             .byte 26, 5
                             .byte 29, 9
@@ -1023,6 +1057,8 @@ wind_step2_point_list_addr: .byte 28, 3
                             .byte 26, 22
                             .byte $FF
 
+wind_step3_point_list_with_color_char: .byte NV_COLOR_WHITE // white color
+wind_step3_point_list_with_char:       .byte $44            // line mid char
 wind_step3_point_list_addr: .byte 24, 3
                             .byte 22, 5
                             .byte 24, 9
@@ -1033,6 +1069,8 @@ wind_step3_point_list_addr: .byte 24, 3
                             .byte 20, 21
                             .byte $FF
 
+wind_step4_point_list_with_color_char: .byte NV_COLOR_WHITE // white color
+wind_step4_point_list_with_char:       .byte $45            // line high char
 wind_step4_point_list_addr: .byte 19, 3
                             .byte 18, 9
                             .byte 15, 12
@@ -1040,7 +1078,8 @@ wind_step4_point_list_addr: .byte 19, 3
                             .byte 19, 21
                             .byte 16, 21
                             .byte $FF
-
+wind_step5_point_list_with_color_char: .byte NV_COLOR_WHITE // white color
+wind_step5_point_list_with_char:       .byte $2D            // dash lowest char
 wind_step5_point_list_addr: .byte 13, 3
                             .byte 12, 9
                             .byte 10, 12
