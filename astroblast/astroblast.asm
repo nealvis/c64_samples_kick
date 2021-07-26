@@ -309,7 +309,6 @@ WaitNoKey:
 ScoreToScreen:
     nv_screen_poke_bcd_word_mem(0, 0, ship_1.score)
     nv_screen_poke_bcd_word_mem(24, 0, ship_2.score)
-
     rts
 
 //////////////////////////////////////////////////////////////////////////////
@@ -410,6 +409,28 @@ CreateField:
     nv_screen_poke_color_char_xa(14, 22)
     nv_screen_poke_color_char_xa(07, 9)
     nv_screen_poke_color_char_xa(21, 14)
+    nv_screen_poke_color_char_xa(4, 22)
+
+    //lda #$58
+    //nv_screen_poke_color_char_xa(5, 5)
+
+    .var planet_row = 15
+    .var planet_col = 8
+    lda #$5A
+    //ldx #NV_COLOR_LITE_GREY
+    nv_screen_poke_color_char_xa(planet_row, planet_col)
+
+    lda #$57
+    //ldx #NV_COLOR_DARK_GREY
+    nv_screen_poke_color_char_xa(planet_row-1, planet_col+1)
+    lda #$1D
+    nv_screen_poke_color_char_xa(planet_row+1, planet_col-1)
+    lda #$5C
+    nv_screen_poke_color_char_xa(planet_row+1, planet_col)
+    nv_screen_poke_color_char_xa(planet_row, planet_col+1)
+    lda #$5E
+    nv_screen_poke_color_char_xa(planet_row-1, planet_col)
+    nv_screen_poke_color_char_xa(planet_row, planet_col-1)
 
 /*
     ldx #NV_COLOR_GREY
@@ -447,7 +468,8 @@ UpdateField:
     //nv_rand_color_a(true)
     //nv_screen_poke_color_a(07, 9)
     //nv_screen_poke_color_a(21, 14)
-   
+    nv_screen_poke_color_a(4, 22)
+
     rts
 
 //////////////////////////////////////////////////////////////////////////////
