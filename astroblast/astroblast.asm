@@ -310,8 +310,6 @@ ScoreToScreen:
     nv_screen_poke_bcd_word_mem(0, 0, ship_1.score)
     nv_screen_poke_bcd_word_mem(24, 0, ship_2.score)
 
-    lda #$25
-    nv_screen_poke_char_a(1, 0)
     rts
 
 //////////////////////////////////////////////////////////////////////////////
