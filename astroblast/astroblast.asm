@@ -417,11 +417,11 @@ CreateField:
     .var planet_row = 15
     .var planet_col = 8
     lda #$5A
-    //ldx #NV_COLOR_LITE_GREY
+    ldx #NV_COLOR_BROWN
     nv_screen_poke_color_char_xa(planet_row, planet_col)
 
     lda #$57
-    //ldx #NV_COLOR_DARK_GREY
+    ldx #NV_COLOR_DARK_GREY
     nv_screen_poke_color_char_xa(planet_row-1, planet_col+1)
     lda #$1D
     nv_screen_poke_color_char_xa(planet_row+1, planet_col-1)
