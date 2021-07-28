@@ -60,19 +60,29 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 .const WIND_X_ZONE_2 = 200
 .const WIND_X_ZONE_3 = 240
 
+// the left most position for a ship.  if it reaches this position 
+// then it will bounce to the right and be done with that wind
+.const WIND_SHIP_MIN_LEFT = $0019
+
 // cap the negative x velocity at this 
 .const WIND_MAX_X_NEG_VEL = $FE // -2
 
 // reduce velocity while count greater than 0
 wind_count: .byte 0
 
-// the initial velocity when wind started
-wind_ship_1_x_vel_start: .byte 0 
+// mask to tell us when to start wind
+wind_start_mask: .byte $07 
 
 // amount to decrement velocity for ship 1.  temp
 // just needed during WindStep
 wind_ship1_dec_value: .byte 0
 wind_ship2_dec_value: .byte 0
+
+// flags that are set to 0 upon wind start and 
+// set to nonzero when a ship is done with that gust of wind
+// Probably because of bouncing from the left edge
+wind_ship_1_done: .byte 0
+wind_ship_2_done: .byte 0
 
 
 // the data for the sprites. 
@@ -163,6 +173,7 @@ MainLoop:
 PartialSecond1:
     jmp PartialSecond2
 FullSecond:
+    jsr WindCheck
     lda quit_flag
     beq NotQuitting
     jmp ProgramDone
@@ -652,6 +663,22 @@ WasQuit:
 DoneKeys:
     rts
 
+//////////////////////////////////////////////////////////////////////////////
+// call to determine if its time to start a wind gust.  if it is time then
+// the wind will be started
+WindCheck:
+    lda wind_start_mask
+    bit second_counter
+    bne WindCheckDone
+
+WindTimeToStart:
+    nv_rand_byte_a(true)
+    and #$07
+    sta wind_start_mask
+    jsr WindStart
+
+WindCheckDone:
+    rts
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to start the wind effect
@@ -664,8 +691,6 @@ WindStart:
     sta wind_ship_2_done
     lda #WIND_FRAMES
     sta wind_count
-    lda ship_1.x_vel
-    sta wind_ship_1_x_vel_start
     jsr WindGlimmerStart
 WindAlreadyStarted:
     rts
@@ -679,9 +704,6 @@ WindAlreadyStarted:
 // to call this once every raster frame regardless of if wind is active
 // or not.  It is possible for wind_count to get to zero before 
 // wind_glimmer_count is $FF so its not sufficient to just check wind_count
-.const WIND_SHIP_MIN_LEFT = $0019
-wind_ship_1_done: .byte 0
-wind_ship_2_done: .byte 0
 WindStep:
     lda ship_1.x_vel
     bpl WindCheckLeftShip2
