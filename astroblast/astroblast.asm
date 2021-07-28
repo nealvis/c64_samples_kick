@@ -681,15 +681,18 @@ CheckGlimmerFrame:
     jsr WindGlimmerStep 
 
     lda wind_count 
-    beq WindDoneStep
+    bne CheckShipEffectFrame
+    jmp WindDoneStep
 
 CheckShipEffectFrame:
     // effect the ship only when last 3 bits of frame counter
     // are zero (#$07 is every 8th frame)
     lda #$07 
     bit frame_counter
-    bne WindDoneStep      // if not LSB of 00 then don't do anything
+    bne CheckWindCount
+    jmp WindDoneStep      // if not LSB of 00 then don't do anything
 
+CheckWindCount:
     // check if we've stepped enough times
     lda wind_count
     beq WindDoneStep            // done stepping
@@ -699,18 +702,14 @@ CheckShipEffectFrame:
     sta wind_ship1_dec_value
     sta wind_ship2_dec_value
 
-    nv_blt16_immediate(ship_1.x_loc, WIND_X_ZONE_2, WindSetDecShip2)
+    lda wind_ship_1_done        // check if done with ship 1 already
+    bne WindSetDecShip2
+
+    nv_blt16_immediate(ship_1.x_loc, WIND_X_ZONE_2, WindAdjustVelShip1)
     dec wind_ship1_dec_value    // decrement value to -2
 
-    nv_blt16_immediate(ship_1.x_loc, WIND_X_ZONE_3, WindSetDecShip2)
+    nv_blt16_immediate(ship_1.x_loc, WIND_X_ZONE_3, WindAdjustVelShip1)
     dec wind_ship1_dec_value    // decrement value to -3
-
-WindSetDecShip2:
-    nv_blt16_immediate(ship_2.x_loc, WIND_X_ZONE_2, WindAdjustVelShip1)
-    dec wind_ship2_dec_value    // decrement value to -2
-
-    nv_blt16_immediate(ship_2.x_loc, WIND_X_ZONE_3, WindAdjustVelShip1)
-    dec wind_ship2_dec_value    // decrement value to -3
 
 WindAdjustVelShip1:
     clc
@@ -723,6 +722,16 @@ WindAdjustVelShip1:
 WindSetVelShip1:
     sta ship_1.x_vel         // store back into ship velocity
 
+
+WindSetDecShip2:
+    lda wind_ship_2_done
+    bne WindDoneVelShip2
+    nv_blt16_immediate(ship_2.x_loc, WIND_X_ZONE_2, WindAdjustVelShip2)
+    dec wind_ship2_dec_value    // decrement value to -2
+
+    nv_blt16_immediate(ship_2.x_loc, WIND_X_ZONE_3, WindAdjustVelShip2)
+    dec wind_ship2_dec_value    // decrement value to -3
+
 WindAdjustVelShip2:
     clc
     lda wind_ship2_dec_value // load the value to decrement by -1, -2 or -3
@@ -734,7 +743,7 @@ WindAdjustVelShip2:
 WindSetVelShip2:
     sta ship_2.x_vel         // store back into ship velocity
 
-WindDoneVelShip1:
+WindDoneVelShip2:
 WindDoneStep:
     rts
 
