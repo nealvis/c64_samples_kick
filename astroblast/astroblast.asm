@@ -453,6 +453,42 @@ CreateField:
     nv_screen_poke_color_char_xa(16, 7)
 */
 
+    ldx #NV_COLOR_RED
+    lda #248
+    nv_screen_poke_color_char_xa(9, 39)
+    //nv_screen_poke_color_char_xa(9, 38)
+    lda #249
+    nv_screen_poke_color_char_xa(15, 39)
+    //nv_screen_poke_color_char_xa(15, 38)
+
+
+    lda #$A0
+    nv_screen_poke_color_char_xa(10, 39)
+    nv_screen_poke_color_char_xa(11, 39)
+    nv_screen_poke_color_char_xa(12, 39)
+    nv_screen_poke_color_char_xa(13, 39)
+    nv_screen_poke_color_char_xa(14, 39)
+
+    //nv_screen_poke_color_char_xa(10, 38)
+    //nv_screen_poke_color_char_xa(11, 38)
+    //nv_screen_poke_color_char_xa(12, 38)
+    //nv_screen_poke_color_char_xa(13, 38)
+    //nv_screen_poke_color_char_xa(14, 38)
+
+    ldx #NV_COLOR_LITE_RED
+    lda #254
+    nv_screen_poke_color_char_xa(13, 38)
+    nv_screen_poke_color_char_xa(10, 38)
+
+
+    lda #251
+    nv_screen_poke_color_char_xa(14, 38)
+    nv_screen_poke_color_char_xa(11, 38)
+
+
+    //lda #225
+    //nv_screen_poke_color_char_xa(12, 37)
+
     rts
 
 //////////////////////////////////////////////////////////////////////////////

@@ -27,8 +27,8 @@ wind_step0_point_list_addr: .byte 37, 1     // x, y ie col, row
                             .byte 39, 6
                             .byte 38, 7
                             .byte 39, 9
-                            .byte 38, 11
-                            .byte 37, 12
+                            .byte 36, 11
+                            .byte 36, 12
                             .byte 35, 15
                             .byte 36, 17
                             .byte 37, 18
