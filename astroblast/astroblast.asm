@@ -44,7 +44,8 @@
 .const KEY_DEC_BACKGROUND_COLOR = NV_KEY_7
 .const KEY_INC_VOLUME = NV_KEY_PERIOD
 .const KEY_DEC_VOLUME = NV_KEY_COMMA
-.const KEY_EXPERIMENTAL = NV_KEY_N
+.const KEY_EXPERIMENTAL_01 = NV_KEY_N
+.const KEY_EXPERIMENTAL_02 = NV_KEY_M
 
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
@@ -84,6 +85,10 @@ wind_ship2_dec_value: .byte 0
 wind_ship_1_done: .byte 0
 wind_ship_2_done: .byte 0
 
+//////////////////
+// turret consts and variables
+turret_count: .byte 0
+
 
 // the data for the sprites. 
 // the file specifies where it assembles to ($0900)
@@ -116,6 +121,7 @@ RealStart:
     sta quit_flag
 
     jsr WindGlimmerInit
+    jsr TurretInit
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
@@ -212,6 +218,7 @@ PartialSecond2:
         nv_screen_set_border_color_immed(NV_COLOR_LITE_GREEN)
     }
     jsr WindStep
+    jsr TurretStep
 
     jsr ship_1.MoveInExtraData
     jsr ship_2.MoveInExtraData
@@ -641,15 +648,22 @@ WasIncVolume:
 
 TryDecVolume:
     cmp #KEY_DEC_VOLUME             
-    bne TryExperimental                           
+    bne TryExperimental02                           
 WasDecVolume:
     jsr SoundVolumeDown
     jmp DoneKeys
 
-TryExperimental:
-    cmp #KEY_EXPERIMENTAL             
+TryExperimental02:
+    cmp #KEY_EXPERIMENTAL_02             
+    bne TryExperimental01                           
+WasExperimental02:
+    jsr TurretStart
+    jmp DoneKeys
+
+TryExperimental01:
+    cmp #KEY_EXPERIMENTAL_01             
     bne TryQuit                           
-WasWind:
+WasExperimental01:
     jsr WindStart
     jmp DoneKeys
 
@@ -662,6 +676,7 @@ WasQuit:
 
 DoneKeys:
     rts
+
 
 //////////////////////////////////////////////////////////////////////////////
 // call to determine if its time to start a wind gust.  if it is time then
@@ -809,6 +824,141 @@ WindDoneStep:
 *=$3000 "charset start"
 .import binary "astro_charset.bin"
 //*=$3800 "beyond charset"
+
+//////////////////////////////////////////////////////////////////////////////
+// call once to initialize turret variables and stuff
+TurretInit:
+    lda #$00
+    sta turret_count
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+// start a turret shooting.  the actual shooting will happen in TurretStep
+.const TURRET_FRAMES=8
+TurretStart:
+    lda #TURRET_FRAMES
+    sta turret_count
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+// call once per frame to have turret shoot 
+.const TURRET_SHOT_START_ROW = 10
+.const TURRET_SHOT_START_COL = 37
+.const TURRET_SHOT_COLOR = NV_COLOR_YELLOW
+.const TURRET_UP_CHAR = $5D
+TurretStep:
+    lda turret_count    // check if turret is active (count != 0)
+    bne TurretActive    // not zero so it is active 
+    rts                 // turret not active at this time, just return
+    
+TurretActive:
+    // lda turret_count // loaded above alread
+TurretTryFrame1:
+    cmp #TURRET_FRAMES
+    bne TurretTryFrame2
+TurretWasFrame1:
+    lda #TURRET_UP_CHAR
+    ldx #TURRET_SHOT_COLOR
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-1, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
+
+    jmp TurretStepReturn
+
+TurretTryFrame2:
+    cmp #TURRET_FRAMES-1
+    bne TurretTryFrame3
+TurretWasFrame2:
+    lda #TURRET_UP_CHAR
+    ldx #TURRET_SHOT_COLOR
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
+
+    lda background_color
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-1, TURRET_SHOT_START_COL)
+    jmp TurretStepReturn
+
+TurretTryFrame3:
+    cmp #TURRET_FRAMES-2
+    bne TurretTryFrame4
+TurretWasFrame3:
+    lda #TURRET_UP_CHAR
+    ldx #TURRET_SHOT_COLOR
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-4, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-5, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
+
+
+    lda background_color
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-1, TURRET_SHOT_START_COL)
+
+    jmp TurretStepReturn
+
+TurretTryFrame4:
+    cmp #TURRET_FRAMES-3
+    bne TurretTryFrame5
+TurretWasFrame4:
+    lda #TURRET_UP_CHAR
+    ldx #TURRET_SHOT_COLOR
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-10, TURRET_SHOT_START_COL)
+
+    lda background_color
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-4, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-5, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
+
+    jmp TurretStepReturn
+
+TurretTryFrame5:
+    cmp #TURRET_FRAMES-4
+    bne TurretTryFrame6
+TurretWasFrame5:
+    lda #TURRET_UP_CHAR
+    ldx #TURRET_SHOT_COLOR
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
+    lda background_color
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
+
+    jmp TurretStepReturn
+
+TurretTryFrame6:
+    cmp #TURRET_FRAMES-5
+    bne TurretTryFrame7
+TurretWasFrame6:
+    lda #TURRET_UP_CHAR
+    ldx #TURRET_SHOT_COLOR
+    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-10, TURRET_SHOT_START_COL)
+    lda background_color
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
+
+    jmp TurretStepReturn
+
+TurretTryFrame7:
+    lda background_color
+    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
+    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
+    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-10, TURRET_SHOT_START_COL)
+
+  
+TurretStepReturn:    
+    dec turret_count    // decrement turret frame counter
+    rts
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1225,6 +1375,7 @@ IsSprite7:
 InvalidSpriteNumber:
     // if we get here then an unexptected sprite number was set
     // prior to calling this subroutine.
+.break
 .break
     nop
 SpriteExtraPtrLoaded:
