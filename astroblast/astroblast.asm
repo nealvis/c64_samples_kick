@@ -90,6 +90,14 @@ wind_ship_2_done: .byte 0
 turret_count: .byte 0
 
 turret_hit_ship_1: .byte 0
+/*
+rect1: .word $0000, $0000  // (left, top)
+       .word $0000, $0000  // (right, bottom)
+
+rect2: .word $0000, $0000  // (left, top)
+       .word $0000, $0000  // (right, bottom)
+*/
+
 
 
 // the data for the sprites. 
@@ -556,6 +564,10 @@ SetAllCharA:
     nv_screen_poke_all_char_a()
     rts
 
+*=$3000 "charset start"
+.import binary "astro_charset.bin"
+//*=$3800 "beyond charset"
+
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to do all the keyboard stuff
@@ -827,24 +839,12 @@ WindDoneStep:
     rts
 
 
-*=$3000 "charset start"
-.import binary "astro_charset.bin"
-//*=$3800 "beyond charset"
-
-rect1: .word $0000, $0000  // (left, top)
-       .word $0000, $0000  // (right, bottom)
-
-rect2: .word $0000, $0000  // (left, top)
-       .word $0000, $0000  // (right, bottom)
-
-
 //////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against
 TurretHitCheck:
-    SpriteInCharLoc(rect1, rect2)
+    jsr ship_1.CheckOverlapChar
     rts
-
 
 //////////////////////////////////////////////////////////////////////////////
 // call once to initialize turret variables and stuff
@@ -1057,10 +1057,10 @@ TurretStepReturn:
     beq TurretStepDone
     lda #$00
     sta turret_count
-    
+
 TurretStepDone:
     rts
-
+/*
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to test if a sprite overlaps with a character  on screen
 // loads the accum with 0 for no overlap or nonzero if is overlap
@@ -1117,7 +1117,7 @@ TurretStepDone:
     // now check for overlap with rect1 and rect2
     nv_check_rect_overlap16(rect1_addr, rect2_addr)
 }
-
+*/
 
 
 
@@ -1175,7 +1175,9 @@ TurretStepDone:
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0, // min/max top, left, bottom, right
-                                          0)          // sprite enabled
+                                          0,            // sprite enabled 
+                                          0, 0, 24, 21) // hitbox left, top, right, bottom
+                                          
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
@@ -1243,7 +1245,9 @@ SetWrapAllOn:
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0, // min/max top, left, bottom, right
-                                          0)          // sprite enabled
+                                          0,            // sprite enabled 
+                                          0, 0, 24, 21) // hitbox left, top, right, bottom
+
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
@@ -1311,7 +1315,8 @@ SetWrapAllOn:
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0, // min/max top, left, bottom, right
-                                          0)          // sprite enabled
+                                          0,            // sprite enabled 
+                                          0, 0, 24, 21) // hitbox left, top, right, bottom
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -1380,7 +1385,8 @@ SetWrapAllOn:
                                           sprite_extra, 
                                           0, 0, 0, 0, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0, // min/max top, left, bottom, right
-                                          0)          // sprite enabled
+                                          0,            // sprite enabled 
+                                          0, 0, 24, 21) // hitbox left, top, right, bottom
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -1449,7 +1455,8 @@ SetWrapAllOn:
                                           sprite_extra, 
                                           0, 0, 0, 0, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0, // min/max top, left, bottom, right
-                                          0)          // sprite enabled
+                                          0,            // sprite enabled 
+                                          0, 0, 24, 21) // hitbox left, top, right, bottom
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET

@@ -44,7 +44,9 @@
 // No actual memory is created when an instance of the struct is created.
 .struct nv_sprite_info_struct{name, num, init_x, init_y, init_x_vel, init_y_vel, data_ptr, 
                               base_addr, action_top, bounce_left, bounce_bottom, bounce_right,
-                              top_min, left_min, bottom_max, right_max, enabled}
+                              top_min, left_min, bottom_max, right_max, enabled,
+                              hitbox_left, hitbox_top,      // coords within sprite 
+                              hitbox_right, hitbox_bottom}  // coords within sprite
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -83,6 +85,16 @@
     // sprite enabled flag.  nonzero is enabled, zero is disabled
     sprite_enabled: .byte 0
 
+    // the hitbox coords are within the sprite's rectangle where the upper left
+    // corner of the sprite (ie the sprites official location) is (0, 0)
+    // so typically the min value will be 0 and max will be sprite height/width
+    // to get the screen coords of the hitbox just add the sprite location to 
+    // these coords.
+    sprite_hitbox_left_addr: .byte spt_info.hitbox_left
+    sprite_hitbox_top_addr: .byte spt_info.hitbox_top
+    sprite_hitbox_right_addr: .byte spt_info.hitbox_right
+    sprite_hitbox_bottom_addr: .byte spt_info.hitbox_bottom
+
     // some scratch memory for each sprite     
     sprite_scratch1: .word 0
     sprite_scratch2: .word 0
@@ -108,8 +120,13 @@
 
 .const NV_SPRITE_ENABLED_OFFSET = 18
 
-.const NV_SPRITE_SCRATCH1_OFFSET = 19
-.const NV_SPRITE_SCRATCH2_OFFSET = 21
+.const NV_SPRITE_HITBOX_LEFT_OFFSET = 19
+.const NV_SPRITE_HITBOX_TOP_OFFSET = 20
+.const NV_SPRITE_HITBOX_RIGHT_OFFSET = 21
+.const NV_SPRITE_HITBOX_BOTTOM_OFFSET = 22
+
+.const NV_SPRITE_SCRATCH1_OFFSET = 23
+.const NV_SPRITE_SCRATCH2_OFFSET = 25
 
 //////////////////////////////////////////////////////////////////////////////
 // assembler function to return the address of the sprite number
@@ -157,6 +174,43 @@
 {
     .return info.base_addr + NV_SPRITE_X_OFFSET
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the hitbox left byte
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_hitbox_left_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_HITBOX_LEFT_OFFSET
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the hitbox top byte
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_hitbox_top_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_HITBOX_TOP_OFFSET
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the hitbox right byte
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_hitbox_right_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_HITBOX_RIGHT_OFFSET
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the hitbox bottom byte
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_hitbox_bottom_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_HITBOX_BOTTOM_OFFSET
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Assembler function to return the address of the MSB of sprite X position.
@@ -870,4 +924,78 @@ Done:
 {
     
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro to test if a sprite overlaps with a character on screen
+// 
+// Params: 
+//   X Reg: character's X loc on screen
+//   Y Reg: character's Y loc on screen
+// macro params:
+//   rect1_addr: is a temp rectangle that will be used to 
+//               determine overlap.  it will be filled with 
+//               the sprite's rectangle pixel coords
+//   rect2_addr: is a temp retangle that will be used to 
+//               determine overlap.  it will be filled with the
+//               character's screen rectangle pixel coords
+// Return: loads the accum with 0 for no overlap or nonzero if is overlap
+//             
+.macro nv_sprite_check_overlap_char(info, rect1_addr, rect2_addr)
+{
+    .label r1_left = rect1_addr
+    .label r1_top = rect1_addr + 2
+    .label r1_right = rect1_addr + 4
+    .label r1_bottom = rect1_addr + 6
+
+    .label r2_left = rect2_addr
+    .label r2_top = rect2_addr + 2
+    .label r2_right = rect2_addr + 4
+    .label r2_bottom = rect2_addr + 6
+
+    .const SPRITE_WIDTH = 24
+    .const SPRITE_HEIGHT = 21
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+    .const CHAR_PIXEL_WIDTH = $0008
+    .const CHAR_PIXEL_HEIGHT = $0008
+
+    /////// put char's rectangle in rect2
+    
+    // LEFT
+    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
+    nv_store16_immediate(r2_left, CHAR_PIXEL_WIDTH)
+    nv_mul16_x(r2_left, r2_left)
+    nv_adc16_immediate(r2_left, LEFT_OFFSET, r2_left)
+    
+    // TOP
+    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
+    nv_store16_immediate(r2_top, CHAR_PIXEL_HEIGHT)
+    nv_mul16_y(r2_top, r2_top)
+    nv_adc16_immediate(r2_top, TOP_OFFSET, r2_top)
+
+    // RIGHT
+    nv_adc16_immediate(r2_left, CHAR_PIXEL_WIDTH, r2_right)
+
+    // BOTTOM
+    nv_adc16_immediate(r2_top, CHAR_PIXEL_HEIGHT, r2_bottom)
+
+
+    /////////// put sprite's rectangle to rect1
+    nv_xfer16_mem_mem(nv_sprite_x_addr(info), r1_left)
+    nv_adc16_8(r1_left, nv_sprite_hitbox_right_addr(info), r1_right)
+    nv_adc16_8(r1_left, nv_sprite_hitbox_left_addr(info), r1_left)
+    //nv_adc16_immediate(nv_sprite_x_addr(info), SPRITE_WIDTH, r1_right)    
+    lda nv_sprite_y_addr(info)     // 8 bit value so manually load MSB with $00
+    sta r1_top
+    lda #$00
+    sta r1_top+1
+    nv_adc16_8(r1_top, nv_sprite_hitbox_bottom_addr(info), r1_bottom)
+    nv_adc16_8(r1_top, nv_sprite_hitbox_top_addr(info), r1_top)
+    //nv_adc16_immediate(r1_top, SPRITE_HEIGHT, r1_bottom) 
+
+    // now check for overlap with rect1 and rect2
+    nv_check_rect_overlap16(rect1_addr, rect2_addr)
+}
+
+
 
