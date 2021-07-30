@@ -101,6 +101,7 @@ Op2Positive:
 //   num is the immeidate number to add
 //   result_addr is the address of the LSB of the 16 bit memory location 
 //               to store the result.
+// Note: X and Y Regs are not used
 .macro nv_adc16_immediate(addr1, num, result_addr)
 {
     lda addr1
@@ -111,6 +112,90 @@ Op2Positive:
     adc #((num >> 8) & $00FF)
     sta result_addr+1
 }
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to multiply one 16 bit value by an 8 bit immediate value
+// and store the result in another 16bit value.  
+// carry bit will be set if carry occured
+// params:
+//   addr1 is the address of the LSB of 16 bit value in memory
+//   num is the immeidate 8 bit number to multiply addr1 by 
+//   result_addr is the address of the LSB of the 16 bit memory location 
+//               to store the result.
+.macro nv_mul16_immediate8(addr1, num8, result_addr)
+{
+    .if (num8 > 255)
+    {
+        .error "ERROR - nv_mul16_immediate8: num8 too large"
+    }
+    ldx #num8
+    nv_mul16_x(addr1, result_addr)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to multiply one 16 bit value by an 8 bit value in x reg
+// and store the result in another 16bit value.  
+// carry bit will be set if carry occured
+// macro params:
+//   addr1 is the address of the LSB of 16 bit value in memory
+//   result_addr is the address of the LSB of the 16 bit memory location 
+//               to store the result.
+// params:
+//   x reg should be set to the 8 bit number to multiply by prior to 
+//         this macro
+.macro nv_mul16_x(addr1, result_addr)
+{
+    cpx #$00
+    beq MultByZero
+    lda addr1
+    beq MultByZero
+    nv_store16_immediate(scratch_word, $0000)
+LoopTop:
+    nv_adc16(addr1, scratch_word, scratch_word)
+    dex
+    bne LoopTop
+ 
+    nv_xfer16_mem_mem(scratch_word, result_addr)
+    jmp Done
+
+MultByZero:
+    nv_store16_immediate(result_addr, $0000)
+Done:    
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to multiply one 16 bit value by an 8 bit value in y reg
+// and store the result in another 16bit value.  
+// carry bit will be set if carry occured
+// macro params:
+//   addr1 is the address of the LSB of 16 bit value in memory
+//   result_addr is the address of the LSB of the 16 bit memory location 
+//               to store the result.
+// params:
+//   y reg should be set to the 8 bit number to multiply by prior to 
+//         this macro
+.macro nv_mul16_y(addr1, result_addr)
+{
+    cpy #$00
+    beq MultByZero
+    lda addr1
+    beq MultByZero
+    nv_store16_immediate(scratch_word, $0000)
+LoopTop:
+    nv_adc16(addr1, scratch_word, scratch_word)
+    dey
+    bne LoopTop
+ 
+    nv_xfer16_mem_mem(scratch_word, result_addr)
+    jmp Done
+
+MultByZero:
+    nv_store16_immediate(result_addr, $0000)
+Done:    
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // rotate bits right in a 16 bit location in memory
