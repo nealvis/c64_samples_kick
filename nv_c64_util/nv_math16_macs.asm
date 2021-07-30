@@ -8,6 +8,7 @@
 // if data hasn't been imported yet, import it into default location
 #importif !NV_C64_UTIL_DATA "nv_c64_util_default_data.asm"
 
+#import "nv_branch16_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to add two 16 bit values and store the result in another
@@ -238,3 +239,170 @@ Loop:
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// macro routine to test if one rectangle overlaps another
+// This routine will work on rectangles of any size.
+// If its known that one rectangle can completely fit inside the other one
+// than another then the macro nv_util_check_small_rect_in_big_rect
+// rect1_addr: address of a rectangle.  A rectangle is defined by 
+//             8 bytes, which are interpreted as two 16 bit xy pairs 
+//             as such:
+//               x_left: .word 
+//               y_top: .word
+//               x_right: .word
+//               y_bottom: .word
+// rect2_addr: address of another rectangle
+// load accum to 1 if they overlap or 0 if they do not overlap
+.macro nv_check_rect_overlap16(rect1_addr, rect2_addr)
+{
+    .label r1_left = rect1_addr
+    .label r1_top = rect1_addr + 2
+    .label r1_right = rect1_addr + 4
+    .label r1_bottom = rect1_addr + 6
+
+    .label r2_left = rect2_addr
+    .label r2_top = rect2_addr + 2
+    .label r2_right = rect2_addr + 4
+    .label r2_bottom = rect2_addr + 6
+
+// if ((r2.left is between r1.left and r1.right)  or 
+//     (r2.right is between r1.left and r1.right)) and
+//    ((r2.bottom is below r1.top) and (r2.top is above r1.bottom)))
+// then 
+// {
+//    rects overlap
+// }
+// else
+// {
+//    do same comparison with reverse (use r1 for r2 and r2 for r1 in above if)
+// }
+    nv_check_range16(r2_left, r1_left, r1_right, false)
+    bne OneVertSideBetween
+    nv_check_range16(r2_right, r1_left, r1_right, false)
+    bne OneVertSideBetween
+    jmp TryReverse
+OneVertSideBetween:
+    nv_blt16(r2_bottom, r1_top, TryReverse)
+    nv_bgt16(r2_top, r1_bottom, TryReverse)
+    jmp RectOverlap
+
+TryReverse:
+    nv_check_range16(r1_left, r2_left, r2_right, false)
+    bne OneVertSideBetween2
+    nv_check_range16(r1_right, r2_left, r2_right, false)
+    bne OneVertSideBetween2
+    jmp NoRectOverlap
+
+OneVertSideBetween2:
+    nv_blt16(r1_bottom, r2_top, NoRectOverlap)
+    nv_bgt16(r1_top, r2_bottom, NoRectOverlap)
+    // jmp RectOverlap
+
+RectOverlap:
+    lda #1
+    jmp AccumLoaded
+NoRectOverlap:
+    lda #0
+
+AccumLoaded:
+
+}
+
+/*
+//////////////////////////////////////////////////////////////////////////////
+// macro routine to test if one rectangle overlaps another
+// This routine will work on rectangles of any size.
+// If its known that one rectangle can completely fit inside the other one
+// than another then the macro nv_util_check_small_rect_in_big_rect
+// rect1_addr: address of a rectangle.  A rectangle is defined by 
+//             8 bytes, which are interpreted as two 16 bit xy pairs 
+//             as such:
+//               x_left: .word 
+//               y_top: .word
+//               x_right: .word
+//               y_bottom: .word
+// rect2_addr: address of another rectangle
+// load accum to 1 if they overlap or 0 if they do not overlap
+.macro nv_util_check_rects_overlap_old(rect1_addr, rect2_addr)
+{
+    .label r1_left = rect1_addr
+    .label r1_top = rect1_addr + 2
+    .label r1_right = rect1_addr + 4
+    .label r1_bottom = rect1_addr + 6
+
+    .label r2_left = rect2_addr
+    .label r2_top = rect2_addr + 2
+    .label r2_right = rect2_addr + 4
+    .label r2_bottom = rect2_addr + 6
+
+    nv_util_check_point_in_rect(r1_left, r1_top, rect2_addr)
+    bne RectOverlap
+    nv_util_check_point_in_rect(r1_left, r1_bottom, rect2_addr)
+    bne RectOverlap
+    nv_util_check_point_in_rect(r1_right, r1_top, rect2_addr)
+    bne RectOverlap
+    nv_util_check_point_in_rect(r1_right, r1_bottom, rect2_addr)
+    bne RectOverlap
+    nv_util_check_point_in_rect(r2_left, r2_top, rect1_addr)
+    bne RectOverlap
+
+RectOverlap:
+    lda #1
+    jmp AccumLoaded
+NoRectOverlap:
+    lda #0
+
+AccumLoaded:
+
+}
+*/
+
+
+// set the accum to 1 if test num is between num low and num high
+.macro nv_check_range16(test_num_addr, num_low_addr, num_high_addr, inclusive)
+{
+.if (inclusive)
+{
+    nv_blt16(test_num_addr, num_low_addr, ResultFalse)
+    nv_bgt16(test_num_addr, num_high_addr, ResultFalse)
+}
+else
+{
+    nv_ble16(test_num_addr, num_low_addr, ResultFalse)
+    nv_bge16(test_num_addr, num_high_addr, ResultFalse)
+}
+
+ResultTrue:
+    lda #1
+    jmp AccumLoaded
+
+ResultFalse:
+    lda #0
+
+AccumLoaded:
+}
+
+
+// set the accum to 1 if point is in rect or to 0 if its not in rect
+.macro nv_check_in_rect16(p1_x, p1_y, rect_addr)
+{
+    .label r1_left = rect_addr
+    .label r1_top = rect_addr + 2
+    .label r1_right = rect_addr + 4
+    .label r1_bottom = rect_addr + 6
+
+    nv_blt16(p1_x, r1_left, PointNotInRect)
+    nv_bgt16(p1_x, r1_right, PointNotInRect)
+    nv_blt16(p1_y, r1_top, PointNotInRect)
+    nv_bgt16(p1_y, r1_bottom, PointNotInRect)
+
+PointInRect:
+    lda #1
+    jmp AccumLoaded
+
+PointNotInRect:
+    lda #0
+
+AccumLoaded:
+
+}
