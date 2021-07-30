@@ -939,7 +939,7 @@ Done:
 //               determine overlap.  it will be filled with the
 //               character's screen rectangle pixel coords
 // Return: loads the accum with 0 for no overlap or nonzero if is overlap
-//             
+// 
 .macro nv_sprite_check_overlap_char(info, rect1_addr, rect2_addr)
 {
     .label r1_left = rect1_addr
@@ -979,19 +979,53 @@ Done:
     // BOTTOM
     nv_adc16_immediate(r2_top, CHAR_PIXEL_HEIGHT, r2_bottom)
 
+    nv_sprite_check_overlap_rect(info, rect1_addr, rect2_addr)
+}
 
-    /////////// put sprite's rectangle to rect1
+
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro to test if a sprite's hitbox overlaps with a prefilled
+// rectangle
+// 
+// Params: 
+//   X Reg: character's X loc on screen
+//   Y Reg: character's Y loc on screen
+// macro params:
+//   rect1_addr: is a temp rectangle that will be used to 
+//               determine overlap.  it will be filled with 
+//               the sprite's rectangle pixel coords
+//   rect2_addr: is address of retangle that is already filled in
+//               with pixel coords and will be used to determine overlap.
+// Return: loads the accum with 0 for no overlap or nonzero if is overlap
+.macro nv_sprite_check_overlap_rect(info, rect1_addr, rect2_addr)
+{
+    .label r1_left = rect1_addr
+    .label r1_top = rect1_addr + 2
+    .label r1_right = rect1_addr + 4
+    .label r1_bottom = rect1_addr + 6
+
+    .label r2_left = rect2_addr
+    .label r2_top = rect2_addr + 2
+    .label r2_right = rect2_addr + 4
+    .label r2_bottom = rect2_addr + 6
+
+    .const SPRITE_WIDTH = 24
+    .const SPRITE_HEIGHT = 21
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+    .const CHAR_PIXEL_WIDTH = $0008
+    .const CHAR_PIXEL_HEIGHT = $0008
+
+    /////////// put sprite's rectangle to rect1, use the hitbox not full sprite
     nv_xfer16_mem_mem(nv_sprite_x_addr(info), r1_left)
     nv_adc16_8(r1_left, nv_sprite_hitbox_right_addr(info), r1_right)
     nv_adc16_8(r1_left, nv_sprite_hitbox_left_addr(info), r1_left)
-    //nv_adc16_immediate(nv_sprite_x_addr(info), SPRITE_WIDTH, r1_right)    
     lda nv_sprite_y_addr(info)     // 8 bit value so manually load MSB with $00
     sta r1_top
     lda #$00
     sta r1_top+1
     nv_adc16_8(r1_top, nv_sprite_hitbox_bottom_addr(info), r1_bottom)
     nv_adc16_8(r1_top, nv_sprite_hitbox_top_addr(info), r1_top)
-    //nv_adc16_immediate(r1_top, SPRITE_HEIGHT, r1_bottom) 
 
     // now check for overlap with rect1 and rect2
     nv_check_rect_overlap16(rect1_addr, rect2_addr)
