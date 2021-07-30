@@ -183,16 +183,16 @@ rect16: .word $0005, $0005  // (left, top)
         .word $0030, $0008  // (right, bottom)
 
 rect17: .word $0020, $0020  // (left, top)
-        .word $0070, $0070  // (right, bottom)
+        .word $0070, $0201  // (right, bottom)
 
-rect18: .word $0060, $0060  // (left, top)
-        .word $0300, $0300  // (right, bottom)
+rect18: .word $0010, $0200  // (left, top)
+        .word $0100, $0300  // (right, bottom)
 
 rect19: .word $0020, $0020  // (left, top)
         .word $0070, $0070  // (right, bottom)
 
-rect20: .word $0030, $0010  // (left, top)
-        .word $0040, $0030  // (right, bottom)
+rect20: .word $0010, $0200  // (left, top)
+        .word $0100, $0300  // (right, bottom)
 
 
 
