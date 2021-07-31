@@ -125,7 +125,16 @@ CheckOverlapChar:
     nv_sprite_check_overlap_char(info, rect2)
     rts
 
+SetColorDead:
+    nv_sprite_raw_set_color_from_memory(sprite_num, NV_COLOR_DARK_GREY)
+    rts
 
+SetColorAlive:
+    lda #>info.base_addr
+    ldx #<info.base_addr
+    nv_sprite_set_color_from_extra_sr()
+
+    
 label_vel_x_str: .text @"vel x: \$00"
 rect1: .word $0000, $0000  // (left, top)
        .word $0000, $0000  // (right, bottom)

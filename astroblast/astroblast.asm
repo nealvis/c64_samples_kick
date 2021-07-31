@@ -68,6 +68,7 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 #import "../nv_c64_util/nv_sprite_raw_code.asm"
 #import "../nv_c64_util/nv_sprite_extra_code.asm"
 #import "astro_ships_code.asm"
+#import "astro_ship_death_code.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // charset is expected to be at $3000
@@ -94,10 +95,11 @@ RealStart:
 
     lda #$00
     sta quit_flag
-    sta turret_hit_ship_1
+    //sta turret_hit_ship_1
 
     jsr WindInit
     jsr TurretInit
+    jsr ShipDeathInit
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
@@ -193,22 +195,23 @@ PartialSecond2:
     {
         nv_screen_set_border_color_immed(NV_COLOR_LITE_GREEN)
     }
+    // read keyboard and take action before other effects incase
+    // other effects will override keyboard action
+    jsr DoKeyboard
+
+    // step through the effects
     jsr WindStep
     jsr TurretStep
+    jsr ShipDeathStep
 
-    lda turret_hit_ship_1   // don't move ship while its dead
-    bne SkipMoveShip1
+    // move the sprites based on velocities set above.
     jsr ship_1.MoveInExtraData
-SkipMoveShip1:    
     jsr ship_2.MoveInExtraData
     jsr asteroid_1.MoveInExtraData
     jsr asteroid_2.MoveInExtraData
     jsr asteroid_3.MoveInExtraData
     jsr asteroid_4.MoveInExtraData
     jsr asteroid_5.MoveInExtraData
-
-    jsr DoKeyboard
-
 
     lda #1 
     bit change_up_flag
@@ -256,6 +259,8 @@ NoChangeUp:
     lda ship_1.collision_sprite     // closest_sprite, will be $FF 
     bmi NoCollisionShip1        // if no collisions so check minus
 HandleCollisionShip1:
+    lda ship_death_count        // if ship1 is dead then ignore collisions
+    bne NoCollisionShip1
     // get extra pointer for the sprite that ship1 collided with loaded
     // so that we can then disable it
     ldy ship_1.collision_sprite
@@ -297,6 +302,7 @@ ProgramDone:
 
     jsr TurretCleanup
     jsr WindCleanup
+    jsr ShipDeathCleanup
 
     jsr SoundMuteOn
     jsr SoundDone
@@ -702,16 +708,27 @@ TurretActiveTimeToCheckRect:
     ldx #<ship_1.base_addr
     jsr CheckSpriteHitTurretBullet1
     // now accum is 1 if hit or 0 if didn't
-    sta turret_hit_ship_1
+    //sta turret_hit_ship_1
     beq TurretDidNotHit
 
 TurretDidHit:
+    jsr ShipDeathStart
     jsr TurretForceStop
 
 TurretDidNotHit:    
     rts
 // TurretHitCheck End
 //////////////////////////////////////////////////////////////////////////////
+
+/*
+ShipDeathStartWrapper:
+    jsr ShipDeathStart
+    rts
+    
+ShipDeathStepWrapper:
+    jsr ShipDeathStep
+    rts
+*/
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
