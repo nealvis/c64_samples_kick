@@ -22,7 +22,6 @@
 TurretInit:
     lda #$00
     sta turret_count
-    sta turret_hit_ship_1
     rts
 // TurretInit end
 //////////////////////////////////////////////////////////////////////////////
@@ -33,8 +32,6 @@ TurretInit:
 TurretStart:
     lda #TURRET_FRAMES
     sta turret_count
-    lda #$00
-    sta turret_hit_ship_1
     rts
 // TurretStart subroutine end
 //////////////////////////////////////////////////////////////////////////////

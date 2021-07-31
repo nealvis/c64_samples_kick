@@ -94,6 +94,7 @@ RealStart:
 
     lda #$00
     sta quit_flag
+    sta turret_hit_ship_1
 
     jsr WindInit
     jsr TurretInit
@@ -195,7 +196,7 @@ PartialSecond2:
     jsr WindStep
     jsr TurretStep
 
-    lda turret_hit_ship_1
+    lda turret_hit_ship_1   // don't move ship while its dead
     bne SkipMoveShip1
     jsr ship_1.MoveInExtraData
 SkipMoveShip1:    
@@ -651,8 +652,6 @@ TryExperimental01:
     bne TryQuit                           
 WasExperimental01:
     jsr WindStart
-    lda #$00
-    sta turret_hit_ship_1
     jmp DoneKeys
 
 TryQuit:
@@ -694,7 +693,6 @@ CheckSpriteHitTurretBullet1:
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against
 TurretHitCheck:
-    //jsr ship_1.CheckOverlapChar
     lda turret_count
     bne TurretActiveTimeToCheckRect
     // turret not active, just return
@@ -714,10 +712,6 @@ TurretDidNotHit:
     rts
 // TurretHitCheck End
 //////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1

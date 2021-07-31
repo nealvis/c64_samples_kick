@@ -23,10 +23,6 @@
 // TurretStep will decrement it.
 turret_count: .byte 0
 
-// set to 1 when hits ship.  This can move to main program
-// the turret will just update the bullet's death rectangle
-turret_hit_ship_1: .byte 0
-
 // the death rectangle for bullet 1.  Turret step will update this 
 // rect as the bullet travels.  the main engine can check this rectangle 
 // for overlap with sprites and act accordingly.
