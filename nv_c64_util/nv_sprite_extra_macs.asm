@@ -98,6 +98,12 @@
     // some scratch memory for each sprite     
     sprite_scratch1: .word 0
     sprite_scratch2: .word 0
+
+    sprite_scratch_rect:
+    sprite_scratch_rect_left: .word 0
+    sprite_scratch_rect_top: .word 0
+    sprite_scratch_rect_right: .word 0
+    sprite_scratch_rect_bottom: .word 0    
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -127,6 +133,13 @@
 
 .const NV_SPRITE_SCRATCH1_OFFSET = 23
 .const NV_SPRITE_SCRATCH2_OFFSET = 25
+
+// 8 bytes to create four 16 bit coords for a rect (left, top, right, bottom)
+.const NV_SPRITE_SCRATCH_RECT_OFFSET = 27
+.const NV_SPRITE_SCRATCH_RECT_LEFT_OFFSET = 27
+.const NV_SPRITE_SCRATCH_RECT_TOP_OFFSET = 29
+.const NV_SPRITE_SCRATCH_RECT_RIGHT_OFFSET = 31
+.const NV_SPRITE_SCRATCH_RECT_BOTTOM_OFFSET = 33
 
 //////////////////////////////////////////////////////////////////////////////
 // assembler function to return the address of the sprite number
@@ -209,6 +222,51 @@
 .function nv_sprite_hitbox_bottom_addr(info)
 {
     .return info.base_addr + NV_SPRITE_HITBOX_BOTTOM_OFFSET
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the scratch rect
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_scratch_rect_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_SCRATCH_RECT_OFFSET
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the scratch rect left coord
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_scratch_rect_left_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_SCRATCH_RECT_LEFT_OFFSET
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the scratch rect top coord
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_scratch_rect_top_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_SCRATCH_RECT_TOP_OFFSET
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the scratch rect right coord
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_scratch_rect_right_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_SCRATCH_RECT_RIGHT_OFFSET
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Assembler function to return the address of the scratch rect bottom coord
+// function parameters:
+//   info: nv_sprite_info_struct that contains the address to return
+.function nv_sprite_scratch_rect_bottom_addr(info)
+{
+    .return info.base_addr + NV_SPRITE_SCRATCH_RECT_BOTTOM_OFFSET
 }
 
 
@@ -935,22 +993,37 @@ Done:
 //   rect1_addr: is a temp rectangle that will be used to 
 //               determine overlap.  it will be filled with 
 //               the sprite's rectangle pixel coords
-//   rect2_addr: is a temp retangle that will be used to 
-//               determine overlap.  it will be filled with the
-//               character's screen rectangle pixel coords
+//   char_rect_addr: is a temp retangle that will be used to 
+//                   store the char's rectangle with pixel coords
+//                   it doesn't need to be set prior to using macro
+//                   the macro just needs the space to use
 // Return: loads the accum with 0 for no overlap or nonzero if is overlap
 // 
-.macro nv_sprite_check_overlap_char(info, rect1_addr, rect2_addr)
+.macro nv_sprite_check_overlap_char(info, char_rect_addr)
 {
-    .label r1_left = rect1_addr
-    .label r1_top = rect1_addr + 2
-    .label r1_right = rect1_addr + 4
-    .label r1_bottom = rect1_addr + 6
+    nv_sprite_char_coord_to_screen_pixels(char_rect_addr)
+    nv_sprite_check_overlap_rect(info, char_rect_addr)
+}
 
-    .label r2_left = rect2_addr
-    .label r2_top = rect2_addr + 2
-    .label r2_right = rect2_addr + 4
-    .label r2_bottom = rect2_addr + 6
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to convert the character x, y location on screen
+// to screen pixel coordinates
+// Params: 
+//   X Reg: character's X loc on screen
+//   Y Reg: character's Y loc on screen
+// macro params:
+//   rect_addr: the address to an 8 byte struct that holds 4
+//              16bit values that will be filled with values 
+//              that are the screen coords for the screen 
+//              char location.  the 16 bit values' order will be
+//              left, top, right, bottom
+.macro nv_sprite_char_coord_to_screen_pixels(rect_addr)
+{
+    .label r_left = rect_addr
+    .label r_top = rect_addr + 2
+    .label r_right = rect_addr + 4
+    .label r_bottom = rect_addr + 6
 
     .const SPRITE_WIDTH = 24
     .const SPRITE_HEIGHT = 21
@@ -959,55 +1032,218 @@ Done:
     .const CHAR_PIXEL_WIDTH = $0008
     .const CHAR_PIXEL_HEIGHT = $0008
 
-    /////// put char's rectangle in rect2
+
+    /////// put char's rectangle in rect
     
     // LEFT
     // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
-    nv_store16_immediate(r2_left, CHAR_PIXEL_WIDTH)
-    nv_mul16_x(r2_left, r2_left)
-    nv_adc16_immediate(r2_left, LEFT_OFFSET, r2_left)
+    nv_store16_immediate(r_left, CHAR_PIXEL_WIDTH)
+    nv_mul16_x(r_left, r_left)
+    nv_adc16_immediate(r_left, LEFT_OFFSET, r_left)
     
     // TOP
     // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
-    nv_store16_immediate(r2_top, CHAR_PIXEL_HEIGHT)
-    nv_mul16_y(r2_top, r2_top)
-    nv_adc16_immediate(r2_top, TOP_OFFSET, r2_top)
+    nv_store16_immediate(r_top, CHAR_PIXEL_HEIGHT)
+    nv_mul16_y(r_top, r_top)
+    nv_adc16_immediate(r_top, TOP_OFFSET, r_top)
 
     // RIGHT
-    nv_adc16_immediate(r2_left, CHAR_PIXEL_WIDTH, r2_right)
+    // add width to the left to get right
+    nv_adc16_immediate(r_left, CHAR_PIXEL_WIDTH, r_right)
 
     // BOTTOM
-    nv_adc16_immediate(r2_top, CHAR_PIXEL_HEIGHT, r2_bottom)
-
-    nv_sprite_check_overlap_rect(info, rect1_addr, rect2_addr)
+    // add height to the top to get the bottom
+    nv_adc16_immediate(r_top, CHAR_PIXEL_HEIGHT, r_bottom)
 }
 
-
 //////////////////////////////////////////////////////////////////////////////
-// Inline macro to test if a sprite's hitbox overlaps with a prefilled
-// rectangle
-// 
+// inline macro to convert the character x, y location on character screen
+// to rectangle of screen pixel coordinates.  This macro only updates the 
+// left and top part of the rectangle though.  The right bottom will remain
+// unchanged.  To create the full rectangle this should be paired with 
+// the nv_sprite_char_coord_to_screen_pixels_right_bottom or the 
+// nv_sprite_char_coord_to_screen_pixels_expand_right_bottom macro
 // Params: 
 //   X Reg: character's X loc on screen
 //   Y Reg: character's Y loc on screen
 // macro params:
-//   rect1_addr: is a temp rectangle that will be used to 
-//               determine overlap.  it will be filled with 
-//               the sprite's rectangle pixel coords
-//   rect2_addr: is address of retangle that is already filled in
-//               with pixel coords and will be used to determine overlap.
-// Return: loads the accum with 0 for no overlap or nonzero if is overlap
-.macro nv_sprite_check_overlap_rect(info, rect1_addr, rect2_addr)
+//   rect_addr: the address to an 8 byte struct that holds 4
+//              16bit values that will be filled with values 
+//              that are the screen coords for the left top
+//              for specified char location.  
+//              the 16 bit values' order within the rect are be
+//              left, top, right, bottom
+.macro nv_sprite_char_coord_to_screen_pixels_left_top(rect_addr)
 {
-    .label r1_left = rect1_addr
-    .label r1_top = rect1_addr + 2
-    .label r1_right = rect1_addr + 4
-    .label r1_bottom = rect1_addr + 6
+    .label r_left = rect_addr
+    .label r_top = rect_addr + 2
+    .label r_right = rect_addr + 4
+    .label r_bottom = rect_addr + 6
 
-    .label r2_left = rect2_addr
-    .label r2_top = rect2_addr + 2
-    .label r2_right = rect2_addr + 4
-    .label r2_bottom = rect2_addr + 6
+    .const SPRITE_WIDTH = 24
+    .const SPRITE_HEIGHT = 21
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+    .const CHAR_PIXEL_WIDTH = $0008
+    .const CHAR_PIXEL_HEIGHT = $0008
+
+    /////// put char's rectangle in rect
+    
+    // LEFT
+    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
+    nv_store16_immediate(r_left, CHAR_PIXEL_WIDTH)
+    nv_mul16_x(r_left, r_left)
+    nv_adc16_immediate(r_left, LEFT_OFFSET, r_left)
+    
+    // TOP
+    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
+    nv_store16_immediate(r_top, CHAR_PIXEL_HEIGHT)
+    nv_mul16_y(r_top, r_top)
+    nv_adc16_immediate(r_top, TOP_OFFSET, r_top)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to convert the character x, y location on character screen
+// to rectangle of screen pixel coordinates.  This macro only updates the 
+// right and bottom part of the rectangle though.  The left top will remain
+// unchanged.  To create the full rectangle this should be paired with 
+// the nv_sprite_char_coord_to_screen_pixels_left_top or the 
+// nv_sprite_char_coord_to_screen_pixels_expand_left_top macro
+// Params: 
+//   X Reg: character's X loc on screen
+//   Y Reg: character's Y loc on screen
+// macro params:
+//   rect_addr: the address to an 8 byte struct that holds 4
+//              16bit values that will be filled with values 
+//              that are the screen coords for the right bottom
+//              for specified char location.  
+//              the 16 bit values' order within the rect are be
+//              left, top, right, bottom
+.macro nv_sprite_char_coord_to_screen_pixels_right_bottom(rect_addr)
+{
+    //.label r_left = rect_addr
+    //.label r_top = rect_addr + 2
+    .label r_right = rect_addr + 4
+    .label r_bottom = rect_addr + 6
+
+    .const SPRITE_WIDTH = 24
+    .const SPRITE_HEIGHT = 21
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+    .const CHAR_PIXEL_WIDTH = $0008
+    .const CHAR_PIXEL_HEIGHT = $0008
+
+    /////// put char's right and bottom coords in rect
+
+    // RIGHT
+    // Set the right pixel coord value for char.  First need to set it to 
+    // the left coord and then add the pixel width to get to the right
+    nv_store16_immediate(r_right, CHAR_PIXEL_WIDTH)
+    nv_mul16_x(r_right, r_right)
+    nv_adc16_immediate(r_right, LEFT_OFFSET, r_right)
+    // above code sets r_right to the left pixel position for char
+    // now add char pixel width to it and it will be the right pixel position
+    // for the char
+    nv_adc16_immediate(r_right, CHAR_PIXEL_WIDTH, r_right)
+
+    // BOTTOM
+    // Set the bottom pixel coord value for char.  First need to set it to 
+    // the top coord and then add the pixel height to get to the bottom
+    nv_store16_immediate(r_bottom, CHAR_PIXEL_HEIGHT)
+    nv_mul16_y(r_bottom, r_bottom)
+    nv_adc16_immediate(r_bottom, TOP_OFFSET, r_bottom)
+    // above code sets r_bottom to the top pixel position for char
+    // now add char pixel height to it and it will be the bottom pixel position
+    // for the char
+    nv_adc16_immediate(r_bottom, CHAR_PIXEL_HEIGHT, r_bottom)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to expand a rect some number of characters in the 
+// x and y directions. before this macro code is executed the rect
+// must already have the left, top coordinates filled in to be valid
+// pixel values.  This macro will add to those values to get the
+// right, bottom pixel locations and fill those in the rect.
+// Params: 
+//   X Reg: the number of characters to expand in the X direction
+//          if pass zero then the resulting rectangle will be the width
+//          of one character
+//   Y Reg: the number of characters to expand the rect in the Y direction
+//          If pass zero then the resulting rectangle will be one char high
+// macro params:
+//   rect_addr: the address to an 8 byte struct that holds 4
+//              16bit values that will be filled with values 
+//              that are the screen coords for the screen 
+//              char location.  the 16 bit values' order will be
+//              left, top, right, bottom
+//              before executing macro the left, top values must be 
+//              filled in with valid screen/pixel coordinates
+.macro nv_sprite_char_coord_to_screen_pixels_expand_right_bottom(rect_addr)
+{
+    .label r_left = rect_addr
+    .label r_top = rect_addr + 2
+    .label r_right = rect_addr + 4
+    .label r_bottom = rect_addr + 6
+
+    .const SPRITE_WIDTH = 24
+    .const SPRITE_HEIGHT = 21
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+    .const CHAR_PIXEL_WIDTH = $0008
+    .const CHAR_PIXEL_HEIGHT = $0008
+
+
+    /////// put char's rectangle in rect
+    
+    // LEFT
+    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
+    //(r_left, CHAR_PIXEL_WIDTH)
+    //nv_mul16_x(r_left, r_left)
+    //nv_adc16_immediate(r_left, LEFT_OFFSET, r_left)
+    
+    // TOP
+    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
+    //nv_store16_immediate(r_top, CHAR_PIXEL_HEIGHT)
+    //nv_mul16_y(r_top, r_top)
+    //nv_adc16_immediate(r_top, TOP_OFFSET, r_top)
+
+    // RIGHT
+    nv_store16_immediate(r_right, CHAR_PIXEL_WIDTH)       // start width
+    nv_mul16_x(r_right, r_right)                          // mul by X for inc
+    nv_adc16(r_left, r_right, r_right)
+    nv_adc16_immediate(r_right, CHAR_PIXEL_WIDTH, r_right)
+
+    // BOTTOM
+    // add height to the top to get the bottom
+    nv_store16_immediate(r_bottom, CHAR_PIXEL_HEIGHT)       // start width
+    nv_mul16_y(r_bottom, r_bottom)                          // mul by Y for inc
+    nv_adc16(r_top, r_bottom, r_bottom)
+    nv_adc16_immediate(r_bottom, CHAR_PIXEL_HEIGHT, r_bottom)
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro to test if a sprite's hitbox rectangle overlaps 
+// with a prefilled rectangle
+// 
+// macro params:
+//   info: the sprite info struct
+//   rect_addr: is address of retangle whose contents will be tested for
+//              overlap with the sprite's rectangle.. the contents must
+//              be prefilled with coords
+// Return: loads the accum with 0 for no overlap or nonzero if is overlap
+.macro nv_sprite_check_overlap_rect(info, rect_addr)
+{
+    .label r1_left = nv_sprite_scratch_rect_left_addr(info)
+    .label r1_top = nv_sprite_scratch_rect_top_addr(info)
+    .label r1_right = nv_sprite_scratch_rect_right_addr(info)
+    .label r1_bottom = nv_sprite_scratch_rect_bottom_addr(info)
+
+    .label r2_left = rect_addr
+    .label r2_top = rect_addr + 2
+    .label r2_right = rect_addr + 4
+    .label r2_bottom = rect_addr + 6
 
     .const SPRITE_WIDTH = 24
     .const SPRITE_HEIGHT = 21
@@ -1028,7 +1264,7 @@ Done:
     nv_adc16_8(r1_top, nv_sprite_hitbox_top_addr(info), r1_top)
 
     // now check for overlap with rect1 and rect2
-    nv_check_rect_overlap16(rect1_addr, rect2_addr)
+    nv_check_rect_overlap16(nv_sprite_scratch_rect_addr(info), rect_addr)
 }
 
 

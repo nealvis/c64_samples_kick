@@ -712,47 +712,194 @@ SaveBlock:
 
 
 //////////////////////////////////////////////////////////////////////////////
+//
+//////////////////////////////////////////////////////////////////////////////
+// Inline macro to test if a sprite's hitbox overlaps with a prefilled
+// rectangle
+// 
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
+// macro params:
+//   rect_addr: is address of retangle whose contents will be tested for
+//              overlap with the sprite's rectangle.. the contents must
+//              be prefilled with coords
+// Return: loads the accum with 0 for no overlap or nonzero if is overlap
+// Note: the Zero page locations use will be restored.  The accumulator will not
+//       be restored because the result will be in the accum (0 or 1)
+.macro nv_sprite_check_overlap_rect_sr(rect_addr)
+{
+    nv_sprite_standard_save(SaveBlock)
+
+    nv_sprite_load_extra_ptr()
+
+    .label r2_left = rect_addr
+    .label r2_top = rect_addr + 2
+    .label r2_right = rect_addr + 4
+    .label r2_bottom = rect_addr + 6
+
+    .const SPRITE_WIDTH = 24
+    .const SPRITE_HEIGHT = 21
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+    .const CHAR_PIXEL_WIDTH = $0008
+    .const CHAR_PIXEL_HEIGHT = $0008
+
+    /////////// put sprite's rectangle to rect1, use the hitbox not full sprite
+    
+    // get the sprite left and right hitbox coords as screen pixel coords
+    // and put in r1_left, r1_right
+    nv_sprite_extra_word_to_mem(NV_SPRITE_X_OFFSET, r1_left)
+    nv_sprite_extra_byte_to_mem(NV_SPRITE_HITBOX_RIGHT_OFFSET, hitbox_right)
+    nv_adc16_8(r1_left, hitbox_right, r1_right)
+    nv_sprite_extra_byte_to_mem(NV_SPRITE_HITBOX_LEFT_OFFSET, hitbox_left)
+    nv_adc16_8(r1_left, hitbox_left, r1_left)
+
+    // get the sprite top and bottom hitbox coords as screen pixel coords
+    // and put in r1_top, r1_bottom
+    nv_sprite_extra_byte_to_a(NV_SPRITE_Y_OFFSET)
+    sta r1_top
+    lda #$00
+    sta r1_top+1
+    nv_sprite_extra_byte_to_mem(NV_SPRITE_HITBOX_TOP_OFFSET, hitbox_top)
+    nv_sprite_extra_byte_to_mem(NV_SPRITE_HITBOX_BOTTOM_OFFSET, hitbox_bottom)
+    nv_adc16_8(r1_top, hitbox_bottom, r1_bottom)
+    nv_adc16_8(r1_top, hitbox_top, r1_top)
+
+    // now check for overlap with sprite_rect and the rect for this macro
+    nv_check_rect_overlap16(sprite_rect, rect_addr)
+    
+    // use hitbox_left as a temp, finished with it above
+    // the standard restore will mess up our accumulator so save it here
+    sta hitbox_left 
+
+    nv_sprite_standard_restore(SaveBlock)
+
+    // restore the accumulator from our temp
+    lda hitbox_left
+    rts
+    
+SaveBlock:
+    nv_sprite_standard_alloc()
+    sprite_rect:
+    r1_left: .word 0
+    r1_top: .word 0
+    r1_right: .word 0
+    r1_bottom: .word 0
+    hitbox_left: .byte 0
+    hitbox_top: .byte 0
+    hitbox_right: .byte 0
+    hitbox_bottom: .byte 0
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////
 // Instantiate macros that need to be instantiated below here
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteSetColorFromExtra:
     nv_sprite_set_color_from_extra_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteSetupFromExtra:
     nv_sprite_setup_from_extra_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteSetModeFromExtra:
     nv_sprite_set_mode_from_extra_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteSetDataPtrFromExtra:
     nv_sprite_set_data_ptr_from_extra_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteSetLocationFromExtra:
     nv_sprite_set_location_from_extra_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteMoveInExtra:
     nv_sprite_move_in_extra_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteMoveInExtraNegY:
     nv_sprite_move_in_extra_neg_y_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteMoveInExtraPosY:
     nv_sprite_move_in_extra_pos_y_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteMoveInExtraNegX:
     nv_sprite_move_in_extra_neg_x_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteMoveInExtraPosX:
     nv_sprite_move_in_extra_pos_x_sr()
 
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteExtraEnable:
     nv_sprite_extra_enable_sr()
 
+
+//////////////////////////////////////////////////////////////////////////////
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
 NvSpriteExtraDisable:
     nv_sprite_extra_disable_sr()
 
 
+//////////////////////////////////////////////////////////////////////////////
+// fill nv_sprite_check_overlap_rect_addr with a rectangle to test for 
+// overlap with the sprite extra data pointed to by Accum and X Reg
+// Params: 
+//   Accum: MSB of address of nv_sprite_extra_data
+//   X Reg: LSB of address of the nv_sprite_extra_data
+NvSpriteCheckOverlapRect:
+    nv_sprite_check_overlap_rect_sr(nv_sprite_check_overlap_rect_addr)
 
+
+nv_sprite_check_overlap_rect_addr: 
+    nv_sprite_check_overlap_rect_left: .word 0
+    nv_sprite_check_overlap_rect_top: .word 0
+    nv_sprite_check_overlap_rect_right: .word 0
+    nv_sprite_check_overlap_rect_bottom: .word 0
 
 
 

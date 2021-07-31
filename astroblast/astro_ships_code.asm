@@ -24,7 +24,7 @@
                                           1, 0, 1, 0,   // bounce on top, left, bottom, right  
                                           0, 0, 75, 0,  // min/max top, left, bottom, right
                                           0,            // sprite enabled 
-                                          4, 5, 20, 16) // hitbox left, top, right, bottom
+                                          10, 5, 20, 16) // hitbox left, top, right, bottom
 
         .var sprite_num = info.num
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
@@ -119,9 +119,10 @@ DoneIncVelX:
 
 //////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
-// location against
+// location against.  it doesn't matter what character is at the location
+// this just checks the location for overlap with sprite location
 CheckOverlapChar:
-    nv_sprite_check_overlap_char(info, rect1, rect2)
+    nv_sprite_check_overlap_char(info, rect2)
     rts
 
 
@@ -145,7 +146,7 @@ rect2: .word $0000, $0000  // (left, top)
                                         1, 0, 1, 0,   // bounce on top, left, bottom, right  
                                         200, 0, 0, 0, // min/max top, left, bottom, right
                                         0,            // sprite enabled 
-                                        0, 0, 24, 21) // hitbox left, top, right, bottom
+                                        6, 5, 20, 16) // hitbox left, top, right, bottom
 
     .var sprite_num = info.num
     .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET

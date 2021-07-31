@@ -17,6 +17,7 @@
 //   addr1 is the address of the low byte of op1
 //   addr2 is the address of the low byte of op2
 //   result_addr is the address to store the result.
+// Note X and Y Registers are unchanged
 .macro nv_adc16(addr1, addr2, result_addr)
 {
     lda addr1
@@ -101,7 +102,7 @@ Op2Positive:
 //   num is the immeidate number to add
 //   result_addr is the address of the LSB of the 16 bit memory location 
 //               to store the result.
-// Note: X and Y Regs are not used
+// Note: X and Y Regs are unchanged
 .macro nv_adc16_immediate(addr1, num, result_addr)
 {
     lda addr1
@@ -144,6 +145,7 @@ Op2Positive:
 // params:
 //   x reg should be set to the 8 bit number to multiply by prior to 
 //         this macro
+// Note: Y Reg is unchanged
 .macro nv_mul16_x(addr1, result_addr)
 {
     cpx #$00
@@ -176,6 +178,7 @@ Done:
 // params:
 //   y reg should be set to the 8 bit number to multiply by prior to 
 //         this macro
+// Note: X Register is unchanged
 .macro nv_mul16_y(addr1, result_addr)
 {
     cpy #$00
@@ -269,7 +272,8 @@ Loop:
 // Macro Params:
 //   lsb_src_addr: LSB of the source for the copy
 //   lsb_dest_addr: LSB of the destination for the copy
-// Accum will be modified
+// Note: Accum will be modified
+//       X and Y registers will be unchanged
 .macro nv_xfer16_mem_mem(lsb_src_addr, lsb_dest_addr)
 {
     lda lsb_src_addr
@@ -350,17 +354,19 @@ Loop:
     .label r2_right = rect2_addr + 4
     .label r2_bottom = rect2_addr + 6
 
-// if ((r2.left is between r1.left and r1.right)  or 
-//     (r2.right is between r1.left and r1.right)) and
-//    ((r2.bottom is below r1.top) and (r2.top is above r1.bottom)))
-// then 
-// {
-//    rects overlap
-// }
-// else
-// {
-//    do same comparison with reverse (use r1 for r2 and r2 for r1 in above if)
-// }
+    // this is the algorithm to determine if rects overlap
+    // if ((r2.left is between r1.left and r1.right)  or 
+    //     (r2.right is between r1.left and r1.right)) and
+    //    ((r2.bottom is below r1.top) and (r2.top is above r1.bottom)))
+    // then 
+    // {
+    //    rects overlap
+    // }
+    // else
+    // {
+    //    do same comparison with reverse (use r1 for r2 and r2 for r1 in above if)
+    // }
+
     nv_check_range16(r2_left, r1_left, r1_right, false)
     bne OneVertSideBetween
     nv_check_range16(r2_right, r1_left, r1_right, false)

@@ -87,18 +87,15 @@ wind_ship_2_done: .byte 0
 
 //////////////////
 // turret consts and variables
+.const TURRET_SHOT_START_ROW = 10
+.const TURRET_SHOT_START_COL = 37
+
 turret_count: .byte 0
 
 turret_hit_ship_1: .byte 0
-/*
-rect1: .word $0000, $0000  // (left, top)
-       .word $0000, $0000  // (right, bottom)
 
-rect2: .word $0000, $0000  // (left, top)
-       .word $0000, $0000  // (right, bottom)
-*/
-
-
+turret_bullet_rect1: .word $0000, $0000  // (left, top)
+                     .word $0000, $0000  // (right, bottom)
 
 // the data for the sprites. 
 // the file specifies where it assembles to ($0900)
@@ -316,6 +313,8 @@ HandleCollisionShip2:
 
 NoCollisionShip2:
 
+    jsr TurretHitCheck
+
     jsr ScoreToScreen
     jmp MainLoop
 
@@ -428,6 +427,12 @@ DoPause:
     nv_key_wait_any_key()
     jsr SoundMuteOff
     rts
+
+
+*=$3000 "charset start"
+.import binary "astro_charset.bin"
+//*=$3800 "beyond charset"
+
 
 //////////////////////////////////////////////////////////////////////////////
 // CreateField subroutine
@@ -564,10 +569,6 @@ SetAllCharA:
     nv_screen_poke_all_char_a()
     rts
 
-*=$3000 "charset start"
-.import binary "astro_charset.bin"
-//*=$3800 "beyond charset"
-
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to do all the keyboard stuff
@@ -615,8 +616,10 @@ TryTransitionKeys:
     nv_key_get_prev_pressed_y() // previou key pressed to Y reg
     sty scratch_byte            // then to scratch reg to compare with accum
     cmp scratch_byte            // if prev key == last key then done with keys
-    beq DoneKeys
+    bne NotDoneKeys
+    jmp DoneKeys 
 
+NotDoneKeys:
 TryPause:
     cmp #KEY_PAUSE             // check the pause key
     bne TryIncBorder                // not speed up x key, skip to bottom
@@ -682,6 +685,8 @@ TryExperimental01:
     bne TryQuit                           
 WasExperimental01:
     jsr WindStart
+    lda #$00
+    sta turret_hit_ship_1
     jmp DoneKeys
 
 TryQuit:
@@ -840,11 +845,34 @@ WindDoneStep:
 
 
 //////////////////////////////////////////////////////////////////////////////
+CheckSpriteHitTurretBullet1:
+    nv_sprite_check_overlap_rect_sr(turret_bullet_rect1)
+
+//////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against
 TurretHitCheck:
-    jsr ship_1.CheckOverlapChar
+    //jsr ship_1.CheckOverlapChar
+    lda turret_count
+    bne TurretActiveTimeToCheckRect
+    // turret not active, just return
     rts
+TurretActiveTimeToCheckRect:  
+    lda #>ship_1.base_addr
+    ldx #<ship_1.base_addr
+    jsr CheckSpriteHitTurretBullet1
+    // now accum is 1 if hit or 0 if didn't
+    sta turret_hit_ship_1
+    beq TurretDidNotHit
+
+TurretDidHit:
+    jsr TurretForceStepsEnd
+
+TurretDidNotHit:    
+    rts
+// TurretHitCheck End
+//////////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////
 // call once to initialize turret variables and stuff
@@ -864,48 +892,78 @@ TurretStart:
     sta turret_hit_ship_1
     rts
 
+
+TurretForceStepsEnd:
+    lda #$00
+    sta turret_bullet_rect1
+    sta turret_bullet_rect1+1
+    sta turret_bullet_rect1+2
+    sta turret_bullet_rect1+3
+    sta turret_bullet_rect1+4
+    sta turret_bullet_rect1+5
+    sta turret_bullet_rect1+6
+    sta turret_bullet_rect1+7
+    sta turret_count
+    lda background_color
+    .var char_row
+    .for (char_row = TURRET_SHOT_START_ROW; char_row>=0; char_row--)
+    {
+        nv_screen_poke_color_a(char_row, TURRET_SHOT_START_COL)
+    }
+
+    rts
+
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to set the bullet rectangle based on 
+// turret position, frame number and bullet height
+.macro turret_set_bullet_rect1(start_row, start_col, frame, bullet_height)
+{
+    // setup the bullet rectangle from turret 
+    // set top char for this frame first
+    ldx #start_col
+    ldy #start_row - ((frame*bullet_height) - 1)
+    nv_sprite_char_coord_to_screen_pixels_left_top(turret_bullet_rect1)
+    
+    // now expand down the screen for bullets more than one char high
+    ldx #0
+    ldy #bullet_height - 1
+    nv_sprite_char_coord_to_screen_pixels_expand_right_bottom(turret_bullet_rect1)
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // call once per frame to have turret shoot 
-.const TURRET_SHOT_START_ROW = 10
-.const TURRET_SHOT_START_COL = 37
 .const TURRET_SHOT_COLOR = NV_COLOR_YELLOW
 .const TURRET_UP_CHAR = $5D
+.const TURRET_BULLET_HEIGHT = 2
 TurretStep:
     lda turret_count    // check if turret is active (count != 0)
     bne TurretActive    // not zero so it is active 
     rts                 // turret not active at this time, just return
     
 TurretActive:
-    // lda turret_count // loaded above alread
+    // lda turret_count // loaded above already
 TurretTryFrame1:
     cmp #TURRET_FRAMES
-    bne TurretTryFrame2
+    beq TurretWasFrame1
+    jmp TurretTryFrame2
+
 TurretWasFrame1:
     lda #TURRET_UP_CHAR
     ldx #TURRET_SHOT_COLOR
     nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL)
     nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-1, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
 
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
-    lda turret_hit_ship_1
-    beq TurretEndStep1
-
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-1
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
+    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
+                            1, TURRET_BULLET_HEIGHT)
 
 TurretEndStep1:
     jmp TurretStepReturn
 
 TurretTryFrame2:
     cmp #TURRET_FRAMES-1
-    bne TurretTryFrame3
+    beq TurretWasFrame2
+    jmp TurretTryFrame3
+
 TurretWasFrame2:
     lda #TURRET_UP_CHAR
     ldx #TURRET_SHOT_COLOR
@@ -915,88 +973,57 @@ TurretWasFrame2:
     lda background_color
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL)
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-1, TURRET_SHOT_START_COL)
-
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-2
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
-    lda turret_hit_ship_1
-    beq TurretEndStep2
-
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-3
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
+    
+    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
+                            2, TURRET_BULLET_HEIGHT)
 
 TurretEndStep2:
     jmp TurretStepReturn
 
 TurretTryFrame3:
     cmp #TURRET_FRAMES-2
-    bne TurretTryFrame4
+    beq TurretWasFrame3
+    jmp TurretTryFrame4
+
 TurretWasFrame3:
     lda #TURRET_UP_CHAR
     ldx #TURRET_SHOT_COLOR
     nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-4, TURRET_SHOT_START_COL)
     nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-5, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
 
     lda background_color
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-1, TURRET_SHOT_START_COL)
 
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-4
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
-    lda turret_hit_ship_1
-    beq TurretEndStep3
-
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-5
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
+    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
+                            3, TURRET_BULLET_HEIGHT)
 
 TurretEndStep3:
     jmp TurretStepReturn
 
 TurretTryFrame4:
     cmp #TURRET_FRAMES-3
-    bne TurretTryFrame5
+    beq TurretWasFrame4
+    jmp TurretTryFrame5
 TurretWasFrame4:
     lda #TURRET_UP_CHAR
     ldx #TURRET_SHOT_COLOR
     nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
     nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-10, TURRET_SHOT_START_COL)
 
     lda background_color
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-4, TURRET_SHOT_START_COL)
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-5, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
-
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-6
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
-    lda turret_hit_ship_1
-    beq TurretEndStep4
-
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-7
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
+    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
+                            4, TURRET_BULLET_HEIGHT)
 
 TurretEndStep4:
     jmp TurretStepReturn
 
 TurretTryFrame5:
     cmp #TURRET_FRAMES-4
-    bne TurretTryFrame6
+    beq TurretWasFrame5
+    jmp TurretTryFrame6
 TurretWasFrame5:
     lda #TURRET_UP_CHAR
     ldx #TURRET_SHOT_COLOR
@@ -1005,27 +1032,17 @@ TurretWasFrame5:
     lda background_color
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
 
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-8
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
-    lda turret_hit_ship_1
-    lda turret_hit_ship_1
-    beq TurretEndStep5
-
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-9
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
+    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
+                            5, TURRET_BULLET_HEIGHT)
 
 TurretEndStep5:
     jmp TurretStepReturn
 
 TurretTryFrame6:
     cmp #TURRET_FRAMES-5
-    bne TurretTryFrame7
+    beq TurretWasFrame6
+    jmp TurretTryFrame7
 TurretWasFrame6:
     lda #TURRET_UP_CHAR
     ldx #TURRET_SHOT_COLOR
@@ -1033,137 +1050,26 @@ TurretWasFrame6:
     lda background_color
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
-
-    ldx #TURRET_SHOT_START_COL
-    ldy #TURRET_SHOT_START_ROW-10
-    jsr TurretHitCheck
-    sta turret_hit_ship_1
-
+    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
+                            6, 1)  // bullet only one char for this frame
 TurretEndStep6:
     jmp TurretStepReturn
 
 TurretTryFrame7:
     lda background_color
-    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
-    //nv_screen_poke_color_a(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
     nv_screen_poke_color_a(TURRET_SHOT_START_ROW-10, TURRET_SHOT_START_COL)
 
   
 TurretStepReturn:    
     dec turret_count    // decrement turret frame counter
-    lda turret_hit_ship_1
-    beq TurretStepDone
-    lda #$00
-    sta turret_count
+    //lda turret_hit_ship_1
+    //beq TurretStepDone
+    //jsr TurretForceStepsEnd
 
 TurretStepDone:
     rts
-/*
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to test if a sprite overlaps with a character  on screen
-// loads the accum with 0 for no overlap or nonzero if is overlap
-// assume character X loc in X Reg, and Y loc in Y reg
-.macro SpriteInCharLoc(rect1_addr, rect2_addr)
-{
-    .label r1_left = rect1_addr
-    .label r1_top = rect1_addr + 2
-    .label r1_right = rect1_addr + 4
-    .label r1_bottom = rect1_addr + 6
-
-    .label r2_left = rect2_addr
-    .label r2_top = rect2_addr + 2
-    .label r2_right = rect2_addr + 4
-    .label r2_bottom = rect2_addr + 6
-
-    .const SPRITE_WIDTH = 24
-    .const SPRITE_HEIGHT = 21
-    .const LEFT_OFFSET = 26
-    .const TOP_OFFSET = 53
-    .const CHAR_PIXEL_WIDTH = $0008
-    .const CHAR_PIXEL_HEIGHT = $0008
-
-    /////// put char's rectangle in rect2
-    
-    // LEFT
-    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
-    nv_store16_immediate(r2_left, CHAR_PIXEL_WIDTH)
-    nv_mul16_x(r2_left, r2_left)
-    nv_adc16_immediate(r2_left, LEFT_OFFSET, r2_left)
-    
-    // TOP
-    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
-    nv_store16_immediate(r2_top, CHAR_PIXEL_HEIGHT)
-    nv_mul16_y(r2_top, r2_top)
-    nv_adc16_immediate(r2_top, TOP_OFFSET, r2_top)
-
-    // RIGHT
-    nv_adc16_immediate(r2_left, CHAR_PIXEL_WIDTH, r2_right)
-
-    // BOTTOM
-    nv_adc16_immediate(r2_top, CHAR_PIXEL_HEIGHT, r2_bottom)
 
 
-    /////////// put sprite's rectangle to rect1
-    nv_xfer16_mem_mem(ship_1.x_loc, r1_left)
-    nv_adc16_immediate(ship_1.x_loc, SPRITE_WIDTH, r1_right)    
-    lda ship_1.y_loc    // 8 bit value so manually load MSB with $00
-    sta r1_top
-    lda #$00
-    sta r1_top+1
-    nv_adc16_immediate(r1_top, SPRITE_HEIGHT, r1_bottom) 
-
-    // now check for overlap with rect1 and rect2
-    nv_check_rect_overlap16(rect1_addr, rect2_addr)
-}
-*/
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to test if a sprite overlaps with a character  on screen
-// loads the accum with 0 for no overlap or nonzero if is overlap
-.macro SpriteInCharLoc_hardcoded(row, col, rect1_addr, rect2_addr)
-{
-    .label r1_left = rect1_addr
-    .label r1_top = rect1_addr + 2
-    .label r1_right = rect1_addr + 4
-    .label r1_bottom = rect1_addr + 6
-
-    .label r2_left = rect2_addr
-    .label r2_top = rect2_addr + 2
-    .label r2_right = rect2_addr + 4
-    .label r2_bottom = rect2_addr + 6
-
-    .const SPRITE_WIDTH = 24
-    .const SPRITE_HEIGHT = 21
-    .const LEFT_OFFSET = 26
-    .const TOP_OFFSET = 53
-    .const CHAR_PIXEL_WIDTH = 8
-    .const CHAR_PIXEL_HEIGHT = 8
-    .const CHAR_PIXEL_LEFT_X = (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
-    .const CHAR_PIXEL_TOP_Y = (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
-    .const CHAR_PIXEL_RIGHT_X = CHAR_PIXEL_LEFT_X + CHAR_PIXEL_WIDTH
-    .const CHAR_PIXEL_BOTTOM_Y = CHAR_PIXEL_TOP_Y + CHAR_PIXEL_HEIGHT
-
-    // put sprite's rectangle to rect1
-    nv_xfer16_mem_mem(ship_1.x_loc, r1_left)
-    nv_adc16_immediate(ship_1.x_loc, SPRITE_WIDTH, r1_right)    
-    lda ship_1.y_loc
-    sta r1_top
-    lda #$00
-    sta r1_top+1
-    nv_adc16_immediate(r1_top, SPRITE_HEIGHT, r1_bottom) 
-
-    // now put char's rectangle in rect2
-    nv_store16_immediate(r2_left, CHAR_PIXEL_LEFT_X)
-    nv_store16_immediate(r2_top, CHAR_PIXEL_TOP_Y)
-    nv_store16_immediate(r2_right, CHAR_PIXEL_RIGHT_X)
-    nv_store16_immediate(r2_bottom, CHAR_PIXEL_BOTTOM_Y)
-
-    nv_check_rect_overlap16(rect1_addr, rect2_addr)
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
@@ -1586,10 +1492,7 @@ IsSprite7:
 
 InvalidSpriteNumber:
     // if we get here then an unexptected sprite number was set
-.break
     // prior to calling this subroutine.
-.break
-.break
     nop
 SpriteExtraPtrLoaded:
     rts
@@ -1597,12 +1500,20 @@ SpriteExtraPtrLoaded:
 
 
 // our sprite routines will goto this address
-*=$5000 "Sprite Code"
+*=$6000 "Sprite Code"
 
 // put the actual sprite subroutines here
 #import "../nv_c64_util/nv_sprite_extra_code.asm"
 #import "../nv_c64_util/nv_sprite_raw_collisions_code.asm"
 #import "../nv_c64_util/nv_sprite_raw_code.asm"
+
+//////////////////////////////////////////////////////////////////////////////
+// Subroutine to call to determine if ship1 has been hit by turret bullet
+// need to set accum/X reg with sprite extra pointer
+// need to copy turret bullet rect to param rect that goes with this routine
+//CheckShip1TurretHit:
+//    jsr NvSpriteCheckOverlapRect
+
 
 #import "../nv_c64_util/nv_screen_code.asm"
 
