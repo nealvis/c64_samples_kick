@@ -1,4 +1,4 @@
-// astro_wind_glimmer.asm 
+// astro_wind_glimmer_code.asm 
 #importonce 
 
 #import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
@@ -186,3 +186,10 @@ WindGlimmerDone:
 WindGlimmerReturn:
     rts
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to call once before using wind glimmer
+WindGlimmerForceStop:
+    // don't start with wind glimmer.  neg value means not active
+    lda #$FF
+    sta wind_glimmer_count
+    rts

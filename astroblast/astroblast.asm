@@ -25,6 +25,7 @@
 *=$0820 "Main Program Vars"
 
 #import "astro_vars_data.asm"
+#import "astro_wind_data.asm"
 
 // min and max speed for all sprites during the changeup
 .const MAX_SPEED = 6
@@ -52,51 +53,6 @@ ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
 nv_b8_label: .text @"nv b8 coll sprite: \$00"
 
 
-
-//////////////////
-// wind variables and consts
-
-// when ship x location increases into higher zones the x velocity is
-// adjusted by a bigger number.  these are the start each zone
-.const WIND_X_ZONE_2 = 200
-.const WIND_X_ZONE_3 = 240
-
-// the left most position for a ship.  if it reaches this position 
-// then it will bounce to the right and be done with that wind
-.const WIND_SHIP_MIN_LEFT = $0019
-
-// cap the negative x velocity at this 
-.const WIND_MAX_X_NEG_VEL = $FE // -2
-
-// reduce velocity while count greater than 0
-wind_count: .byte 0
-
-// mask to tell us when to start wind
-wind_start_mask: .byte $07 
-
-// amount to decrement velocity for ship 1.  temp
-// just needed during WindStep
-wind_ship1_dec_value: .byte 0
-wind_ship2_dec_value: .byte 0
-
-// flags that are set to 0 upon wind start and 
-// set to nonzero when a ship is done with that gust of wind
-// Probably because of bouncing from the left edge
-wind_ship_1_done: .byte 0
-wind_ship_2_done: .byte 0
-
-//////////////////
-// turret consts and variables
-.const TURRET_SHOT_START_ROW = 10
-.const TURRET_SHOT_START_COL = 37
-
-turret_count: .byte 0
-
-turret_hit_ship_1: .byte 0
-
-turret_bullet_rect1: .word $0000, $0000  // (left, top)
-                     .word $0000, $0000  // (right, bottom)
-
 // the data for the sprites. 
 // the file specifies where it assembles to ($0900)
 #import "astro_sprite_data.asm"
@@ -106,9 +62,21 @@ turret_bullet_rect1: .word $0000, $0000  // (left, top)
 *=$1000 "Main Start"
 
     jmp RealStart
-//#import "astro_wind_data.asm"
-#import "astro_wind_glimmer_code.asm"
+#import "astro_wind_code.asm"
+#import "../nv_c64_util/nv_screen_code.asm"
+#import "../nv_c64_util/nv_sprite_raw_collisions_code.asm"
+#import "../nv_c64_util/nv_sprite_raw_code.asm"
+#import "../nv_c64_util/nv_sprite_extra_code.asm"
 #import "astro_ships_code.asm"
+
+//////////////////////////////////////////////////////////////////////////////
+// charset is expected to be at $3000
+*=$3000 "charset start"
+.import binary "astro_charset.bin"
+// end charset
+//////////////////////////////////////////////////////////////////////////////
+
+#import "astro_turret_code.asm"
 
 RealStart:
 
@@ -127,7 +95,7 @@ RealStart:
     lda #$00
     sta quit_flag
 
-    jsr WindGlimmerInit
+    jsr WindInit
     jsr TurretInit
 
     // setup everything for the sprite_ship so its ready to enable
@@ -326,6 +294,9 @@ ProgramDone:
     nv_screen_set_border_color_immed(NV_COLOR_LITE_BLUE)
     nv_screen_set_background_color_immed(NV_COLOR_BLUE)
 
+    jsr TurretCleanup
+    jsr WindCleanup
+
     jsr SoundMuteOn
     jsr SoundDone
 
@@ -419,7 +390,6 @@ CheckAster5:
 DoneCheckingDisabledAsteroids:
     rts
 
-
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to Pause
 DoPause:
@@ -428,10 +398,6 @@ DoPause:
     jsr SoundMuteOff
     rts
 
-
-*=$3000 "charset start"
-.import binary "astro_charset.bin"
-//*=$3800 "beyond charset"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -708,140 +674,16 @@ WindCheck:
     bit second_counter
     bne WindCheckDone
 
-WindTimeToStart:
+WindCheckIsTimeToStart:
     nv_rand_byte_a(true)
     and #$07
     sta wind_start_mask
-    // temporarily disable wind for debugging
-    //jsr WindStart
+    jsr WindStart
 
 WindCheckDone:
     rts
-
+// WindCheck end
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to start the wind effect
-.const WIND_FRAMES = 5
-WindStart:
-    lda wind_count
-    bne WindAlreadyStarted
-    lda #$00
-    sta wind_ship_1_done
-    sta wind_ship_2_done
-    lda #WIND_FRAMES
-    sta wind_count
-    jsr WindGlimmerStart
-WindAlreadyStarted:
-    rts
-
-
-//////////////////////////////////////////////////////////////////////////////
-// subroutine to call once per raster frame while wind is happening
-// if wind_count is zero and wind_glimmer_count is $FF then this routine
-// will do nothing. continually calling the routine will eventually get to 
-// the state of wind_count = 0 and wind_glimmer_count = $FF so its safe
-// to call this once every raster frame regardless of if wind is active
-// or not.  It is possible for wind_count to get to zero before 
-// wind_glimmer_count is $FF so its not sufficient to just check wind_count
-WindStep:
-    lda ship_1.x_vel
-    bpl WindCheckLeftShip2
-
-WindCheckLeftShip1:
-    // if pushing ship off left of screen, then just set its velocity to 1
-    nv_bgt16_immediate(ship_1.x_loc, WIND_SHIP_MIN_LEFT, WindCheckLeftShip2)
-    lda #$01
-    sta ship_1.x_vel
-    //lda #$00
-    //sta wind_count
-    //jmp WindDoneVelShip1
-    lda #$01
-    sta wind_ship_1_done
-
-WindCheckLeftShip2:
-    // if pushing ship off left of screen, then just set its velocity to 1
-    nv_bgt16_immediate(ship_2.x_loc, WIND_SHIP_MIN_LEFT, CheckGlimmerFrame)
-    lda #$01
-    sta ship_2.x_vel
-    //lda #$00
-    //sta wind_count
-    //jmp WindDoneVelShip1    
-    lda #$01
-    sta wind_ship_2_done
-
-CheckGlimmerFrame:
-    // step the wind glimmer effect only when frame counter last 2 bits
-    // are zero (#$03 is every forth frame)
-    lda #$03
-    bit frame_counter
-    bne CheckShipEffectFrame 
-    jsr WindGlimmerStep 
-
-    lda wind_count 
-    bne CheckShipEffectFrame
-    jmp WindDoneStep
-
-CheckShipEffectFrame:
-    // effect the ship only when last 3 bits of frame counter
-    // are zero (#$07 is every 8th frame)
-    lda #$07 
-    bit frame_counter
-    bne CheckWindCount
-    jmp WindDoneStep      // if not LSB of 00 then don't do anything
-
-CheckWindCount:
-    // check if we've stepped enough times
-    lda wind_count
-    beq WindDoneStep            // done stepping
-    dec wind_count
-
-    lda #$FF                    // start decrement value at -1 
-    sta wind_ship1_dec_value
-    sta wind_ship2_dec_value
-
-    lda wind_ship_1_done        // check if done with ship 1 already
-    bne WindSetDecShip2
-
-    nv_blt16_immediate(ship_1.x_loc, WIND_X_ZONE_2, WindAdjustVelShip1)
-    dec wind_ship1_dec_value    // decrement value to -2
-
-    nv_blt16_immediate(ship_1.x_loc, WIND_X_ZONE_3, WindAdjustVelShip1)
-    dec wind_ship1_dec_value    // decrement value to -3
-
-WindAdjustVelShip1:
-    clc
-    lda wind_ship1_dec_value // load the value to decrement by -1, -2 or -3
-    adc ship_1.x_vel         // add the negative number to decremnt 
-    bpl WindSetVelShip1      // if velocity still positive then ok to set
-    cmp #WIND_MAX_X_NEG_VEL  // velocity max neg value
-    bcs WindSetVelShip1      // if we are setting to -2 or -1 its ok
-    lda #WIND_MAX_X_NEG_VEL  // cap max neg velocity
-WindSetVelShip1:
-    sta ship_1.x_vel         // store back into ship velocity
-
-
-WindSetDecShip2:
-    lda wind_ship_2_done
-    bne WindDoneVelShip2
-    nv_blt16_immediate(ship_2.x_loc, WIND_X_ZONE_2, WindAdjustVelShip2)
-    dec wind_ship2_dec_value    // decrement value to -2
-
-    nv_blt16_immediate(ship_2.x_loc, WIND_X_ZONE_3, WindAdjustVelShip2)
-    dec wind_ship2_dec_value    // decrement value to -3
-
-WindAdjustVelShip2:
-    clc
-    lda wind_ship2_dec_value // load the value to decrement by -1, -2 or -3
-    adc ship_2.x_vel         // add the negative number to decremnt 
-    bpl WindSetVelShip2      // if velocity still positive then ok to set
-    cmp #WIND_MAX_X_NEG_VEL  // velocity max neg value
-    bcs WindSetVelShip2      // if we are setting to -2 or -1 its ok
-    lda #WIND_MAX_X_NEG_VEL  // cap max neg velocity at
-WindSetVelShip2:
-    sta ship_2.x_vel         // store back into ship velocity
-
-WindDoneVelShip2:
-WindDoneStep:
-    rts
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -866,7 +708,7 @@ TurretActiveTimeToCheckRect:
     beq TurretDidNotHit
 
 TurretDidHit:
-    jsr TurretForceStepsEnd
+    jsr TurretForceStop
 
 TurretDidNotHit:    
     rts
@@ -874,200 +716,6 @@ TurretDidNotHit:
 //////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////
-// call once to initialize turret variables and stuff
-TurretInit:
-    lda #$00
-    sta turret_count
-    sta turret_hit_ship_1
-    rts
-
-//////////////////////////////////////////////////////////////////////////////
-// start a turret shooting.  the actual shooting will happen in TurretStep
-.const TURRET_FRAMES=8
-TurretStart:
-    lda #TURRET_FRAMES
-    sta turret_count
-    lda #$00
-    sta turret_hit_ship_1
-    rts
-
-
-TurretForceStepsEnd:
-    lda #$00
-    sta turret_bullet_rect1
-    sta turret_bullet_rect1+1
-    sta turret_bullet_rect1+2
-    sta turret_bullet_rect1+3
-    sta turret_bullet_rect1+4
-    sta turret_bullet_rect1+5
-    sta turret_bullet_rect1+6
-    sta turret_bullet_rect1+7
-    sta turret_count
-    lda background_color
-    .var char_row
-    .for (char_row = TURRET_SHOT_START_ROW; char_row>=0; char_row--)
-    {
-        nv_screen_poke_color_a(char_row, TURRET_SHOT_START_COL)
-    }
-
-    rts
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to set the bullet rectangle based on 
-// turret position, frame number and bullet height
-.macro turret_set_bullet_rect1(start_row, start_col, frame, bullet_height)
-{
-    // setup the bullet rectangle from turret 
-    // set top char for this frame first
-    ldx #start_col
-    ldy #start_row - ((frame*bullet_height) - 1)
-    nv_sprite_char_coord_to_screen_pixels_left_top(turret_bullet_rect1)
-    
-    // now expand down the screen for bullets more than one char high
-    ldx #0
-    ldy #bullet_height - 1
-    nv_sprite_char_coord_to_screen_pixels_expand_right_bottom(turret_bullet_rect1)
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// call once per frame to have turret shoot 
-.const TURRET_SHOT_COLOR = NV_COLOR_YELLOW
-.const TURRET_UP_CHAR = $5D
-.const TURRET_BULLET_HEIGHT = 2
-TurretStep:
-    lda turret_count    // check if turret is active (count != 0)
-    bne TurretActive    // not zero so it is active 
-    rts                 // turret not active at this time, just return
-    
-TurretActive:
-    // lda turret_count // loaded above already
-TurretTryFrame1:
-    cmp #TURRET_FRAMES
-    beq TurretWasFrame1
-    jmp TurretTryFrame2
-
-TurretWasFrame1:
-    lda #TURRET_UP_CHAR
-    ldx #TURRET_SHOT_COLOR
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-1, TURRET_SHOT_START_COL)
-
-    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
-                            1, TURRET_BULLET_HEIGHT)
-
-TurretEndStep1:
-    jmp TurretStepReturn
-
-TurretTryFrame2:
-    cmp #TURRET_FRAMES-1
-    beq TurretWasFrame2
-    jmp TurretTryFrame3
-
-TurretWasFrame2:
-    lda #TURRET_UP_CHAR
-    ldx #TURRET_SHOT_COLOR
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
-
-    lda background_color
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-1, TURRET_SHOT_START_COL)
-    
-    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
-                            2, TURRET_BULLET_HEIGHT)
-
-TurretEndStep2:
-    jmp TurretStepReturn
-
-TurretTryFrame3:
-    cmp #TURRET_FRAMES-2
-    beq TurretWasFrame3
-    jmp TurretTryFrame4
-
-TurretWasFrame3:
-    lda #TURRET_UP_CHAR
-    ldx #TURRET_SHOT_COLOR
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-4, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-5, TURRET_SHOT_START_COL)
-
-    lda background_color
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-2, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-3, TURRET_SHOT_START_COL)
-
-    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
-                            3, TURRET_BULLET_HEIGHT)
-
-TurretEndStep3:
-    jmp TurretStepReturn
-
-TurretTryFrame4:
-    cmp #TURRET_FRAMES-3
-    beq TurretWasFrame4
-    jmp TurretTryFrame5
-TurretWasFrame4:
-    lda #TURRET_UP_CHAR
-    ldx #TURRET_SHOT_COLOR
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
-
-    lda background_color
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-4, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-5, TURRET_SHOT_START_COL)
-    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
-                            4, TURRET_BULLET_HEIGHT)
-
-TurretEndStep4:
-    jmp TurretStepReturn
-
-TurretTryFrame5:
-    cmp #TURRET_FRAMES-4
-    beq TurretWasFrame5
-    jmp TurretTryFrame6
-TurretWasFrame5:
-    lda #TURRET_UP_CHAR
-    ldx #TURRET_SHOT_COLOR
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
-    lda background_color
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-6, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-7, TURRET_SHOT_START_COL)
-
-    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
-                            5, TURRET_BULLET_HEIGHT)
-
-TurretEndStep5:
-    jmp TurretStepReturn
-
-TurretTryFrame6:
-    cmp #TURRET_FRAMES-5
-    beq TurretWasFrame6
-    jmp TurretTryFrame7
-TurretWasFrame6:
-    lda #TURRET_UP_CHAR
-    ldx #TURRET_SHOT_COLOR
-    nv_screen_poke_color_char_xa(TURRET_SHOT_START_ROW-10, TURRET_SHOT_START_COL)
-    lda background_color
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-8, TURRET_SHOT_START_COL)
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-9, TURRET_SHOT_START_COL)
-    turret_set_bullet_rect1(TURRET_SHOT_START_ROW, TURRET_SHOT_START_COL, 
-                            6, 1)  // bullet only one char for this frame
-TurretEndStep6:
-    jmp TurretStepReturn
-
-TurretTryFrame7:
-    lda background_color
-    nv_screen_poke_color_a(TURRET_SHOT_START_ROW-10, TURRET_SHOT_START_COL)
-
-  
-TurretStepReturn:    
-    dec turret_count    // decrement turret frame counter
-    //lda turret_hit_ship_1
-    //beq TurretStepDone
-    //jsr TurretForceStepsEnd
-
-TurretStepDone:
-    rts
 
 
 
@@ -1500,22 +1148,9 @@ SpriteExtraPtrLoaded:
 
 
 // our sprite routines will goto this address
-*=$6000 "Sprite Code"
+//*=$6000 "Sprite Code"
 
 // put the actual sprite subroutines here
-#import "../nv_c64_util/nv_sprite_extra_code.asm"
-#import "../nv_c64_util/nv_sprite_raw_collisions_code.asm"
-#import "../nv_c64_util/nv_sprite_raw_code.asm"
-
-//////////////////////////////////////////////////////////////////////////////
-// Subroutine to call to determine if ship1 has been hit by turret bullet
-// need to set accum/X reg with sprite extra pointer
-// need to copy turret bullet rect to param rect that goes with this routine
-//CheckShip1TurretHit:
-//    jsr NvSpriteCheckOverlapRect
-
-
-#import "../nv_c64_util/nv_screen_code.asm"
 
 
 //#import "../nv_c64_util/nv_screen_code.asm"

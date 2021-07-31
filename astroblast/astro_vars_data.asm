@@ -19,3 +19,6 @@ sprite_collision_reg_value: .byte 0 // updated each frame with sprite coll
 
 cycling_color: .byte NV_COLOR_FIRST
 change_up_flag: .byte 0
+
+// mask to tell us when to start wind
+wind_start_mask: .byte $07 
