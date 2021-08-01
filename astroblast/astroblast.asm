@@ -681,7 +681,7 @@ WindCheck:
 
 WindCheckIsTimeToStart:
     nv_rand_byte_a(true)
-    and #$0F
+    and #$1F
     sta wind_start_mask
     jsr WindStart
 
