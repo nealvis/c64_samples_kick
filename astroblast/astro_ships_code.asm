@@ -126,7 +126,7 @@ CheckOverlapChar:
     rts
 
 SetColorDead:
-    nv_sprite_raw_set_color_from_memory(sprite_num, NV_COLOR_DARK_GREY)
+    nv_sprite_set_raw_color_immediate(sprite_num, NV_COLOR_GREY)
     rts
 
 SetColorAlive:

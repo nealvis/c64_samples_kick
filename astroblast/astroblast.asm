@@ -411,7 +411,7 @@ DoPause:
 // CreateField subroutine
 CreateField:
     lda #46
-    ldx #NV_COLOR_DARK_GREY
+    ldx #NV_COLOR_LITE_GREY
     nv_screen_poke_color_char_xa(3, 12)
     nv_screen_poke_color_char_xa(10, 35)
     nv_screen_poke_color_char_xa(4, 20)
@@ -441,7 +441,7 @@ CreateField:
     nv_screen_poke_color_char_xa(planet_row, planet_col)
 
     lda #$57
-    ldx #NV_COLOR_DARK_GREY
+    ldx #NV_COLOR_LITE_GREY
     nv_screen_poke_color_char_xa(planet_row-1, planet_col+1)
     lda #$1D
     nv_screen_poke_color_char_xa(planet_row+1, planet_col-1)
@@ -681,7 +681,7 @@ WindCheck:
 
 WindCheckIsTimeToStart:
     nv_rand_byte_a(true)
-    and #$07
+    and #$0F
     sta wind_start_mask
     jsr WindStart
 
