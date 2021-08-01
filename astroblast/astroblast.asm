@@ -45,8 +45,9 @@
 .const KEY_DEC_BACKGROUND_COLOR = NV_KEY_7
 .const KEY_INC_VOLUME = NV_KEY_PERIOD
 .const KEY_DEC_VOLUME = NV_KEY_COMMA
-.const KEY_EXPERIMENTAL_01 = NV_KEY_N
-.const KEY_EXPERIMENTAL_02 = NV_KEY_M
+.const KEY_EXPERIMENTAL_01 = NV_KEY_B
+.const KEY_EXPERIMENTAL_02 = NV_KEY_N
+.const KEY_EXPERIMENTAL_03 = NV_KEY_M
 
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
@@ -649,8 +650,17 @@ WasDecVolume:
 
 TryExperimental02:
     cmp #KEY_EXPERIMENTAL_02             
-    bne TryExperimental01                           
+    bne TryExperimental03                           
 WasExperimental02:
+    lda #TURRET_2_ID
+    jsr TurretStart
+    jmp DoneKeys
+
+TryExperimental03:
+    cmp #KEY_EXPERIMENTAL_03             
+    bne TryExperimental01                           
+WasExperimental03:
+    lda #TURRET_1_ID
     jsr TurretStart
     jmp DoneKeys
 
@@ -700,7 +710,7 @@ CheckSpriteHitTurretBullet1:
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against
 TurretHitCheck:
-    lda #$00
+    lda #TURRET_1_ID
     jsr TurretLdaActive
     bne TurretActiveTimeToCheckRect
     // turret not active, just return
@@ -715,6 +725,7 @@ TurretActiveTimeToCheckRect:
 
 TurretDidHit:
     jsr ShipDeathStart
+    lda #TURRET_1_ID
     jsr TurretForceStop
 
 TurretDidNotHit:    
