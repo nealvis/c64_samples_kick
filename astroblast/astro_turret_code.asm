@@ -14,7 +14,7 @@
 #import "astro_vars_data.asm"
 #import "astro_turret_data.asm"
 #import "../nv_c64_util/nv_screen_macs.asm"
-#import "../nv_c64_util/nv_sprite_extra_macs.asm"
+#import "../nv_c64_util/nv_screen_rect_macs.asm"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -80,12 +80,12 @@ TurretCleanup:
     // set top char for this frame first
     ldx #start_col
     ldy #start_row - ((frame*bullet_height) - 1)
-    nv_sprite_char_coord_to_screen_pixels_left_top(turret_bullet_rect1)
+    nv_screen_rect_char_coord_to_screen_pixels_left_top(turret_bullet_rect1)
     
     // now expand down the screen for bullets more than one char high
     ldx #0
     ldy #bullet_height - 1
-    nv_sprite_char_coord_to_screen_pixels_expand_right_bottom(turret_bullet_rect1)
+    nv_screen_rect_char_coord_to_screen_pixels_expand_right_bottom(turret_bullet_rect1)
 }
 // turret_set_bullet_rect1 macro end
 //////////////////////////////////////////////////////////////////////////////
