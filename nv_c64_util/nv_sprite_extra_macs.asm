@@ -978,10 +978,6 @@ Done:
     rts
 }
 
-.macro nv_sprite_enable(info)
-{
-    
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // Inline macro to test if a sprite overlaps with a character on screen
