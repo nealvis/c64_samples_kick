@@ -218,6 +218,10 @@ BasicProgram:
     .byte $FF                // marker to end copying will be ok as long as 
                              // no $FF in the actual program above
 
+*=$3000 "charset start"
+.import binary "charset.bin"
+
+
 *=$4001 "RealStart"
 RealStart:
 
@@ -257,6 +261,11 @@ Done:
 // test pokeing a color and char to a list of screen coordinates
 .macro test_custom_charset(init_row)
 {
+    nv_screen_set_background_color_immed(NV_COLOR_BLACK)
+    lda #1
+    nv_screen_poke_all_color_a()
+    
+    
     .var row = init_row
     //////////////////////////////////////////////////////////////////////////
     nv_screen_plot_cursor(row++, 0)
@@ -267,15 +276,16 @@ Done:
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_str(pre_copy_str)
 
-    nv_screen_custom_charset_init(1, true)
+    nv_screen_custom_charset_init(6, false)
 
     nv_screen_plot_cursor(row++, 0)
     nv_screen_print_str(post_copy_str)
-    nv_screen_print_hex_word_immed($0800, true)
+    nv_screen_print_hex_word_immed($3000, true)
 
+    .eval row = row+1
     .var char
     .var col = 0
-    .for(char = 0; char<80; char++)
+    .for(char = 0; char<255; char++)
     {
         ldy #char
         nv_screen_poke_char_y(row, col++)

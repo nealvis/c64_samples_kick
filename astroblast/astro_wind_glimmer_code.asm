@@ -6,7 +6,7 @@
 #import "../nv_c64_util/nv_screen_code.asm"
 #import "astro_vars_data.asm"
 
-.const WIND_GLIMMER_DARKEN_COLOR = NV_COLOR_LITE_GREY
+.const WIND_GLIMMER_DARKEN_COLOR = NV_COLOR_GREY
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to call once before using wind glimmer

@@ -462,6 +462,7 @@ CreateField:
     nv_screen_poke_color_char_xa(16, 7)
 */
 
+    // turret below here
     ldx #NV_COLOR_RED
     lda #248
     nv_screen_poke_color_char_xa(9, 39)
