@@ -399,55 +399,6 @@ AccumLoaded:
 
 }
 
-/*
-//////////////////////////////////////////////////////////////////////////////
-// macro routine to test if one rectangle overlaps another
-// This routine will work on rectangles of any size.
-// If its known that one rectangle can completely fit inside the other one
-// than another then the macro nv_util_check_small_rect_in_big_rect
-// rect1_addr: address of a rectangle.  A rectangle is defined by 
-//             8 bytes, which are interpreted as two 16 bit xy pairs 
-//             as such:
-//               x_left: .word 
-//               y_top: .word
-//               x_right: .word
-//               y_bottom: .word
-// rect2_addr: address of another rectangle
-// load accum to 1 if they overlap or 0 if they do not overlap
-.macro nv_util_check_rects_overlap_old(rect1_addr, rect2_addr)
-{
-    .label r1_left = rect1_addr
-    .label r1_top = rect1_addr + 2
-    .label r1_right = rect1_addr + 4
-    .label r1_bottom = rect1_addr + 6
-
-    .label r2_left = rect2_addr
-    .label r2_top = rect2_addr + 2
-    .label r2_right = rect2_addr + 4
-    .label r2_bottom = rect2_addr + 6
-
-    nv_util_check_point_in_rect(r1_left, r1_top, rect2_addr)
-    bne RectOverlap
-    nv_util_check_point_in_rect(r1_left, r1_bottom, rect2_addr)
-    bne RectOverlap
-    nv_util_check_point_in_rect(r1_right, r1_top, rect2_addr)
-    bne RectOverlap
-    nv_util_check_point_in_rect(r1_right, r1_bottom, rect2_addr)
-    bne RectOverlap
-    nv_util_check_point_in_rect(r2_left, r2_top, rect1_addr)
-    bne RectOverlap
-
-RectOverlap:
-    lda #1
-    jmp AccumLoaded
-NoRectOverlap:
-    lda #0
-
-AccumLoaded:
-
-}
-*/
-
 
 // set the accum to 1 if test num is between num low and num high
 .macro nv_check_range16(test_num_addr, num_low_addr, num_high_addr, inclusive)
