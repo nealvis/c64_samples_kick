@@ -37,6 +37,7 @@ ShipDeathFramesStart:
     nv_bgt16_immediate(ship_1.x_loc, SHIP_DEATH_MIN_LEFT, ShipDeathTrySetRetreatVel)
     lda #$01
     sta ship_1.x_vel
+    
     lda #$01
     sta ship_death_pushed_left_min
 
@@ -46,11 +47,18 @@ ShipDeathTrySetRetreatVel:
     // set ship velocity to -1
     lda #$FF
     sta ship_1.x_vel
+    // y vel to 0
+    lda #0
+    sta ship_1.y_vel
 
 ShipDeathDecCount:
     dec ship_death_count
     bne ShipDeathCountContinues
     jsr ship_1.SetColorAlive
+    
+    lda #1
+    sta ship_1.y_vel
+
 ShipDeathCountContinues:
     rts
 // ShipDeathStep end   
