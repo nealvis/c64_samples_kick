@@ -694,13 +694,14 @@ WindCheckDone:
 
 //////////////////////////////////////////////////////////////////////////////
 CheckSpriteHitTurretBullet1:
-    nv_sprite_check_overlap_rect_sr(turret_bullet_rect1)
+    nv_sprite_check_overlap_rect_sr(turret_1_bullet_rect)
 
 //////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against
 TurretHitCheck:
-    lda turret_count
+    lda #$00
+    jsr TurretLdaActive
     bne TurretActiveTimeToCheckRect
     // turret not active, just return
     rts
