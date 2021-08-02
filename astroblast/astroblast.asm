@@ -96,7 +96,6 @@ RealStart:
 
     lda #$00
     sta quit_flag
-    //sta turret_hit_ship_1
 
     jsr WindInit
     jsr TurretInit
@@ -707,28 +706,53 @@ CheckSpriteHitTurretBullet1:
     nv_sprite_check_overlap_rect_sr(turret_1_bullet_rect)
 
 //////////////////////////////////////////////////////////////////////////////
+CheckSpriteHitTurretBullet2:
+    nv_sprite_check_overlap_rect_sr(turret_2_bullet_rect)
+
+
+//////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against
 TurretHitCheck:
+Turret1HitCheck:
     lda #TURRET_1_ID
     jsr TurretLdaActive
-    bne TurretActiveTimeToCheckRect
-    // turret not active, just return
-    rts
-TurretActiveTimeToCheckRect:  
+    bne Turret1ActiveTimeToCheckRect
+    // turret not active, try next turret
+    jmp Turret2HitCheck
+Turret1ActiveTimeToCheckRect:  
     lda #>ship_1.base_addr
     ldx #<ship_1.base_addr
     jsr CheckSpriteHitTurretBullet1
     // now accum is 1 if hit or 0 if didn't
     //sta turret_hit_ship_1
-    beq TurretDidNotHit
+    beq Turret2HitCheck
 
-TurretDidHit:
+Turret1DidHit:
     jsr ShipDeathStart
     lda #TURRET_1_ID
     jsr TurretForceStop
 
-TurretDidNotHit:    
+Turret2HitCheck:
+    lda #TURRET_2_ID
+    jsr TurretLdaActive
+    bne Turret2ActiveTimeToCheckRect
+    // turret not active, try next turret
+    jmp TurretHitCheckDone
+Turret2ActiveTimeToCheckRect:  
+    lda #>ship_1.base_addr
+    ldx #<ship_1.base_addr
+    jsr CheckSpriteHitTurretBullet2
+    // now accum is 1 if hit or 0 if didn't
+    //sta turret_hit_ship_1
+    beq TurretHitCheckDone
+
+TurretDidHit:
+    jsr ShipDeathStart
+    lda #TURRET_2_ID
+    jsr TurretForceStop
+
+TurretHitCheckDone:
     rts
 // TurretHitCheck End
 //////////////////////////////////////////////////////////////////////////////

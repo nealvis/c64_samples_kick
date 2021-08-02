@@ -24,6 +24,7 @@ TurretInit:
     lda #$00
     sta turret_1_count
     sta turret_2_count
+    sta turret_2_frame_number
     rts
 // TurretInit end
 //////////////////////////////////////////////////////////////////////////////
@@ -53,6 +54,8 @@ TurretStartTry2:
 TurretStartIs2:
     lda #TURRET_2_FRAMES
     sta turret_2_count
+    lda #0
+    sta turret_2_frame_number
 
 TurretStartTry3:
     lda #TURRET_3_ID
@@ -141,7 +144,11 @@ turret_active_retval: .byte 0
 
 .macro turret_force_stop_id_2()
 {
-
+    lda #0
+    sta turret_2_count
+    sta turret_2_frame_number
+    lda background_color
+    nv_screen_poke_color_to_coord_list(turret_2_char_coords)
 }
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to force turret effect to stop if it is active. if not 
@@ -156,14 +163,16 @@ TurretForceStop:
   TurretForceStopTry1:
     lda #TURRET_1_ID
     bit turret_force_stop_ids
-    beq TurretForceStopTry2
+    bne TurretForceStopIs1
+    jmp TurretForceStopTry2
   TurretForceStopIs1:
     turret_force_stop_id_1()
 
   TurretForceStopTry2:
     lda #TURRET_2_ID
     bit turret_force_stop_ids
-    beq TurretForceStopTry3
+    bne TurretForceStopIs2
+    jmp TurretForceStopTry3
   TurretForceStopIs2:
     turret_force_stop_id_2()
 
@@ -236,12 +245,12 @@ TurretCleanup:
 // call once per frame to have turret shoot 
 TurretStep:
   TurretStepTry1:
-    lda turret_1_count   // check if turret is active (count != 0)
+    lda turret_1_count     // check if turret is active (count != 0)
     beq TurretStepTry2     // not zero so it is active 
     jsr Turret1DoStep
 
   TurretStepTry2:
-    lda turret_2_count   // check if turret is active (count != 0)
+    lda turret_2_count     // check if turret is active (count != 0)
     beq TurretStepTry3     // not zero so it is active 
     jsr Turret2DoStep
    
@@ -389,10 +398,106 @@ TurretStepDone:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to step turret 1
-// it should only be called if turret 1 known to be active
+// subroutine to step turret 2
+// it should only be called if this turret known to be active
 // which means turret_2_count > 0
 Turret2DoStep:    
+{
+    ldy #$00
+    ldx turret_2_frame_number
+    bne Loop
+    jmp FirstFrameNoErase
+Loop:
+    iny
+    iny
+    dex
+    bne Loop
+
+// erase last frame's bullets
+EraseLastFrame:
+    sty save_index
+    dey
+    dey
+    lda turret_2_char_coords, y
+    tax
+    iny
+    lda turret_2_char_coords, y
+    tay
+    lda background_color
+    //   X Reg: screen column
+    //   Y Reg: screen row
+    //   Accum: color to poke
+    nv_screen_poke_color_xya()
+    ldy save_index
+FirstFrameNoErase:
+
+    // y reg should now have the index into the coord list
+    lda turret_2_char_coords, y
+    bpl NotEndOfCoords
+    jmp NoMoreCoords
+NotEndOfCoords:
+    tax
+    stx save_x
+    iny
+    lda turret_2_char_coords, y
+    tay
+    sty save_y
+    lda #TURRET_2_CHAR
+
+    //   X Reg: screen column
+    //   Y Reg: screen row
+    //   Accum: char to poke
+    nv_screen_poke_char_xya()
+
+    ldy save_y
+    ldx save_x
+    lda #NV_COLOR_WHITE
+    //   X Reg: screen column
+    //   Y Reg: screen row
+    //   Accum: color to poke
+    nv_screen_poke_color_xya()
+
+    ldy save_y
+    ldx save_x
+    nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)
+
+NoMoreCoords:
+Turret2StepReturn:    
+    dec turret_2_count          // decrement turret frame counter
+    beq IsLastFrame
+    jmp NotLastFrame
+IsLastFrame:
+    ldy save_y
+    ldx save_x
+    lda background_color
+    nv_screen_poke_color_xya()
+
+NotLastFrame:
+    inc turret_2_frame_number   // increment the current frame
+
+Turret2StepDone:
+    rts
+save_index: .byte 0
+save_x: .byte 0
+save_y: .byte 0
+}
+
+
+// Turret2DoStep end
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+/*
+{
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to step turret 2
+// it should only be called if this turret known to be active
+// which means turret_2_count > 0
+Turret2DoStep___OLD:    
     lda turret_2_count
     
 Turret2TryFrame1:
@@ -527,3 +632,6 @@ Turret2StepDone:
 
 // Turret2DoStep end
 //////////////////////////////////////////////////////////////////////////////
+}
+
+*/

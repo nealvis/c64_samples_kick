@@ -34,16 +34,17 @@ turret_1_count: .byte 0
 .const TURRET_2_START_ROW = 10
 .const TURRET_2_START_COL = 37
 .const TURRET_2_COLOR = NV_COLOR_YELLOW
-.const TURRET_2_CHAR = $5D
+.const TURRET_2_CHAR = $4D
 .const TURRET_2_BULLET_HEIGHT = 2
 
 // number of raster frames for turret effect
-.const TURRET_2_FRAMES=8
+.const TURRET_2_FRAMES=12
 
 
 // when turret shot starts this will be non zero and count down each frame
 // TurretStep will decrement it.
 turret_2_count: .byte 0
+turret_2_frame_number: .byte 0
 
 .const TURRET_2_CHARS_PER_FRAME = 1
 .const T2_ROW = TURRET_2_START_ROW
@@ -54,6 +55,11 @@ turret_2_char_coords: .byte T2_COL, T2_ROW      // x, y ie col, row
                       .byte T2_COL-3, T2_ROW-3
                       .byte T2_COL-4, T2_ROW-4
                       .byte T2_COL-5, T2_ROW-5
+                      .byte T2_COL-6, T2_ROW-6
+                      .byte T2_COL-7, T2_ROW-7
+                      .byte T2_COL-8, T2_ROW-8
+                      .byte T2_COL-9, T2_ROW-9
+                      .byte T2_COL-10, T2_ROW-10
                       .byte $FF      
 
 //////////////////////////////////////////////////////////////////////////////

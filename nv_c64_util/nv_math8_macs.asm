@@ -85,3 +85,17 @@ MaskDone:
     lda #immed_value
     sta addr
 }
+
+// multiply byte at a memory address with byte in accum
+// result is in accum
+.macro nv_mul8(addr)
+{
+    .error ("ERROR - nv_mul8: not implemented")
+}
+
+// multiply the contents of the accum with the immediate
+// number and put result in accum
+.macro nv_mul8_immediate(num)
+{
+    .error ("ERROR - nv_mul8_immediate: not implemented")
+}
