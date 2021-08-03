@@ -16,6 +16,7 @@
 #import "astro_turret_data.asm"
 #import "../nv_c64_util/nv_screen_macs.asm"
 #import "../nv_c64_util/nv_screen_rect_macs.asm"
+#import "../nv_c64_util/nv_pointer_macs.asm"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -169,7 +170,7 @@ turret_active_retval: .byte 0
     nv_screen_poke_color_to_coord_list(turret_2_char_coords)
 }
 
-.macro turret_force_stop_id_3()
+.macro turret_force_stop_id_3(save_block)
 {
     lda #0
     sta turret_3_count
@@ -178,7 +179,10 @@ turret_active_retval: .byte 0
     nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
 
     lda background_color
-    nv_screen_poke_color_to_coord_list(turret_3_char_coords)
+    //nv_screen_poke_color_to_coord_list(turret_3_char_coords)
+    nv_store_a_to_mem_ptr_list(turret_3_first_color_addrs, save_block)
+    nv_store_a_to_mem_ptr_list(turret_3_second_color_addrs, save_block)
+    nv_store_a_to_mem_ptr_list(turret_3_third_color_addrs, save_block)
 }
 
 
@@ -190,6 +194,7 @@ turret_active_retval: .byte 0
 //          or TURRET_ALL_ID to know if any turret is active
 // 
 TurretForceStop:
+{
     sta turret_force_stop_ids
 
   TurretForceStopTry1:
@@ -214,7 +219,7 @@ TurretForceStop:
     bne TurretForceStopIs3
     jmp TurretForceStopTry4
   TurretForceStopIs3:
-    turret_force_stop_id_3()
+    turret_force_stop_id_3(turret_force_stop_save_block)
 
   TurretForceStopTry4:
     lda #TURRET_4_ID
@@ -224,8 +229,9 @@ TurretForceStop:
   TurretForceStopDone:
     lda turret_active_retval
     rts
-
+turret_force_stop_save_block: .byte $00, $00
 turret_force_stop_ids: .byte 0
+}
 // TurretForceStop end
 //////////////////////////////////////////////////////////////////////////////    
 
@@ -539,100 +545,6 @@ save_y: .byte 0
 //////////////////////////////////////////////////////////////////////////////
 
 
-.macro nv_store_a_to_mem_ptr(ptr_addr, save_block)
-{
-    // zero page pointer to use whenever a zero page pointer is needed
-    // usually used to store and load to and from the sprite extra pointer
-    .const ZERO_PAGE_LO = $FB
-    .const ZERO_PAGE_HI = $FC
-
-    // save our zero page pointer
-    ldy ZERO_PAGE_LO
-    sty save_block
-    ldy ZERO_PAGE_HI
-    sty save_block+1
-
-    // load zero page ptr with our pointer
-    ldy ptr_addr
-    sty ZERO_PAGE_LO
-    ldy ptr_addr+1
-    sty ZERO_PAGE_HI
-
-    // story accum to the address in our pointer
-    ldy #$00              // load Y reg 0 to use ptr address with no offset
-    sta (ZERO_PAGE_LO),y  // indirect indexed store accum to pointed to addr
-
-    // restore our zero page pointer
-    ldy save_block
-    sty ZERO_PAGE_LO
-    ldy save_block+1
-    sty ZERO_PAGE_HI
-}
-
-.macro nv_store_y_to_mem_ptr(ptr_addr, save_block)
-{
-    // zero page pointer to use whenever a zero page pointer is needed
-    // usually used to store and load to and from the sprite extra pointer
-    .const ZERO_PAGE_LO = $FB
-    .const ZERO_PAGE_HI = $FC
-
-    // save our zero page pointer
-    lda ZERO_PAGE_LO
-    sta save_block
-    lda ZERO_PAGE_HI
-    sta save_block+1
-
-    // load zero page ptr with our pointer
-    lda ptr_addr
-    sta ZERO_PAGE_LO
-    lda ptr_addr+1
-    sta ZERO_PAGE_HI
-
-    // story accum to the address in our pointer
-    tya                   // move y to a to prepare to store
-    ldy #$00              // load Y reg 0 to use ptr address with no offset
-    sta (ZERO_PAGE_LO),y  // indirect indexed store accum to pointed to addr
-
-    // restore our zero page pointer
-    lda save_block
-    sta ZERO_PAGE_LO
-    lda save_block+1
-    sta ZERO_PAGE_HI
-}
-
-// y reg changes
-// accum changes
-// x reg remains unchanged
-.macro nv_store_x_to_mem_ptr(ptr_addr, save_block)
-{
-    // zero page pointer to use whenever a zero page pointer is needed
-    // usually used to store and load to and from the sprite extra pointer
-    .const ZERO_PAGE_LO = $FB
-    .const ZERO_PAGE_HI = $FC
-
-    // save our zero page pointer
-    lda ZERO_PAGE_LO
-    sta save_block
-    lda ZERO_PAGE_HI
-    sta save_block+1
-
-    // load zero page ptr with our pointer
-    lda ptr_addr
-    sta ZERO_PAGE_LO
-    lda ptr_addr+1
-    sta ZERO_PAGE_HI
-
-    // story accum to the address in our pointer
-    txa                   // move y to a to prepare to store
-    ldy #$00              // load Y reg 0 to use ptr address with no offset
-    sta (ZERO_PAGE_LO),y  // indirect indexed store accum to pointed to addr
-
-    // restore our zero page pointer
-    lda save_block
-    sta ZERO_PAGE_LO
-    lda save_block+1
-    sta ZERO_PAGE_HI
-}
 
 .macro turret_3_poke_bullet_char(char_ptr, save_block)
 {

@@ -136,7 +136,92 @@ turret_3_char_coords: .byte T2_COL, T2_ROW      // x, y ie col, row
                       .byte T2_COL-31, T2_ROW-10
                       .byte T2_COL-32, T2_ROW-10
 
-                      .byte $FF      
+                      .byte $FF
+
+turret_3_first_char_addrs:  
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*0)
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*1) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*2) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*3) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*4) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*5) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*6) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*7) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*8) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*9) 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*10) 
+    .word $FFFF
+
+turret_3_second_char_addrs:  
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*0) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*1) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*2) - 1 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*3) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*4) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*5) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*6) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*7) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*8) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*9) - 1
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*10) - 1
+    .word $FFFF
+
+turret_3_third_char_addrs:  
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*0) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*1) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*2) - 2 
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*3) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*4) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*5) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*6) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*7) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*8) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*9) - 2
+    .word TURRET_3_CHAR_MEM_START + (TURRET_3_MEM_VEL*10) - 2
+    .word $FFFF
+
+
+turret_3_first_color_addrs:  
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*0)
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*1) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*2) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*3) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*4) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*5) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*6) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*7) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*8) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) 
+    .word $FFFF
+
+turret_3_second_color_addrs:  
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*0) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*1) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*2) - 1 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*3) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*4) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*5) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*6) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*7) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*8) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) - 1
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) - 1
+    .word $FFFF
+
+turret_3_third_color_addrs:  
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*0) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*1) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*2) - 2 
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*3) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*4) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*5) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*6) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*7) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*8) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) - 2
+    .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) - 2
+    .word $FFFF
 
 
 //////////////////////////////////////////////////////////////////////////////
