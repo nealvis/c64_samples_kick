@@ -25,6 +25,8 @@ TurretInit:
     sta turret_1_count
     sta turret_2_count
     sta turret_2_frame_number
+    sta turret_3_count
+    sta turret_3_frame_number
     rts
 // TurretInit end
 //////////////////////////////////////////////////////////////////////////////
@@ -60,7 +62,15 @@ TurretStartIs2:
 TurretStartTry3:
     lda #TURRET_3_ID
     bit turret_start_ids
-
+    beq TurretStartTry4
+TurretStartIs3:
+    lda #TURRET_3_FRAMES
+    sta turret_3_count
+    lda #0
+    sta turret_3_frame_number
+    nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
+    nv_store16_immediate(turret_3_char_mem_cur, TURRET_3_CHAR_MEM_START)
+TurretStartTry4:
     // TODO
 
 TurretStartDone:
@@ -107,6 +117,14 @@ TurretLdaActive:
   TurretActiveTry3:
     lda #TURRET_3_ID
     bit turret_active_ids
+    beq TurretActiveTry4
+  TurretActiveIs3:
+    ldx turret_3_count
+    beq TurretActiveTry4
+    ora turret_active_retval
+    sta turret_active_retval
+
+  TurretActiveTry4:
     // TODO
 
   TurretActiveDone:
@@ -150,6 +168,20 @@ turret_active_retval: .byte 0
     lda background_color
     nv_screen_poke_color_to_coord_list(turret_2_char_coords)
 }
+
+.macro turret_force_stop_id_3()
+{
+    lda #0
+    sta turret_3_count
+    sta turret_3_frame_number
+    nv_store16_immediate(turret_3_char_mem_cur, TURRET_3_CHAR_MEM_START)
+    nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
+
+    lda background_color
+    nv_screen_poke_color_to_coord_list(turret_3_char_coords)
+}
+
+
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to force turret effect to stop if it is active. if not 
 // active then should do nothing
@@ -179,11 +211,18 @@ TurretForceStop:
   TurretForceStopTry3:
     lda #TURRET_3_ID
     bit turret_force_stop_ids
+    bne TurretForceStopIs3
+    jmp TurretForceStopTry4
+  TurretForceStopIs3:
+    turret_force_stop_id_3()
+
+  TurretForceStopTry4:
+    lda #TURRET_4_ID
+    bit turret_force_stop_ids
     // TODO
 
   TurretForceStopDone:
     lda turret_active_retval
-
     rts
 
 turret_force_stop_ids: .byte 0
@@ -222,8 +261,16 @@ TurretCleanup:
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to set the bullet rectangle based on 
-// turret position, frame number and bullet height
-.macro turret_set_bullet_rect(rect, start_row, start_col, frame, bullet_height)
+// turret position, frame number and bullet height.
+// macro params: 
+//   rect: is the address of the rect to update
+//         this is 8 bytes, 4 16bit ints (left, top, right, bottom) 
+//         in screen pixel coords
+//   start_row: pass the row number of the bullet in character coords
+//   start_col: pass the col number of the bullet in char coords
+//   frame number is the frame
+/*
+.macro turret_set_bullet_3_rect(rect, start_row, start_col, frame, bullet_width, bullet_height)
 {
     // setup the bullet rectangle from turret 
     // set top char for this frame first
@@ -236,6 +283,7 @@ TurretCleanup:
     ldy #bullet_height - 1
     nv_screen_rect_char_coord_to_screen_pixels_expand_right_bottom(rect)
 }
+*/
 // turret_set_bullet_rect macro end
 //////////////////////////////////////////////////////////////////////////////
 
@@ -255,6 +303,11 @@ TurretStep:
     jsr Turret2DoStep
    
   TurretStepTry3:
+    lda turret_3_count     // check if turret is active (count != 0)
+    beq TurretStepTry4     // not zero so it is active 
+    jsr Turret3DoStep
+
+  TurretStepTry4:
     //TODO
 
     rts
@@ -482,156 +535,230 @@ save_x: .byte 0
 save_y: .byte 0
 }
 
-
 // Turret2DoStep end
 //////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
-/*
+.macro nv_store_a_to_mem_ptr(ptr_addr, save_block)
 {
-//////////////////////////////////////////////////////////////////////////////
-// subroutine to step turret 2
-// it should only be called if this turret known to be active
-// which means turret_2_count > 0
-Turret2DoStep___OLD:    
-    lda turret_2_count
-    
-Turret2TryFrame1:
-    cmp #TURRET_2_FRAMES
-    beq Turret2WasFrame1
-    jmp Turret2TryFrame2
+    // zero page pointer to use whenever a zero page pointer is needed
+    // usually used to store and load to and from the sprite extra pointer
+    .const ZERO_PAGE_LO = $FB
+    .const ZERO_PAGE_HI = $FC
 
-Turret2WasFrame1:
-    lda #TURRET_2_CHAR
-    ldx #TURRET_2_COLOR
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW, TURRET_2_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-1, TURRET_2_START_COL)
+    // save our zero page pointer
+    ldy ZERO_PAGE_LO
+    sty save_block
+    ldy ZERO_PAGE_HI
+    sty save_block+1
 
-    turret_set_bullet_rect(turret_2_bullet_rect,
-                            TURRET_2_START_ROW, TURRET_2_START_COL, 
-                            1, TURRET_2_BULLET_HEIGHT)
+    // load zero page ptr with our pointer
+    ldy ptr_addr
+    sty ZERO_PAGE_LO
+    ldy ptr_addr+1
+    sty ZERO_PAGE_HI
 
-Turret2EndStep1:
-    jmp Turret2StepReturn
+    // story accum to the address in our pointer
+    ldy #$00              // load Y reg 0 to use ptr address with no offset
+    sta (ZERO_PAGE_LO),y  // indirect indexed store accum to pointed to addr
 
-Turret2TryFrame2:
-    cmp #TURRET_2_FRAMES-1
-    beq Turret2WasFrame2
-    jmp Turret2TryFrame3
-
-Turret2WasFrame2:
-    lda #TURRET_2_CHAR
-    ldx #TURRET_2_COLOR
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-2, TURRET_2_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-3, TURRET_2_START_COL)
-
-    lda background_color
-    nv_screen_poke_color_a(TURRET_2_START_ROW, TURRET_2_START_COL)
-    nv_screen_poke_color_a(TURRET_2_START_ROW-1, TURRET_2_START_COL)
-    
-    turret_set_bullet_rect(turret_2_bullet_rect,
-                           TURRET_2_START_ROW, TURRET_2_START_COL, 
-                           2, TURRET_2_BULLET_HEIGHT)
-
-Turret2EndStep2:
-    jmp Turret2StepReturn
-
-Turret2TryFrame3:
-    cmp #TURRET_2_FRAMES-2
-    beq Turret2WasFrame3
-    jmp Turret2TryFrame4
-
-Turret2WasFrame3:
-    lda #TURRET_2_CHAR
-    ldx #TURRET_2_COLOR
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-4, TURRET_2_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-5, TURRET_2_START_COL)
-
-    lda background_color
-    nv_screen_poke_color_a(TURRET_2_START_ROW-2, TURRET_2_START_COL)
-    nv_screen_poke_color_a(TURRET_2_START_ROW-3, TURRET_2_START_COL)
-
-    turret_set_bullet_rect(turret_2_bullet_rect,
-                           TURRET_2_START_ROW, TURRET_2_START_COL, 
-                           3, TURRET_2_BULLET_HEIGHT)
-
-Turret2EndStep3:
-    jmp Turret2StepReturn
-
-Turret2TryFrame4:
-    cmp #TURRET_2_FRAMES-3
-    beq Turret2WasFrame4
-    jmp Turret2TryFrame5
-Turret2WasFrame4:
-    lda #TURRET_2_CHAR
-    ldx #TURRET_2_COLOR
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-6, TURRET_2_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-7, TURRET_2_START_COL)
-
-    lda background_color
-    nv_screen_poke_color_a(TURRET_2_START_ROW-4, TURRET_2_START_COL)
-    nv_screen_poke_color_a(TURRET_2_START_ROW-5, TURRET_2_START_COL)
-    turret_set_bullet_rect(turret_2_bullet_rect, 
-                           TURRET_2_START_ROW, TURRET_2_START_COL, 
-                           4, TURRET_2_BULLET_HEIGHT)
-
-Turret2EndStep4:
-    jmp Turret2StepReturn
-
-Turret2TryFrame5:
-    cmp #TURRET_2_FRAMES-4
-    beq Turret2WasFrame5
-    jmp Turret2TryFrame6
-Turret2WasFrame5:
-    lda #TURRET_2_CHAR
-    ldx #TURRET_2_COLOR
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-8, TURRET_2_START_COL)
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-9, TURRET_2_START_COL)
-    lda background_color
-    nv_screen_poke_color_a(TURRET_2_START_ROW-6, TURRET_2_START_COL)
-    nv_screen_poke_color_a(TURRET_2_START_ROW-7, TURRET_2_START_COL)
-
-    turret_set_bullet_rect(turret_2_bullet_rect, 
-                           TURRET_2_START_ROW, TURRET_2_START_COL, 
-                           5, TURRET_2_BULLET_HEIGHT)
-
-Turret2EndStep5:
-    jmp Turret2StepReturn
-
-Turret2TryFrame6:
-    cmp #TURRET_2_FRAMES-5
-    beq Turret2WasFrame6
-    jmp Turret2TryFrame7
-Turret2WasFrame6:
-    lda #TURRET_2_CHAR
-    ldx #TURRET_2_COLOR
-    nv_screen_poke_color_char_xa(TURRET_2_START_ROW-10, TURRET_2_START_COL)
-    lda background_color
-    nv_screen_poke_color_a(TURRET_2_START_ROW-8, TURRET_2_START_COL)
-    nv_screen_poke_color_a(TURRET_2_START_ROW-9, TURRET_2_START_COL)
-    turret_set_bullet_rect(turret_2_bullet_rect, 
-                           TURRET_2_START_ROW, TURRET_2_START_COL, 
-                           6, 1)  // bullet only one char for this frame
-Turret2EndStep6:
-    jmp Turret2StepReturn
-
-Turret2TryFrame7:
-    lda background_color
-    nv_screen_poke_color_a(TURRET_2_START_ROW-10, TURRET_2_START_COL)
-
-  
-Turret2StepReturn:    
-    dec turret_2_count    // decrement turret frame counter
-
-Turret2StepDone:
-    rts
-
-// Turret2DoStep end
-//////////////////////////////////////////////////////////////////////////////
+    // restore our zero page pointer
+    ldy save_block
+    sty ZERO_PAGE_LO
+    ldy save_block+1
+    sty ZERO_PAGE_HI
 }
 
-*/
+.macro nv_store_y_to_mem_ptr(ptr_addr, save_block)
+{
+    // zero page pointer to use whenever a zero page pointer is needed
+    // usually used to store and load to and from the sprite extra pointer
+    .const ZERO_PAGE_LO = $FB
+    .const ZERO_PAGE_HI = $FC
+
+    // save our zero page pointer
+    lda ZERO_PAGE_LO
+    sta save_block
+    lda ZERO_PAGE_HI
+    sta save_block+1
+
+    // load zero page ptr with our pointer
+    lda ptr_addr
+    sta ZERO_PAGE_LO
+    lda ptr_addr+1
+    sta ZERO_PAGE_HI
+
+    // story accum to the address in our pointer
+    tya                   // move y to a to prepare to store
+    ldy #$00              // load Y reg 0 to use ptr address with no offset
+    sta (ZERO_PAGE_LO),y  // indirect indexed store accum to pointed to addr
+
+    // restore our zero page pointer
+    lda save_block
+    sta ZERO_PAGE_LO
+    lda save_block+1
+    sta ZERO_PAGE_HI
+}
+
+// y reg changes
+// accum changes
+// x reg remains unchanged
+.macro nv_store_x_to_mem_ptr(ptr_addr, save_block)
+{
+    // zero page pointer to use whenever a zero page pointer is needed
+    // usually used to store and load to and from the sprite extra pointer
+    .const ZERO_PAGE_LO = $FB
+    .const ZERO_PAGE_HI = $FC
+
+    // save our zero page pointer
+    lda ZERO_PAGE_LO
+    sta save_block
+    lda ZERO_PAGE_HI
+    sta save_block+1
+
+    // load zero page ptr with our pointer
+    lda ptr_addr
+    sta ZERO_PAGE_LO
+    lda ptr_addr+1
+    sta ZERO_PAGE_HI
+
+    // story accum to the address in our pointer
+    txa                   // move y to a to prepare to store
+    ldy #$00              // load Y reg 0 to use ptr address with no offset
+    sta (ZERO_PAGE_LO),y  // indirect indexed store accum to pointed to addr
+
+    // restore our zero page pointer
+    lda save_block
+    sta ZERO_PAGE_LO
+    lda save_block+1
+    sta ZERO_PAGE_HI
+}
+
+.macro turret_3_poke_bullet_char(char_ptr, save_block)
+{
+    // store the turret 3 char in screen memory where char_ptr
+    // points
+    ldx #TURRET_3_CHAR_RIGHT
+    nv_store_x_to_mem_ptr(char_ptr, save_block)
+
+    // dec char pointer
+    nv_adc16_immediate(char_ptr, $FFFF, char_ptr)
+    inx
+    nv_store_x_to_mem_ptr(char_ptr, save_block)
+
+    // decrement char pointer once more
+    nv_adc16_immediate(char_ptr, $FFFF, char_ptr)
+    inx
+    nv_store_x_to_mem_ptr(char_ptr, save_block)
+}
+
+.macro turret_3_poke_bullet_color_immed(color_ptr, save_block, immed_color)
+{
+    ldx #immed_color
+    nv_store_x_to_mem_ptr(color_ptr, save_block)
+    
+    nv_adc16_immediate(color_ptr, $FFFF, color_ptr)
+    nv_store_x_to_mem_ptr(color_ptr, save_block)
+
+    nv_adc16_immediate(color_ptr, $FFFF, color_ptr)
+    nv_store_x_to_mem_ptr(color_ptr, save_block)
+}
+
+.macro turret_3_poke_bullet_color_mem(color_ptr, save_block, color_addr)
+{
+    ldx color_addr
+    nv_store_x_to_mem_ptr(color_ptr, save_block)
+    
+    nv_adc16_immediate(color_ptr, $FFFF, color_ptr)
+    nv_store_x_to_mem_ptr(color_ptr, save_block)
+
+    nv_adc16_immediate(color_ptr, $FFFF, color_ptr)
+    nv_store_x_to_mem_ptr(color_ptr, save_block)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to step turret 3
+// it should only be called if this turret known to be active
+// which means turret_3_count > 0
+Turret3DoStep:    
+{
+    lda turret_3_frame_number
+    bne NotFirstFrame
+IsFirstFrame:
+    lda #TURRET_3_START_COL
+    sta bullet_char_col    
+    lda #TURRET_3_START_ROW
+    sta bullet_char_row    
+    jmp FirstFrameSkipPoint
+
+NotFirstFrame:
+    // not first frame 
+    lda bullet_char_col
+    clc
+    adc #TURRET_3_X_VEL
+    sta bullet_char_col
+
+    lda bullet_char_row
+    clc
+    adc #TURRET_3_Y_VEL
+    sta bullet_char_row
+
+    // erase previous frame's bullet
+    nv_xfer16_mem_mem(turret_3_color_mem_cur, color_ptr)
+    turret_3_poke_bullet_color_mem(color_ptr, save_block, background_color)
+
+    // move the bullet position
+    nv_adc16_immediate(turret_3_char_mem_cur, TURRET_3_MEM_VEL, turret_3_char_mem_cur)
+    nv_bgt16_immediate(turret_3_char_mem_cur, 1024, NotBeyondScreenMem)
+    // moving beyond screen memory, so force quit
+    lda #$00                    // set to 1 because dec to 0 below
+    sta turret_3_count          // force last frame
+    rts
+
+NotBeyondScreenMem:
+    // move the color mem ptr
+    nv_adc16_immediate(turret_3_color_mem_cur, TURRET_3_MEM_VEL, turret_3_color_mem_cur)
+
+FirstFrameSkipPoint:
+    // first frame starts here and skips some stuff above like erasing
+    // the previous frames bullet and checking for going off screen
+
+    // xfer current screen char ptr to char_ptr
+    nv_xfer16_mem_mem(turret_3_char_mem_cur, char_ptr)
+    turret_3_poke_bullet_char(char_ptr, save_block)
+
+    ///// now color
+    nv_xfer16_mem_mem(turret_3_color_mem_cur, color_ptr)
+    turret_3_poke_bullet_color_immed(color_ptr, save_block, TURRET_3_COLOR)
+
+    ldx bullet_char_col
+    ldy bullet_char_row
+    nv_screen_rect_char_coord_to_screen_pixels(turret_3_bullet_rect)
+
+    inc turret_3_frame_number
+    dec turret_3_count          // decrement turret frame counter
+    rts
+
+save_block: .byte $00, $00
+char_ptr: .word $0000
+color_ptr: .word $0000
+
+// head of the bullet for current frame
+bullet_char_head_row: .byte 0
+bullet_char_head_col: .byte 0
+
+// start of bullet for current frame
+bullet_char_row: .byte 0
+bullet_char_col: .byte 0
+}
+
+
+// Turret3DoStep end
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+

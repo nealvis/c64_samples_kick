@@ -45,9 +45,10 @@
 .const KEY_DEC_BACKGROUND_COLOR = NV_KEY_7
 .const KEY_INC_VOLUME = NV_KEY_PERIOD
 .const KEY_DEC_VOLUME = NV_KEY_COMMA
-.const KEY_EXPERIMENTAL_01 = NV_KEY_B
-.const KEY_EXPERIMENTAL_02 = NV_KEY_N
-.const KEY_EXPERIMENTAL_03 = NV_KEY_M
+.const KEY_EXPERIMENTAL_01 = NV_KEY_V
+.const KEY_EXPERIMENTAL_02 = NV_KEY_B
+.const KEY_EXPERIMENTAL_03 = NV_KEY_N
+.const KEY_EXPERIMENTAL_04 = NV_KEY_M
 
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
@@ -651,14 +652,22 @@ TryExperimental02:
     cmp #KEY_EXPERIMENTAL_02             
     bne TryExperimental03                           
 WasExperimental02:
-    lda #TURRET_2_ID
+    lda #TURRET_3_ID
     jsr TurretStart
     jmp DoneKeys
 
 TryExperimental03:
     cmp #KEY_EXPERIMENTAL_03             
-    bne TryExperimental01                           
+    bne TryExperimental04                           
 WasExperimental03:
+    lda #TURRET_2_ID
+    jsr TurretStart
+    jmp DoneKeys
+
+TryExperimental04:
+    cmp #KEY_EXPERIMENTAL_04             
+    bne TryExperimental01                           
+WasExperimental04:
     lda #TURRET_1_ID
     jsr TurretStart
     jmp DoneKeys
@@ -709,6 +718,9 @@ CheckSpriteHitTurretBullet1:
 CheckSpriteHitTurretBullet2:
     nv_sprite_check_overlap_rect_sr(turret_2_bullet_rect)
 
+//////////////////////////////////////////////////////////////////////////////
+CheckSpriteHitTurretBullet3:
+    nv_sprite_check_overlap_rect_sr(turret_3_bullet_rect)
 
 //////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
@@ -720,6 +732,7 @@ Turret1HitCheck:
     bne Turret1ActiveTimeToCheckRect
     // turret not active, try next turret
     jmp Turret2HitCheck
+    
 Turret1ActiveTimeToCheckRect:  
     lda #>ship_1.base_addr
     ldx #<ship_1.base_addr
@@ -738,18 +751,39 @@ Turret2HitCheck:
     jsr TurretLdaActive
     bne Turret2ActiveTimeToCheckRect
     // turret not active, try next turret
-    jmp TurretHitCheckDone
+    jmp Turret3HitCheck
+
 Turret2ActiveTimeToCheckRect:  
     lda #>ship_1.base_addr
     ldx #<ship_1.base_addr
     jsr CheckSpriteHitTurretBullet2
     // now accum is 1 if hit or 0 if didn't
     //sta turret_hit_ship_1
-    beq TurretHitCheckDone
+    beq Turret3HitCheck
 
-TurretDidHit:
+Turret2DidHit:
     jsr ShipDeathStart
     lda #TURRET_2_ID
+    jsr TurretForceStop
+
+Turret3HitCheck:
+    lda #TURRET_3_ID
+    jsr TurretLdaActive
+    bne Turret3ActiveTimeToCheckRect
+    // turret not active, try next turret
+    jmp TurretHitCheckDone
+
+Turret3ActiveTimeToCheckRect:  
+    lda #>ship_1.base_addr
+    ldx #<ship_1.base_addr
+    jsr CheckSpriteHitTurretBullet3
+    // now accum is 1 if hit or 0 if didn't
+    //sta turret_hit_ship_1
+    beq TurretHitCheckDone
+
+Turret3DidHit:
+    jsr ShipDeathStart
+    lda #TURRET_3_ID
     jsr TurretForceStop
 
 TurretHitCheckDone:
