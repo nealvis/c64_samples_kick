@@ -181,7 +181,7 @@ turret_3_third_char_addrs:
     .word $FFFF
 
 
-turret_3_first_color_addrs:  
+turret_3_all_color_stream:  
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*0)
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*1) 
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*2) 
@@ -194,7 +194,6 @@ turret_3_first_color_addrs:
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) 
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) 
 
-turret_3_second_color_addrs:  
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*0) - 1
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*1) - 1
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*2) - 1 
@@ -207,7 +206,6 @@ turret_3_second_color_addrs:
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) - 1
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) - 1
 
-turret_3_third_color_addrs: 
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*0) - 2
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*1) - 2
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*2) - 2 
@@ -218,9 +216,10 @@ turret_3_third_color_addrs:
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*7) - 2
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*8) - 2
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) - 2
+TestStream:
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) - 2
-    .word $FFFF
-    .byte $FF
+    .word $FFFF  // stream command marker
+    .byte $FF    // stream quit command
 
 //////////////////////////////////////////////////////////////////////////////
 // Data that will be modified via this wind effect and the main program can 

@@ -180,7 +180,11 @@ turret_active_retval: .byte 0
     nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
 
     lda background_color
-    nv_stream_proc(turret_3_first_color_addrs, save_block)
+    //nv_stream_proc(turret_3_all_color_stream, save_block)
+    ldx #<turret_3_all_color_stream
+    ldy #>turret_3_all_color_stream
+    jsr TurretStreamProcess
+
 }
 
 
@@ -668,7 +672,15 @@ bullet_char_col: .byte 0
 
 
 
+//   Accum: will change, Input: should hold the byte that will be stored 
+//   X Reg: will change, Input: LSB of stream data's addr.  
+//   Y Reg: will change, Input: MSB of Stream data's addr 
+TurretStreamProcess:
+    nv_stream_proc_sr(temp_word, save_block)
 
+temp_word: .word $0000
+save_block: .word $0000
+            .word $0000
 
 
 

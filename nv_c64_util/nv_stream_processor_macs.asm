@@ -143,3 +143,136 @@ HitQuitCommand:
     ldy save_block+1
     sty ZERO_PAGE_HI
 }
+
+
+// macros params
+//   temp_word: is a temp word used internally
+//   save_block: is a block of 4 bytes to save contents of 
+//               zero page memory while we are using it for 
+//               indirection
+// subroutine params:
+//   Accum: will change, Input: should hold the byte that will be stored 
+//   X Reg: will change, Input: LSB of stream data's addr.  
+//   Y Reg: will change, Input: MSB of Stream data's addr 
+.macro nv_stream_proc_sr(temp_word, save_block)
+{
+    .const CMD_NO_OP = $00
+    .const CMD_LOAD_SRC = $01
+    .const CMD_QUIT = $FF
+
+    // zero page pointer to use whenever a zero page pointer is needed
+    // usually used to store and load to and from the sprite extra pointer
+    .const ZERO_PAGE_LO = $FB
+    .const ZERO_PAGE_HI = $FC
+    .const Z2_LO = $FD
+    .const Z2_HI = $FE
+
+    stx temp_word
+    sty temp_word+1
+
+    // save our zero page pointer
+    ldy ZERO_PAGE_LO
+    sty save_block
+    ldy ZERO_PAGE_HI
+    sty save_block+1
+    ldy Z2_LO
+    sty save_block+2
+    ldy Z2_HI
+    sty save_block+3
+
+    // setup zero page to point to the stream
+    ldx temp_word
+    stx Z2_LO
+    ldy temp_word+1
+    sty Z2_HI
+    // now Z2_LO/Z2_HI points to the first  
+    // byte of the stream data which itself may be a pointer
+    // to a memory location
+
+    // done with temp_word above, now it holds the 
+    // current byte that will be written.
+    sta temp_word
+
+    ldy #$00
+LoopTop:
+
+    // load zero page ptr with pointer from stream (assuming
+    // it is a pointer, it could be a command)
+    lda (Z2_LO), y      // read byte from stream
+    sta ZERO_PAGE_LO    // store byte in other zero page pointer
+    iny                 // next byte in stream
+    lda (Z2_LO), y      // read next byte in stream
+    sta ZERO_PAGE_HI
+    iny                 // get ready to read next byte in stream
+    // now ZERO_PAGE_LO/HI points has the first pointer from stream
+    // assuming it is a pointer, it could also be command marker
+    
+    lda #$FF
+    cmp ZERO_PAGE_LO
+    bne NotCommandWord
+    cmp ZERO_PAGE_HI
+    bne NotCommandWord
+    // was command marker word, so read the next byte to 
+    // determine what to do
+    lda (Z2_LO), y                  // read command byte from stream
+    iny
+    // now accum has the command in it
+
+TryCmdLoadSrc:
+    cmp #CMD_LOAD_SRC
+    bne TryCmdNop
+IsCmdLoadSrc:
+    // cmd $01 means to the next byte in stream is what we should
+    // start copying to memory addresses
+    lda (Z2_LO), y                  // read next byte in stream
+    iny
+    sta temp_word
+    jmp LoopTop
+
+TryCmdNop:
+    cmp #CMD_NO_OP
+    bne TryCmdQuit
+IsCmdNop:
+    // cmd $00 means nothing to do (no operation)
+    // just loop back up
+    jmp LoopTop
+
+TryCmdQuit:
+    cmp #CMD_QUIT 
+    bne InvalidCommand
+IsCmdQuit:
+    // cmd $FF means to quit processing, no need to read stream
+    // for any more bytes
+    jmp HitQuitCommand
+
+InvalidCommand:
+    // was a command we don't know about so turn background red 
+    // and treat it like quit command.  Hopefully red background 
+    // will be noticed and it will get debugged.
+    ldy #NV_COLOR_RED
+    sty NV_SCREEN_BACKGROUND_COLOR_REG_ADDR
+    jmp HitQuitCommand
+
+NotCommandWord:
+    // word read from stream was an address and we need to copy a byte there
+    // the source byte is in temp_ptr, dest addr is in zero_page_lo/hi 
+    lda temp_word
+    ldx #$00              // load x reg with 0 / no offset
+                          // TODO: can this be outside loop?
+    sta (ZERO_PAGE_LO,x)  // store accum to pointed to addr
+    jmp LoopTop
+
+HitQuitCommand:
+    // restore our zero page pointer
+    ldy save_block
+    sty ZERO_PAGE_LO
+    ldy save_block+1
+    sty ZERO_PAGE_HI
+    ldy save_block+2
+    sty Z2_LO
+    ldy save_block+3
+    sty Z2_HI
+
+    rts
+}
+
