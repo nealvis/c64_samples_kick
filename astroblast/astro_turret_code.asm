@@ -168,7 +168,12 @@ turret_active_retval: .byte 0
     sta turret_2_count
     sta turret_2_frame_number
     lda background_color
-    nv_screen_poke_color_to_coord_list(turret_2_char_coords)
+    //nv_screen_poke_color_to_coord_list(turret_2_char_coords)
+    ldx #<turret_2_all_color_stream
+    ldy #>turret_2_all_color_stream
+    jsr TurretStreamProcessor
+
+
 }
 
 .macro turret_force_stop_id_3(save_block)
@@ -183,7 +188,7 @@ turret_active_retval: .byte 0
     //nv_stream_proc(turret_3_all_color_stream, save_block)
     ldx #<turret_3_all_color_stream
     ldy #>turret_3_all_color_stream
-    jsr TurretStreamProcess
+    jsr TurretStreamProcessor
 
 }
 
@@ -675,7 +680,7 @@ bullet_char_col: .byte 0
 //   Accum: will change, Input: should hold the byte that will be stored 
 //   X Reg: will change, Input: LSB of stream data's addr.  
 //   Y Reg: will change, Input: MSB of Stream data's addr 
-TurretStreamProcess:
+TurretStreamProcessor:
     nv_stream_proc_sr(temp_word, save_block)
 
 temp_word: .word $0000
