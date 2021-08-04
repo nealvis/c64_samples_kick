@@ -48,6 +48,131 @@ turret_1_all_color_stream:
         .word $FFFF  // stream command marker
         .byte $FF    // stream quit command
 
+turret_1_stream_frame_1:
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 0)
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 1)
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_COLOR   // new source byte is background color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 0)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 1)
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+turret_1_stream_frame_2:
+        // set to bullet char poke bullet
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 2)
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 3)
+        
+        // set color for bullets and poke bullet color
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 2)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 3)
+
+        // set to background color and clear previous frames color
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // new source byte is background color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 0)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 1)
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+turret_1_stream_frame_3:
+        // set to bullet char poke bullet
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 4)
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 5)
+        
+        // set color for bullets and poke bullet color
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 4)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 5)
+
+        // set to background color and clear previous frames color
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // new source byte is background color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 2)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 3)
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+turret_1_stream_frame_4:
+        // set to bullet char poke bullet
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 6)
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 7)
+        
+        // set color for bullets and poke bullet color
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 6)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 7)
+
+        // set to background color and clear previous frames color
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // new source byte is background color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 4)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 5)
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+turret_1_stream_frame_5:
+        // set to bullet char poke bullet
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 8)
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 9)
+        
+        // set color for bullets and poke bullet color
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 8)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 9)
+
+        // set to background color and clear previous frames color
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // new source byte is background color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 6)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 7)
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+turret_1_stream_frame_6:
+        // set to bullet char poke bullet
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
+        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 10)
+        
+        // set color for bullets and poke bullet color
+        .word $FFFF                 // stream command marker
+        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 10)
+
+        // set to background color and clear previous frames color
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // new source byte is background color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 8)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 9)
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+turret_1_stream_frame_7:
+        // no bullet for frame 7, its already off screen
+
+        // set to background color and clear previous frames color
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // new source byte is background color
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 10)
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
 
 
 /////////////////

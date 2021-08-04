@@ -154,11 +154,17 @@ HitQuitCommand:
 //   Accum: will change, Input: should hold the byte that will be stored 
 //   X Reg: will change, Input: LSB of stream data's addr.  
 //   Y Reg: will change, Input: MSB of Stream data's addr 
-.macro nv_stream_proc_sr(temp_word, save_block)
+.macro nv_stream_proc_sr(temp_word, save_block, background_color_addr)
 {
+    // Normal commands (that require no special info from
+    // the main program start from 0 and go up
     .const CMD_NO_OP = $00
     .const CMD_LOAD_SRC = $01
-    .const CMD_QUIT = $FF
+    .const CMD_QUIT = $FF       // quit is normal but out of order
+
+    // special commands that require info from the 
+    // main program start at $FE and go down
+    .const CMD_BKG_SRC = $FE
 
     // zero page pointer to use whenever a zero page pointer is needed
     // usually used to store and load to and from the sprite extra pointer
@@ -220,12 +226,21 @@ LoopTop:
 
 TryCmdLoadSrc:
     cmp #CMD_LOAD_SRC
-    bne TryCmdNop
+    bne TryCmdBackgroundSrc
 IsCmdLoadSrc:
     // cmd $01 means to the next byte in stream is what we should
     // start copying to memory addresses
     lda (Z2_LO), y                  // read next byte in stream
     iny
+    sta temp_word
+    jmp LoopTop
+
+TryCmdBackgroundSrc:
+    cmp #CMD_BKG_SRC
+    bne TryCmdNop
+IsCmdBackgroundSrc:
+    // cmd $FE means new copy source byte should be the background color
+    lda background_color_addr       // read next byte in stream
     sta temp_word
     jmp LoopTop
 
