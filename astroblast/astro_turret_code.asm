@@ -154,11 +154,17 @@ turret_active_retval: .byte 0
     turret_clear_rect(turret_1_bullet_rect)
     sta turret_1_count
     lda background_color
-    .var char_row
-    .for (char_row = TURRET_1_START_ROW; char_row>=0; char_row--)
-    {
-        nv_screen_poke_color_a(char_row, TURRET_1_START_COL)
-    }
+        // all positions to background color 
+    lda background_color
+    ldx #<turret_1_all_color_stream
+    ldy #>turret_1_all_color_stream
+    jsr TurretStreamProcessor
+
+    //.var char_row
+    //.for (char_row = TURRET_1_START_ROW; char_row>=0; char_row--)
+    //{
+    //    nv_screen_poke_color_a(char_row, TURRET_1_START_COL)
+    //}
 
 }
 
@@ -167,13 +173,12 @@ turret_active_retval: .byte 0
     lda #0
     sta turret_2_count
     sta turret_2_frame_number
+
+    // all positions to background color 
     lda background_color
-    //nv_screen_poke_color_to_coord_list(turret_2_char_coords)
     ldx #<turret_2_all_color_stream
     ldy #>turret_2_all_color_stream
     jsr TurretStreamProcessor
-
-
 }
 
 .macro turret_force_stop_id_3(save_block)
@@ -184,12 +189,11 @@ turret_active_retval: .byte 0
     nv_store16_immediate(turret_3_char_mem_cur, TURRET_3_CHAR_MEM_START)
     nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
 
+    // all positions to background color 
     lda background_color
-    //nv_stream_proc(turret_3_all_color_stream, save_block)
     ldx #<turret_3_all_color_stream
     ldy #>turret_3_all_color_stream
     jsr TurretStreamProcessor
-
 }
 
 

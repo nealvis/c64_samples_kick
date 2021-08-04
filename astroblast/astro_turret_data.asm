@@ -20,6 +20,11 @@
 .const TURRET_1_COLOR = NV_COLOR_YELLOW
 .const TURRET_1_CHAR = $5D
 .const TURRET_1_BULLET_HEIGHT = 2
+.const TURRET_1_Y_VEL = -1
+.const TURRET_1_X_VEL = 0
+.const TURRET_1_CHAR_MEM_START = 1461
+.const TURRET_1_COLOR_MEM_START = $D800 + (TURRET_1_CHAR_MEM_START - 1024)
+.const TURRET_1_MEM_VEL = ((40*TURRET_1_Y_VEL) + (TURRET_1_X_VEL))  // -40
 
 // number of raster frames for turret effect
 .const TURRET_1_FRAMES=8
@@ -27,6 +32,22 @@
 // when turret shot starts this will be non zero and count down each frame
 // TurretStep will decrement it.
 turret_1_count: .byte 0
+
+turret_1_all_color_stream:
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 0)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 1)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 2)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 3)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 4)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 5)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 6)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 7)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 8)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 9)
+        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 10)
+        .word $FFFF  // stream command marker
+        .byte $FF    // stream quit command
+
 
 
 /////////////////
