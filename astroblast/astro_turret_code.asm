@@ -344,10 +344,6 @@ TurretTryFrame1:
     jmp TurretTryFrame2
 
 TurretWasFrame1:
-    //lda #TURRET_1_CHAR
-    //ldx #TURRET_1_COLOR
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW, TURRET_1_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-1, TURRET_1_START_COL)
     ldx #<turret_1_stream_frame_1
     ldy #>turret_1_stream_frame_1
     jsr TurretStreamProcessor
@@ -363,14 +359,6 @@ TurretTryFrame2:
     jmp TurretTryFrame3
 
 TurretWasFrame2:
-    //lda #TURRET_1_CHAR
-    //ldx #TURRET_1_COLOR
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-2, TURRET_1_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-3, TURRET_1_START_COL)
-
-    //lda background_color
-    //nv_screen_poke_color_a(TURRET_1_START_ROW, TURRET_1_START_COL)
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-1, TURRET_1_START_COL)
     ldx #<turret_1_stream_frame_2
     ldy #>turret_1_stream_frame_2
     jsr TurretStreamProcessor
@@ -387,14 +375,6 @@ TurretTryFrame3:
     jmp TurretTryFrame4
 
 TurretWasFrame3:
-    //lda #TURRET_1_CHAR
-    //ldx #TURRET_1_COLOR
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-4, TURRET_1_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-5, TURRET_1_START_COL)
-
-    //lda background_color
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-2, TURRET_1_START_COL)
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-3, TURRET_1_START_COL)
     ldx #<turret_1_stream_frame_3
     ldy #>turret_1_stream_frame_3
     jsr TurretStreamProcessor
@@ -409,16 +389,6 @@ TurretTryFrame4:
     beq TurretWasFrame4
     jmp TurretTryFrame5
 TurretWasFrame4:
-    //lda #TURRET_1_CHAR
-    //ldx #TURRET_1_COLOR
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-6, TURRET_1_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-7, TURRET_1_START_COL)
-
-    //lda background_color
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-4, TURRET_1_START_COL)
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-5, TURRET_1_START_COL)
-    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-    //                         4, TURRET_1_BULLET_HEIGHT)
     ldx #<turret_1_stream_frame_4
     ldy #>turret_1_stream_frame_4
     jsr TurretStreamProcessor
@@ -431,17 +401,9 @@ TurretTryFrame5:
     beq TurretWasFrame5
     jmp TurretTryFrame6
 TurretWasFrame5:
-    //lda #TURRET_1_CHAR
-    //ldx #TURRET_1_COLOR
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-8, TURRET_1_START_COL)
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-9, TURRET_1_START_COL)
-    //lda background_color
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-6, TURRET_1_START_COL)
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-7, TURRET_1_START_COL)
     ldx #<turret_1_stream_frame_5
     ldy #>turret_1_stream_frame_5
     jsr TurretStreamProcessor
-
     turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
                             5, TURRET_1_BULLET_HEIGHT)
 
@@ -453,12 +415,6 @@ TurretTryFrame6:
     beq TurretWasFrame6
     jmp TurretTryFrame7
 TurretWasFrame6:
-    //lda #TURRET_1_CHAR
-    //ldx #TURRET_1_COLOR
-    //nv_screen_poke_color_char_xa(TURRET_1_START_ROW-10, TURRET_1_START_COL)
-    //lda background_color
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-8, TURRET_1_START_COL)
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-9, TURRET_1_START_COL)
     ldx #<turret_1_stream_frame_6
     ldy #>turret_1_stream_frame_6
     jsr TurretStreamProcessor
@@ -468,8 +424,6 @@ TurretEndStep6:
     jmp TurretStepReturn
 
 TurretTryFrame7:
-    //lda background_color
-    //nv_screen_poke_color_a(TURRET_1_START_ROW-10, TURRET_1_START_COL)
     ldx #<turret_1_stream_frame_7
     ldy #>turret_1_stream_frame_7
     jsr TurretStreamProcessor

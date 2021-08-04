@@ -150,6 +150,8 @@ HitQuitCommand:
 //   save_block: is a block of 4 bytes to save contents of 
 //               zero page memory while we are using it for 
 //               indirection
+//   background_color_addr: is the address that holds background color
+//                          used in the CMD_BKG_SRC command
 // subroutine params:
 //   Accum: will change, Input: should hold the byte that will be stored 
 //   X Reg: will change, Input: LSB of stream data's addr.  
