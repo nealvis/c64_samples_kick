@@ -17,6 +17,7 @@
 #import "../nv_c64_util/nv_screen_macs.asm"
 #import "../nv_c64_util/nv_screen_rect_macs.asm"
 #import "../nv_c64_util/nv_pointer_macs.asm"
+#import "../nv_c64_util/nv_stream_processor_macs.asm"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -179,10 +180,7 @@ turret_active_retval: .byte 0
     nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
 
     lda background_color
-    //nv_screen_poke_color_to_coord_list(turret_3_char_coords)
-    nv_store_a_to_mem_ptr_list(turret_3_first_color_addrs, save_block)
-    nv_store_a_to_mem_ptr_list(turret_3_second_color_addrs, save_block)
-    nv_store_a_to_mem_ptr_list(turret_3_third_color_addrs, save_block)
+    nv_stream_proc(turret_3_first_color_addrs, save_block)
 }
 
 

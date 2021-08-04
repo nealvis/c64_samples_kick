@@ -27,3 +27,4 @@
 #import "nv_rand_macs.asm"
 #import "nv_state_saver_macs.asm"
 #import "nv_screen_rect_macs.asm"
+#import "nv_stream_processor_macs.asm"

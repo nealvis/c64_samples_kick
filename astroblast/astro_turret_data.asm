@@ -193,7 +193,6 @@ turret_3_first_color_addrs:
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*8) 
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) 
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) 
-    .word $FFFF
 
 turret_3_second_color_addrs:  
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*0) - 1
@@ -207,9 +206,8 @@ turret_3_second_color_addrs:
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*8) - 1
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) - 1
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) - 1
-    .word $FFFF
 
-turret_3_third_color_addrs:  
+turret_3_third_color_addrs: 
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*0) - 2
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*1) - 2
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*2) - 2 
@@ -222,7 +220,7 @@ turret_3_third_color_addrs:
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*9) - 2
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) - 2
     .word $FFFF
-
+    .byte $FF
 
 //////////////////////////////////////////////////////////////////////////////
 // Data that will be modified via this wind effect and the main program can 
