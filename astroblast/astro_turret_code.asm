@@ -338,27 +338,27 @@ TurretStep:
 Turret1DoStep:    
     lda turret_1_count
 
-TurretTryFrame1:
+Turret1TryFrame1:
     cmp #TURRET_1_FRAMES
-    beq TurretWasFrame1
-    jmp TurretTryFrame2
+    beq Turret1WasFrame1
+    jmp Turret1TryFrame2
 
-TurretWasFrame1:
+Turret1WasFrame1:
     ldx #<turret_1_stream_frame_1
     ldy #>turret_1_stream_frame_1
     jsr TurretStreamProcessor
     turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
                              1, TURRET_1_BULLET_HEIGHT)
 
-TurretEndStep1:
-    jmp TurretStepReturn
+Turret1EndStep1:
+    jmp Turret1StepReturn
 
-TurretTryFrame2:
+Turret1TryFrame2:
     cmp #TURRET_1_FRAMES-1
-    beq TurretWasFrame2
-    jmp TurretTryFrame3
+    beq Turret1WasFrame2
+    jmp Turret1TryFrame3
 
-TurretWasFrame2:
+Turret1WasFrame2:
     ldx #<turret_1_stream_frame_2
     ldy #>turret_1_stream_frame_2
     jsr TurretStreamProcessor
@@ -366,73 +366,73 @@ TurretWasFrame2:
     turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
                              2, TURRET_1_BULLET_HEIGHT)
 
-TurretEndStep2:
-    jmp TurretStepReturn
+Turret1EndStep2:
+    jmp Turret1StepReturn
 
-TurretTryFrame3:
+Turret1TryFrame3:
     cmp #TURRET_1_FRAMES-2
-    beq TurretWasFrame3
-    jmp TurretTryFrame4
+    beq Turret1WasFrame3
+    jmp Turret1TryFrame4
 
-TurretWasFrame3:
+Turret1WasFrame3:
     ldx #<turret_1_stream_frame_3
     ldy #>turret_1_stream_frame_3
     jsr TurretStreamProcessor
     turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
                             3, TURRET_1_BULLET_HEIGHT)
 
-TurretEndStep3:
-    jmp TurretStepReturn
+Turret1EndStep3:
+    jmp Turret1StepReturn
 
-TurretTryFrame4:
+Turret1TryFrame4:
     cmp #TURRET_1_FRAMES-3
-    beq TurretWasFrame4
-    jmp TurretTryFrame5
-TurretWasFrame4:
+    beq Turret1WasFrame4
+    jmp Turret1TryFrame5
+Turret1WasFrame4:
     ldx #<turret_1_stream_frame_4
     ldy #>turret_1_stream_frame_4
     jsr TurretStreamProcessor
 
-TurretEndStep4:
-    jmp TurretStepReturn
+Turret1EndStep4:
+    jmp Turret1StepReturn
 
-TurretTryFrame5:
+Turret1TryFrame5:
     cmp #TURRET_1_FRAMES-4
-    beq TurretWasFrame5
-    jmp TurretTryFrame6
-TurretWasFrame5:
+    beq Turret1WasFrame5
+    jmp Turret1TryFrame6
+Turret1WasFrame5:
     ldx #<turret_1_stream_frame_5
     ldy #>turret_1_stream_frame_5
     jsr TurretStreamProcessor
     turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
                             5, TURRET_1_BULLET_HEIGHT)
 
-TurretEndStep5:
-    jmp TurretStepReturn
+Turret1EndStep5:
+    jmp Turret1StepReturn
 
-TurretTryFrame6:
+Turret1TryFrame6:
     cmp #TURRET_1_FRAMES-5
-    beq TurretWasFrame6
-    jmp TurretTryFrame7
-TurretWasFrame6:
+    beq Turret1WasFrame6
+    jmp Turret1TryFrame7
+Turret1WasFrame6:
     ldx #<turret_1_stream_frame_6
     ldy #>turret_1_stream_frame_6
     jsr TurretStreamProcessor
     turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
                              6, 1)  // bullet only one char for this frame
-TurretEndStep6:
-    jmp TurretStepReturn
+Turret1EndStep6:
+    jmp Turret1StepReturn
 
-TurretTryFrame7:
+Turret1TryFrame7:
     ldx #<turret_1_stream_frame_7
     ldy #>turret_1_stream_frame_7
     jsr TurretStreamProcessor
     turret_clear_rect(turret_1_bullet_rect)
   
-TurretStepReturn:    
+Turret1StepReturn:    
     dec turret_1_count    // decrement turret frame counter
 
-TurretStepDone:
+Turret1StepDone:
     rts
 // Turret1DoStep subroutine end
 //////////////////////////////////////////////////////////////////////////////
