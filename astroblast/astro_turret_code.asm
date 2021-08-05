@@ -18,7 +18,8 @@
 #import "../nv_c64_util/nv_screen_rect_macs.asm"
 #import "../nv_c64_util/nv_pointer_macs.asm"
 #import "../nv_c64_util/nv_stream_processor_macs.asm"
-
+#import "../nv_c64_util/nv_debug_macs.asm"
+//#import "../nv_c64_util/nv_debug_code.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // call once to initialize turret variables and stuff
@@ -256,6 +257,8 @@ TurretCleanup:
 // TurretCleanup End
 //////////////////////////////////////////////////////////////////////////////
 
+
+/*
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to set the bullet rectangle based on 
 // turret position, frame number and bullet height
@@ -271,9 +274,17 @@ TurretCleanup:
     ldx #0
     ldy #bullet_height - 1
     nv_screen_rect_char_coord_to_screen_pixels_expand_right_bottom(turret_1_bullet_rect)
+
+    //nv_screen_poke_hex_word_mem(7, 0, turret_1_bullet_rect, true)
+    //nv_screen_poke_hex_word_mem(7, 8, turret_1_bullet_rect+2, true)
+    //nv_screen_poke_hex_word_mem(8, 14, turret_1_bullet_rect+4, true)
+    //nv_screen_poke_hex_word_mem(8, 22, turret_1_bullet_rect+6, true)
+    //nv_key_wait_any_key()
 }
 // turret_1_set_bullet_rect macro end
 //////////////////////////////////////////////////////////////////////////////
+*/
+
 
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to set the bullet rectangle based on 
@@ -347,9 +358,9 @@ Turret1WasFrame1:
     ldx #<turret_1_stream_frame_1
     ldy #>turret_1_stream_frame_1
     jsr TurretStreamProcessor
-    turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-                             1, TURRET_1_BULLET_HEIGHT)
-
+    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
+    //                         1, TURRET_1_BULLET_HEIGHT)
+    
 Turret1EndStep1:
     jmp Turret1StepReturn
 
@@ -363,8 +374,8 @@ Turret1WasFrame2:
     ldy #>turret_1_stream_frame_2
     jsr TurretStreamProcessor
     
-    turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-                             2, TURRET_1_BULLET_HEIGHT)
+    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
+    //                         2, TURRET_1_BULLET_HEIGHT)
 
 Turret1EndStep2:
     jmp Turret1StepReturn
@@ -378,8 +389,8 @@ Turret1WasFrame3:
     ldx #<turret_1_stream_frame_3
     ldy #>turret_1_stream_frame_3
     jsr TurretStreamProcessor
-    turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-                            3, TURRET_1_BULLET_HEIGHT)
+    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
+    //                        3, TURRET_1_BULLET_HEIGHT)
 
 Turret1EndStep3:
     jmp Turret1StepReturn
@@ -404,8 +415,8 @@ Turret1WasFrame5:
     ldx #<turret_1_stream_frame_5
     ldy #>turret_1_stream_frame_5
     jsr TurretStreamProcessor
-    turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-                            5, TURRET_1_BULLET_HEIGHT)
+    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
+    //                        5, TURRET_1_BULLET_HEIGHT)
 
 Turret1EndStep5:
     jmp Turret1StepReturn
@@ -418,8 +429,8 @@ Turret1WasFrame6:
     ldx #<turret_1_stream_frame_6
     ldy #>turret_1_stream_frame_6
     jsr TurretStreamProcessor
-    turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-                             6, 1)  // bullet only one char for this frame
+    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
+    //                         6, 1)  // bullet only one char for this frame
 Turret1EndStep6:
     jmp Turret1StepReturn
 
@@ -427,7 +438,7 @@ Turret1TryFrame7:
     ldx #<turret_1_stream_frame_7
     ldy #>turret_1_stream_frame_7
     jsr TurretStreamProcessor
-    turret_clear_rect(turret_1_bullet_rect)
+    //turret_clear_rect(turret_1_bullet_rect)
   
 Turret1StepReturn:    
     dec turret_1_count    // decrement turret frame counter
@@ -441,9 +452,124 @@ Turret1StepDone:
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to step turret 2
-// it should only be called if this turret known to be active
+// it should only be called if turret 2 known to be active
 // which means turret_2_count > 0
 Turret2DoStep:    
+{
+    lda turret_2_count
+
+Turret2TryFrame1:
+    cmp #TURRET_2_FRAMES
+    beq Turret2WasFrame1
+    jmp Turret2TryFrame2
+
+Turret2WasFrame1:
+    ldx #<turret_2_stream_frame_1
+    ldy #>turret_2_stream_frame_1
+    jsr TurretStreamProcessor
+    // set x reg
+    // set y reg                          
+    //nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
+
+Turret2EndStep1:
+    jmp Turret2StepReturn
+
+Turret2TryFrame2:
+    cmp #TURRET_2_FRAMES-1
+    beq Turret2WasFrame2
+    jmp Turret2TryFrame3
+
+Turret2WasFrame2:
+    ldx #<turret_2_stream_frame_2
+    ldy #>turret_2_stream_frame_2
+    jsr TurretStreamProcessor
+    
+    // set x reg
+    // set y reg                          
+    // nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
+
+Turret2EndStep2:
+    jmp Turret2StepReturn
+
+Turret2TryFrame3:
+    cmp #TURRET_2_FRAMES-2
+    beq Turret2WasFrame3
+    jmp Turret2TryFrame4
+
+Turret2WasFrame3:
+    ldx #<turret_2_stream_frame_3
+    ldy #>turret_2_stream_frame_3
+    jsr TurretStreamProcessor
+    // set x reg
+    // set y reg                          
+    // nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
+
+Turret2EndStep3:
+    jmp Turret2StepReturn
+
+Turret2TryFrame4:
+    cmp #TURRET_2_FRAMES-3
+    beq Turret2WasFrame4
+    jmp Turret2TryFrame5
+Turret2WasFrame4:
+    ldx #<turret_2_stream_frame_4
+    ldy #>turret_2_stream_frame_4
+    jsr TurretStreamProcessor
+
+Turret2EndStep4:
+    jmp Turret2StepReturn
+
+Turret2TryFrame5:
+    cmp #TURRET_2_FRAMES-4
+    beq Turret2WasFrame5
+    jmp Turret2TryFrame6
+Turret2WasFrame5:
+    ldx #<turret_2_stream_frame_5
+    ldy #>turret_2_stream_frame_5
+    jsr TurretStreamProcessor
+    // set x reg
+    // set y reg                          
+    //nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
+
+Turret2EndStep5:
+    jmp Turret2StepReturn
+
+Turret2TryFrame6:
+    cmp #TURRET_2_FRAMES-5
+    beq Turret2WasFrame6
+    jmp Turret2TryFrame7
+Turret2WasFrame6:
+    ldx #<turret_2_stream_frame_6
+    ldy #>turret_2_stream_frame_6
+    jsr TurretStreamProcessor
+    // set x reg
+    // set y reg                          
+    //nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
+Turret2EndStep6:
+    jmp Turret2StepReturn
+
+Turret2TryFrame7:
+    ldx #<turret_2_stream_frame_7
+    ldy #>turret_2_stream_frame_7
+    jsr TurretStreamProcessor
+    turret_clear_rect(turret_2_bullet_rect)
+  
+Turret2StepReturn:    
+    dec turret_2_count    // decrement turret frame counter
+
+Turret2StepDone:
+    rts
+}
+// Turret2DoStep subroutine end
+//////////////////////////////////////////////////////////////////////////////
+
+
+/*
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to step turret 2
+// it should only be called if this turret known to be active
+// which means turret_2_count > 0
+Turret2DoStepOld:    
 {
     ldy #$00
     ldx turret_2_frame_number
@@ -526,11 +652,12 @@ save_y: .byte 0
 
 // Turret2DoStep end
 //////////////////////////////////////////////////////////////////////////////
-
+*/
 
 
 .macro turret_3_poke_bullet_char(char_ptr, save_block)
 {
+
     // store the turret 3 char in screen memory where char_ptr
     // points
     ldx #TURRET_3_CHAR_RIGHT
@@ -545,6 +672,7 @@ save_y: .byte 0
     nv_adc16_immediate(char_ptr, $FFFF, char_ptr)
     inx
     nv_store_x_to_mem_ptr(char_ptr, save_block)
+
 }
 
 .macro turret_3_poke_bullet_color_immed(color_ptr, save_block, immed_color)
