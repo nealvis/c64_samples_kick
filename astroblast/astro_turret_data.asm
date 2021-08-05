@@ -412,20 +412,7 @@ turret_2_frame_number: .byte 0
 .const TURRET_2_MEM_VEL = ((40*TURRET_2_Y_VEL) + (TURRET_2_X_VEL))  // -41
 
 
-/*
-turret_2_char_coords: .byte T2_COL, T2_ROW      // x, y ie col, row
-                      .byte T2_COL-1, T2_ROW-1
-                      .byte T2_COL-2, T2_ROW-2
-                      .byte T2_COL-3, T2_ROW-3
-                      .byte T2_COL-4, T2_ROW-4
-                      .byte T2_COL-5, T2_ROW-5
-                      .byte T2_COL-6, T2_ROW-6
-                      .byte T2_COL-7, T2_ROW-7
-                      .byte T2_COL-8, T2_ROW-8
-                      .byte T2_COL-9, T2_ROW-9
-                      .byte T2_COL-10, T2_ROW-10
-                      .byte $FF      
-*/
+
 turret_2_all_color_stream:
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 0)
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 1)
@@ -450,6 +437,16 @@ turret_2_stream_frame_1:
         .byte $01, TURRET_2_COLOR   // new source byte is background color
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 0)
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 1)
+
+        // set the rect for this frame
+        .word $FFFF
+        .byte $02, $08                // blk copy command for 8 bytes
+        .word turret_2_bullet_rect    // dest base for block copy
+        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-1, TURRET_2_START_ROW-1)
+        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-1, TURRET_2_START_ROW-1)
+        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-1, TURRET_2_START_ROW-1)
+        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-1, TURRET_2_START_ROW-1)
+
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
 
@@ -471,6 +468,16 @@ turret_2_stream_frame_2:
         .byte $FE                   // new source byte is background color
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 0)
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 1)
+
+        // set the rect for this frame 
+        .word $FFFF
+        .byte $02, $08                // blk copy command for 8 bytes
+        .word turret_2_bullet_rect    // dest base for block copy
+        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
+        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
+        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
+        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
+
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
 
@@ -492,6 +499,16 @@ turret_2_stream_frame_3:
         .byte $FE                   // new source byte is background color
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 2)
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 3)
+
+        // set the rect for this frame 
+        .word $FFFF
+        .byte $02, $08                // blk copy command for 8 bytes
+        .word turret_2_bullet_rect    // dest base for block copy
+        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
+        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
+        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
+        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
+
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
 
@@ -513,6 +530,16 @@ turret_2_stream_frame_4:
         .byte $FE                   // new source byte is background color
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 4)
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 5)
+
+        // set the rect for this frame 
+        .word $FFFF
+        .byte $02, $08                // blk copy command for 8 bytes
+        .word turret_2_bullet_rect    // dest base for block copy
+        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
+        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
+        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
+        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
+
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
 
@@ -534,6 +561,16 @@ turret_2_stream_frame_5:
         .byte $FE                   // new source byte is background color
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 6)
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 7)
+
+        // set the rect for this frame 
+        .word $FFFF
+        .byte $02, $08                // blk copy command for 8 bytes
+        .word turret_2_bullet_rect    // dest base for block copy
+        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
+        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
+        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
+        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
+
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
 
@@ -553,6 +590,16 @@ turret_2_stream_frame_6:
         .byte $FE                   // new source byte is background color
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 8)
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 9)
+
+        // set the rect for this frame 
+        .word $FFFF
+        .byte $02, $08                // blk copy command for 8 bytes
+        .word turret_2_bullet_rect    // dest base for block copy
+        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
+        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
+        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
+        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
+
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
 
@@ -562,6 +609,13 @@ turret_2_stream_frame_7:
         .word $FFFF                 // stream command marker
         .byte $FE                   // new source byte is background color
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 10)
+
+        // set the rect for this frame, clear it out
+        .word $FFFF
+        .byte $02, $08                // blk copy command for 8 bytes
+        .word turret_2_bullet_rect    // dest base for block copy
+        .word $0000, $0000, $0000, $0000
+
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
 

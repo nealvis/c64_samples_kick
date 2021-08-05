@@ -258,63 +258,6 @@ TurretCleanup:
 //////////////////////////////////////////////////////////////////////////////
 
 
-/*
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to set the bullet rectangle based on 
-// turret position, frame number and bullet height
-.macro turret_1_set_bullet_rect(start_row, start_col, frame, bullet_height)
-{
-    // setup the bullet rectangle from turret 
-    // set top char for this frame first
-    ldx #start_col
-    ldy #start_row - ((frame*bullet_height) - 1)
-    nv_screen_rect_char_coord_to_screen_pixels_left_top(turret_1_bullet_rect)
-    
-    // now expand down the screen for bullets more than one char high
-    ldx #0
-    ldy #bullet_height - 1
-    nv_screen_rect_char_coord_to_screen_pixels_expand_right_bottom(turret_1_bullet_rect)
-
-    //nv_screen_poke_hex_word_mem(7, 0, turret_1_bullet_rect, true)
-    //nv_screen_poke_hex_word_mem(7, 8, turret_1_bullet_rect+2, true)
-    //nv_screen_poke_hex_word_mem(8, 14, turret_1_bullet_rect+4, true)
-    //nv_screen_poke_hex_word_mem(8, 22, turret_1_bullet_rect+6, true)
-    //nv_key_wait_any_key()
-}
-// turret_1_set_bullet_rect macro end
-//////////////////////////////////////////////////////////////////////////////
-*/
-
-
-//////////////////////////////////////////////////////////////////////////////
-// inline macro to set the bullet rectangle based on 
-// turret position, frame number and bullet height.
-// macro params: 
-//   rect: is the address of the rect to update
-//         this is 8 bytes, 4 16bit ints (left, top, right, bottom) 
-//         in screen pixel coords
-//   start_row: pass the row number of the bullet in character coords
-//   start_col: pass the col number of the bullet in char coords
-//   frame number is the frame
-/*
-.macro turret_set_bullet_3_rect(rect, start_row, start_col, frame, bullet_width, bullet_height)
-{
-    // setup the bullet rectangle from turret 
-    // set top char for this frame first
-    ldx #start_col
-    ldy #start_row - ((frame*bullet_height) - 1)
-    nv_screen_rect_char_coord_to_screen_pixels_left_top(rect)
-    
-    // now expand down the screen for bullets more than one char high
-    ldx #0
-    ldy #bullet_height - 1
-    nv_screen_rect_char_coord_to_screen_pixels_expand_right_bottom(rect)
-}
-*/
-// turret_set_bullet_rect macro end
-//////////////////////////////////////////////////////////////////////////////
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 // call once per frame to have turret shoot 
@@ -358,8 +301,6 @@ Turret1WasFrame1:
     ldx #<turret_1_stream_frame_1
     ldy #>turret_1_stream_frame_1
     jsr TurretStreamProcessor
-    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-    //                         1, TURRET_1_BULLET_HEIGHT)
     
 Turret1EndStep1:
     jmp Turret1StepReturn
@@ -373,9 +314,6 @@ Turret1WasFrame2:
     ldx #<turret_1_stream_frame_2
     ldy #>turret_1_stream_frame_2
     jsr TurretStreamProcessor
-    
-    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-    //                         2, TURRET_1_BULLET_HEIGHT)
 
 Turret1EndStep2:
     jmp Turret1StepReturn
@@ -389,8 +327,6 @@ Turret1WasFrame3:
     ldx #<turret_1_stream_frame_3
     ldy #>turret_1_stream_frame_3
     jsr TurretStreamProcessor
-    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-    //                        3, TURRET_1_BULLET_HEIGHT)
 
 Turret1EndStep3:
     jmp Turret1StepReturn
@@ -415,8 +351,6 @@ Turret1WasFrame5:
     ldx #<turret_1_stream_frame_5
     ldy #>turret_1_stream_frame_5
     jsr TurretStreamProcessor
-    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-    //                        5, TURRET_1_BULLET_HEIGHT)
 
 Turret1EndStep5:
     jmp Turret1StepReturn
@@ -429,8 +363,7 @@ Turret1WasFrame6:
     ldx #<turret_1_stream_frame_6
     ldy #>turret_1_stream_frame_6
     jsr TurretStreamProcessor
-    //turret_1_set_bullet_rect(TURRET_1_START_ROW, TURRET_1_START_COL, 
-    //                         6, 1)  // bullet only one char for this frame
+
 Turret1EndStep6:
     jmp Turret1StepReturn
 
@@ -438,7 +371,6 @@ Turret1TryFrame7:
     ldx #<turret_1_stream_frame_7
     ldy #>turret_1_stream_frame_7
     jsr TurretStreamProcessor
-    //turret_clear_rect(turret_1_bullet_rect)
   
 Turret1StepReturn:    
     dec turret_1_count    // decrement turret frame counter
@@ -467,9 +399,6 @@ Turret2WasFrame1:
     ldx #<turret_2_stream_frame_1
     ldy #>turret_2_stream_frame_1
     jsr TurretStreamProcessor
-    // set x reg
-    // set y reg                          
-    //nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
 
 Turret2EndStep1:
     jmp Turret2StepReturn
@@ -484,10 +413,6 @@ Turret2WasFrame2:
     ldy #>turret_2_stream_frame_2
     jsr TurretStreamProcessor
     
-    // set x reg
-    // set y reg                          
-    // nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
-
 Turret2EndStep2:
     jmp Turret2StepReturn
 
@@ -500,9 +425,6 @@ Turret2WasFrame3:
     ldx #<turret_2_stream_frame_3
     ldy #>turret_2_stream_frame_3
     jsr TurretStreamProcessor
-    // set x reg
-    // set y reg                          
-    // nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
 
 Turret2EndStep3:
     jmp Turret2StepReturn
@@ -527,9 +449,6 @@ Turret2WasFrame5:
     ldx #<turret_2_stream_frame_5
     ldy #>turret_2_stream_frame_5
     jsr TurretStreamProcessor
-    // set x reg
-    // set y reg                          
-    //nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
 
 Turret2EndStep5:
     jmp Turret2StepReturn
@@ -542,9 +461,7 @@ Turret2WasFrame6:
     ldx #<turret_2_stream_frame_6
     ldy #>turret_2_stream_frame_6
     jsr TurretStreamProcessor
-    // set x reg
-    // set y reg                          
-    //nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)                         
+
 Turret2EndStep6:
     jmp Turret2StepReturn
 
