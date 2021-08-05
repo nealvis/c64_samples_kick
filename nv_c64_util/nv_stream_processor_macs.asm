@@ -16,6 +16,7 @@
 
 #import "nv_screen_macs.asm"
 #import "nv_color_macs.asm"
+#import "nv_math16_macs.asm"
 
 // inline macro to process a stream of bytes that consist of
 // memory addresses, commands, or command opperands.  The default
@@ -160,8 +161,11 @@ HitQuitCommand:
 {
     // Normal commands (that require no special info from
     // the main program start from 0 and go up
-    .const CMD_NO_OP = $00
-    .const CMD_LOAD_SRC = $01
+    .const CMD_NO_OP = $00      // does nothing, no arg
+    .const CMD_LOAD_SRC = $01   // 1 byte arg, the new src data to copy
+    .const CMD_BLK_CPY = $02    // 1 byte arg, num bytes to copy
+                                // first word is the target base addr
+                                // the src bytes follow, must match arg
     .const CMD_QUIT = $FF       // quit is normal but out of order
 
     // special commands that require info from the 
@@ -202,6 +206,7 @@ HitQuitCommand:
     sta temp_word
 
     ldy #$00
+    sty blk_cpy_num_bytes
 LoopTop:
 
     // load zero page ptr with pointer from stream (assuming
@@ -239,11 +244,21 @@ IsCmdLoadSrc:
 
 TryCmdBackgroundSrc:
     cmp #CMD_BKG_SRC
-    bne TryCmdNop
+    bne TryCmdBlockCopy
 IsCmdBackgroundSrc:
     // cmd $FE means new copy source byte should be the background color
-    lda background_color_addr       // read next byte in stream
+    lda background_color_addr       
     sta temp_word
+    jmp LoopTop
+
+TryCmdBlockCopy:
+    cmp #CMD_BLK_CPY
+    bne TryCmdNop
+IsCmdBlockCopy:
+    // cmd $02 means size of block is next byte
+    // followed by a 16 bit destination address 
+    // followed by that many number of new source bytes for the dest 
+    jsr DoBlkCpy
     jmp LoopTop
 
 TryCmdNop:
@@ -290,6 +305,41 @@ HitQuitCommand:
     ldy save_block+3
     sty Z2_HI
 
+    rts
+
+blk_cpy_num_bytes: .byte 0
+
+DoBlkCpy:
+    // read number of bytes to copy first
+    lda (Z2_LO), y                  // read next byte in stream
+    iny
+    sta blk_cpy_num_bytes
+
+    // grab the pointer to destination from stream
+    lda (Z2_LO), y       // read next byte in stream
+    iny
+    sta ZERO_PAGE_LO
+    lda (Z2_LO), y       // read next byte in stream
+    iny
+    sta ZERO_PAGE_HI
+
+    // check if number bytes to copy is zero
+    // if so then we are done.
+    lda #$00
+    cmp blk_cpy_num_bytes
+    beq NotDoingBlockCopy
+
+    ldx #$00
+BlockCopyLoopTop:
+    lda (Z2_LO), y       // read next byte in stream
+    iny
+    sta (ZERO_PAGE_LO,x)  // store accum to pointed to addr
+    nv_adc16_immediate(ZERO_PAGE_LO, 1, ZERO_PAGE_LO)
+    dec blk_cpy_num_bytes
+    bne BlockCopyLoopTop
+
+BlockCopyDone:
+NotDoingBlockCopy:
     rts
 }
 
