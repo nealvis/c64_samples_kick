@@ -411,6 +411,81 @@ turret_2_frame_number: .byte 0
 .const TURRET_2_COLOR_MEM_START = $D800 + (TURRET_2_CHAR_MEM_START - 1024)
 .const TURRET_2_MEM_VEL = ((40*TURRET_2_Y_VEL) + (TURRET_2_X_VEL))  // -41
 
+.function DeathRectLeftT2(frame_num)
+{
+    .var col = TURRET_2_START_COL - ((frame_num * 2)-1)
+    .var row = TURRET_2_START_ROW - ((frame_num * 2)-1)
+    .if (frame_num == 6)
+    {
+        .eval col = col + 1
+        .eval row = row + 1
+    }
+    .var screen_left = CharCoordToScreenPixelsLeft(col, row)
+    .eval screen_left = screen_left +2
+    .if (frame_num > 6)
+    {
+        .eval screen_left = 0
+    }
+
+    .return screen_left
+}
+
+.function DeathRectTopT2(frame_num)
+{
+    .var char_col = TURRET_2_START_COL - ((frame_num * 2)-1)
+    .var char_row = TURRET_2_START_ROW - ((frame_num * 2)-1)
+    .if (frame_num == 6)
+    {
+        .eval char_col = char_col + 1
+        .eval char_row = char_row + 1
+    }
+    .var screen_top = CharCoordToScreenPixelsTop(char_col, char_row)
+    .eval screen_top = screen_top +2
+    .if (frame_num > 6)
+    {
+        .eval screen_top = 0
+    }
+
+    .return screen_top
+}
+
+.function DeathRectRightT2(frame_num)
+{
+    .var char_col = TURRET_2_START_COL - ((frame_num * 2)-1)
+    .var char_row = TURRET_2_START_ROW - ((frame_num * 2)-1)
+    .if (frame_num == 6)
+    {
+        .eval char_col = char_col + 1
+        .eval char_row = char_row + 1
+    }
+    .var screen_right = CharCoordToScreenPixelsRight(char_col, char_row)
+    .eval screen_right = screen_right+6
+    .if (frame_num > 6)
+    {
+        .eval screen_right = 0
+    }
+
+    .return screen_right
+}
+
+.function DeathRectBottomT2(frame_num)
+{
+    .var char_col = TURRET_2_START_COL - ((frame_num * 2)-1)
+    .var char_row = TURRET_2_START_ROW - ((frame_num * 2)-1)
+    .if (frame_num == 6)
+    {
+        .eval char_col = char_col + 1
+        .eval char_row = char_row + 1
+    }
+    .var screen_bottom = CharCoordToScreenPixelsBottom(char_col, char_row)
+    .eval screen_bottom = screen_bottom + 6
+    .if (frame_num > 6)
+    {
+        .eval screen_bottom = 0
+    }
+
+    .return screen_bottom
+}
 
 
 turret_2_all_color_stream:
@@ -442,10 +517,10 @@ turret_2_stream_frame_1:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-1, TURRET_2_START_ROW-1)
-        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-1, TURRET_2_START_ROW-1)
-        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-1, TURRET_2_START_ROW-1)
-        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-1, TURRET_2_START_ROW-1)
+        .word DeathRectLeftT2(1)
+        .word DeathRectTopT2(1)
+        .word DeathRectRightT2(1)
+        .word DeathRectBottomT2(1)
 
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
@@ -473,10 +548,11 @@ turret_2_stream_frame_2:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
-        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
-        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
-        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
+        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
+        .word DeathRectLeftT2(2)
+        .word DeathRectTopT2(2)
+        .word DeathRectRightT2(2)
+        .word DeathRectBottomT2(2)
 
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
@@ -504,10 +580,11 @@ turret_2_stream_frame_3:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
-        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
-        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
-        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
+        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
+        .word DeathRectLeftT2(3)
+        .word DeathRectTopT2(3)
+        .word DeathRectRightT2(3)
+        .word DeathRectBottomT2(3)
 
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
@@ -535,10 +612,11 @@ turret_2_stream_frame_4:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
-        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
-        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
-        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
+        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
+        .word DeathRectLeftT2(4)
+        .word DeathRectTopT2(4)
+        .word DeathRectRightT2(4)
+        .word DeathRectBottomT2(4)
 
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
@@ -566,10 +644,11 @@ turret_2_stream_frame_5:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
-        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
-        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
-        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
+        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
+        .word DeathRectLeftT2(5)
+        .word DeathRectTopT2(5)
+        .word DeathRectRightT2(5)
+        .word DeathRectBottomT2(5)
 
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
@@ -595,10 +674,11 @@ turret_2_stream_frame_6:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
-        .word CharCoordToScreenPixelsTop(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
-        .word CharCoordToScreenPixelsRight(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
-        .word CharCoordToScreenPixelsBottom(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
+        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
+        .word DeathRectLeftT2(6)
+        .word DeathRectTopT2(6)
+        .word DeathRectRightT2(6)
+        .word DeathRectBottomT2(6)
 
         .word $FFFF                 // stream command marker
         .byte $FF                   // stream quit command
