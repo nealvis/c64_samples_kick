@@ -27,7 +27,6 @@ TurretInit:
     lda #$00
     sta turret_1_count
     sta turret_2_count
-    sta turret_2_frame_number
     sta turret_3_count
     sta turret_3_frame_number
     rts
@@ -59,8 +58,6 @@ TurretStartTry2:
 TurretStartIs2:
     lda #TURRET_2_FRAMES
     sta turret_2_count
-    lda #0
-    sta turret_2_frame_number
 
 TurretStartTry3:
     lda #TURRET_3_ID
@@ -160,19 +157,12 @@ turret_active_retval: .byte 0
     ldy #>turret_1_all_color_stream
     jsr TurretStreamProcessor
 
-    //.var char_row
-    //.for (char_row = TURRET_1_START_ROW; char_row>=0; char_row--)
-    //{
-    //    nv_screen_poke_color_a(char_row, TURRET_1_START_COL)
-    //}
-
 }
 
 .macro turret_force_stop_id_2()
 {
     lda #0
     sta turret_2_count
-    sta turret_2_frame_number
 
     // all positions to background color 
     lda background_color
@@ -481,97 +471,174 @@ Turret2StepDone:
 //////////////////////////////////////////////////////////////////////////////
 
 
-/*
+
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to step turret 2
-// it should only be called if this turret known to be active
+// it should only be called if turret 2 known to be active
 // which means turret_2_count > 0
-Turret2DoStepOld:    
+Turret3DoStep:    
 {
-    ldy #$00
-    ldx turret_2_frame_number
-    bne Loop
-    jmp FirstFrameNoErase
-Loop:
-    iny
-    iny
-    dex
-    bne Loop
+    lda turret_3_count
 
-// erase last frame's bullets
-EraseLastFrame:
-    sty save_index
-    dey
-    dey
-    lda turret_2_char_coords, y
-    tax
-    iny
-    lda turret_2_char_coords, y
-    tay
-    lda background_color
-    //   X Reg: screen column
-    //   Y Reg: screen row
-    //   Accum: color to poke
-    nv_screen_poke_color_xya()
-    ldy save_index
-FirstFrameNoErase:
+Turret3TryFrame1:
+    cmp #TURRET_3_FRAMES
+    beq Turret3WasFrame1
+    jmp Turret3TryFrame2
 
-    // y reg should now have the index into the coord list
-    lda turret_2_char_coords, y
-    bpl NotEndOfCoords
-    jmp NoMoreCoords
-NotEndOfCoords:
-    tax
-    stx save_x
-    iny
-    lda turret_2_char_coords, y
-    tay
-    sty save_y
-    lda #TURRET_2_CHAR
+Turret3WasFrame1:
+    ldx #<turret_3_stream_frame_1
+    ldy #>turret_3_stream_frame_1
+    jsr TurretStreamProcessor
 
-    //   X Reg: screen column
-    //   Y Reg: screen row
-    //   Accum: char to poke
-    nv_screen_poke_char_xya()
+Turret3EndStep1:
+    jmp Turret3StepReturn
 
-    ldy save_y
-    ldx save_x
-    lda #NV_COLOR_WHITE
-    //   X Reg: screen column
-    //   Y Reg: screen row
-    //   Accum: color to poke
-    nv_screen_poke_color_xya()
+Turret3TryFrame2:
+    cmp #TURRET_3_FRAMES-1
+    beq Turret3WasFrame2
+    jmp Turret3TryFrame3
 
-    ldy save_y
-    ldx save_x
-    nv_screen_rect_char_coord_to_screen_pixels(turret_2_bullet_rect)
+Turret3WasFrame2:
+    ldx #<turret_3_stream_frame_2
+    ldy #>turret_3_stream_frame_2
+    jsr TurretStreamProcessor
+    
+Turret3EndStep2:
+    jmp Turret3StepReturn
 
-NoMoreCoords:
-Turret2StepReturn:    
-    dec turret_2_count          // decrement turret frame counter
-    beq IsLastFrame
-    jmp NotLastFrame
-IsLastFrame:
-    ldy save_y
-    ldx save_x
-    lda background_color
-    nv_screen_poke_color_xya()
+Turret3TryFrame3:
+    cmp #TURRET_3_FRAMES-2
+    beq Turret3WasFrame3
+    jmp Turret3TryFrame4
 
-NotLastFrame:
-    inc turret_2_frame_number   // increment the current frame
+Turret3WasFrame3:
+    ldx #<turret_3_stream_frame_3
+    ldy #>turret_3_stream_frame_3
+    jsr TurretStreamProcessor
 
-Turret2StepDone:
+Turret3EndStep3:
+    jmp Turret3StepReturn
+
+Turret3TryFrame4:
+    cmp #TURRET_3_FRAMES-3
+    beq Turret3WasFrame4
+    jmp Turret3TryFrame5
+Turret3WasFrame4:
+    ldx #<turret_3_stream_frame_4
+    ldy #>turret_3_stream_frame_4
+    jsr TurretStreamProcessor
+
+Turret3EndStep4:
+    jmp Turret3StepReturn
+
+Turret3TryFrame5:
+    cmp #TURRET_3_FRAMES-4
+    beq Turret3WasFrame5
+    jmp Turret3TryFrame6
+Turret3WasFrame5:
+    ldx #<turret_3_stream_frame_5
+    ldy #>turret_3_stream_frame_5
+    jsr TurretStreamProcessor
+
+Turret3EndStep5:
+    jmp Turret3StepReturn
+
+Turret3TryFrame6:
+    cmp #TURRET_3_FRAMES-5
+    beq Turret3WasFrame6
+    jmp Turret3TryFrame7
+Turret3WasFrame6:
+    ldx #<turret_3_stream_frame_6
+    ldy #>turret_3_stream_frame_6
+    jsr TurretStreamProcessor
+
+Turret3EndStep6:
+    jmp Turret3StepReturn
+
+Turret3TryFrame7:
+    cmp #TURRET_3_FRAMES-6
+    beq Turret3WasFrame7
+    jmp Turret3TryFrame8
+
+Turret3WasFrame7:
+    ldx #<turret_3_stream_frame_7
+    ldy #>turret_3_stream_frame_7
+    jsr TurretStreamProcessor
+
+Turret3EndStep7:
+    jmp Turret3StepReturn
+
+Turret3TryFrame8:
+    cmp #TURRET_3_FRAMES-7
+    beq Turret3WasFrame8
+    jmp Turret3TryFrame9
+
+Turret3WasFrame8:
+    ldx #<turret_3_stream_frame_8
+    ldy #>turret_3_stream_frame_8
+    jsr TurretStreamProcessor
+
+Turret3EndStep8:
+    jmp Turret3StepReturn
+
+Turret3TryFrame9:
+    cmp #TURRET_3_FRAMES-8
+    beq Turret3WasFrame9
+    jmp Turret3TryFrame10
+
+Turret3WasFrame9:
+    ldx #<turret_3_stream_frame_9
+    ldy #>turret_3_stream_frame_9
+    jsr TurretStreamProcessor
+
+Turret3EndStep9:
+    jmp Turret3StepReturn
+
+
+Turret3TryFrame10:
+    cmp #TURRET_3_FRAMES-9
+    beq Turret3WasFrame10
+    jmp Turret3TryFrame11
+
+Turret3WasFrame10:
+    ldx #<turret_3_stream_frame_10
+    ldy #>turret_3_stream_frame_10
+    jsr TurretStreamProcessor
+
+Turret3EndStep10:
+    jmp Turret3StepReturn
+
+Turret3TryFrame11:
+    cmp #TURRET_3_FRAMES-10
+    beq Turret3WasFrame11
+    jmp Turret3TryFrame12
+
+Turret3WasFrame11:
+    ldx #<turret_3_stream_frame_11
+    ldy #>turret_3_stream_frame_11
+    jsr TurretStreamProcessor
+
+Turret3EndStep11:
+    jmp Turret3StepReturn
+
+Turret3TryFrame12:
+    ldx #<turret_3_stream_frame_12
+    ldy #>turret_3_stream_frame_12
+    jsr TurretStreamProcessor
+
+
+Turret3StepReturn:    
+    dec turret_3_count    // decrement turret frame counter
+
+Turret3StepDone:
     rts
-save_index: .byte 0
-save_x: .byte 0
-save_y: .byte 0
 }
-
-// Turret2DoStep end
+// Turret2DoStep subroutine end
 //////////////////////////////////////////////////////////////////////////////
-*/
 
 
+
+/*
 .macro turret_3_poke_bullet_char(char_ptr, save_block)
 {
 
@@ -616,11 +683,15 @@ save_y: .byte 0
     nv_store_x_to_mem_ptr(color_ptr, save_block)
 }
 
+*/
+
+
+/*
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to step turret 3
 // it should only be called if this turret known to be active
 // which means turret_3_count > 0
-Turret3DoStep:    
+Turret3DoStep_OLD:    
 {
     lda turret_3_frame_number
     bne NotFirstFrame
@@ -695,7 +766,7 @@ bullet_char_col: .byte 0
 
 // Turret3DoStep end
 //////////////////////////////////////////////////////////////////////////////
-
+*/
 
 
 //   Accum: will change, Input: should hold the byte that will be stored 
