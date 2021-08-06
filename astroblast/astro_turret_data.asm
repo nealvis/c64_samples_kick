@@ -171,7 +171,6 @@
 // when turret shot starts this will be non zero and count down each frame
 // TurretStep will decrement it.
 turret_1_count: .byte 0
-turret_1_cur_frame: .byte 0
 
 turret_1_all_color_stream:
         .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 0)
@@ -407,7 +406,7 @@ turret_1_stream_frame_7:
 .const TURRET_2_BULLET_HEIGHT = 2
 
 // number of raster frames for turret effect
-.const TURRET_2_FRAMES=12
+.const TURRET_2_FRAMES=7
 
 
 // when turret shot starts this will be non zero and count down each frame
@@ -514,6 +513,17 @@ turret_2_all_color_stream:
         .word TURRET_2_COLOR_MEM_START + (TURRET_2_MEM_VEL * 10)
         .word $FFFF  // stream command marker
         .byte $FF    // stream quit command
+
+// table of the addresses of all the streams for each frame for turret 2
+Turret2StreamAddrTable:
+    .word turret_2_stream_frame_1
+    .word turret_2_stream_frame_2
+    .word turret_2_stream_frame_3
+    .word turret_2_stream_frame_4
+    .word turret_2_stream_frame_5
+    .word turret_2_stream_frame_6
+    .word turret_2_stream_frame_7
+
 
 turret_2_stream_frame_1:
         .word $FFFF                 // stream command marker
@@ -818,6 +828,23 @@ TestStream:
     .word TURRET_3_COLOR_MEM_START + (TURRET_3_MEM_VEL*10) - 2
     .word $FFFF  // stream command marker
     .byte $FF    // stream quit command
+
+
+
+// table of the addresses of all the streams for each frame for turret 2
+Turret3StreamAddrTable:
+    .word turret_3_stream_frame_1
+    .word turret_3_stream_frame_2
+    .word turret_3_stream_frame_3
+    .word turret_3_stream_frame_4
+    .word turret_3_stream_frame_5
+    .word turret_3_stream_frame_6
+    .word turret_3_stream_frame_7
+    .word turret_3_stream_frame_8
+    .word turret_3_stream_frame_9
+    .word turret_3_stream_frame_10
+    .word turret_3_stream_frame_11
+    .word turret_3_stream_frame_12
 
 turret_3_stream_frame_1:
         // poke the bullet char
