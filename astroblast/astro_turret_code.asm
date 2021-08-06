@@ -26,6 +26,7 @@
 TurretInit:
     lda #$00
     sta turret_1_count
+    sta turret_1_cur_frame
     sta turret_2_count
     sta turret_3_count
     sta turret_3_frame_number
@@ -50,6 +51,8 @@ TurretStartTry1:
 TurretStartIs1:
     lda #TURRET_1_FRAMES
     sta turret_1_count
+    lda #$01
+    sta turret_1_cur_frame
 
 TurretStartTry2:
     lda #TURRET_2_ID
@@ -148,9 +151,10 @@ turret_active_retval: .byte 0
 
 .macro turret_force_stop_id_1()
 {
-    lda #$00
     turret_clear_rect(turret_1_bullet_rect)
+    lda #$00
     sta turret_1_count
+    sta turret_1_cur_frame
         // all positions to background color 
     lda background_color
     ldx #<turret_1_all_color_stream
@@ -276,6 +280,34 @@ TurretStep:
 
 
 //////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+Turret1DoStep:
+{
+    // sanity check that count isn't already zero
+    lda turret_1_count
+    beq Done                        // if count has hit zero then done
+    
+    lda #TURRET_1_FRAMES            // load total num frames
+    sec                             // set carry for to prep for subtraction
+    sbc turret_1_count              // sub cur count value to get zero based
+                                    // frame count into accum
+    asl                             // multiply by two since table is 16 bit addrs
+    tay                             // put result in y its index to stream LSB
+    lda Turret1StreamAddrTable, y   // load stream LSB in Accm
+    tax                             // move LSB of stream start to x
+    iny                             // inc index point to MSB of addr in table
+    lda Turret1StreamAddrTable, y   // load accum with MSB of stream start
+    tay                             // move MSB of stream start to Y addr
+    jsr TurretStreamProcessor       // x, and y set for this frame's stream
+                                    // so jsr to stream processor
+
+    dec turret_1_count              // dec count
+Done:
+    rts
+}
+
+/*
+//////////////////////////////////////////////////////////////////////////////
 // subroutine to step turret 1
 // it should only be called if turret 1 known to be active
 // which means turret_1_count > 0
@@ -369,7 +401,7 @@ Turret1StepDone:
     rts
 // Turret1DoStep subroutine end
 //////////////////////////////////////////////////////////////////////////////
-
+*/
 
 
 //////////////////////////////////////////////////////////////////////////////

@@ -166,11 +166,12 @@
 .const TURRET_1_MEM_VEL = ((40*TURRET_1_Y_VEL) + (TURRET_1_X_VEL))  // -40
 
 // number of raster frames for turret effect
-.const TURRET_1_FRAMES=8
+.const TURRET_1_FRAMES=7
 
 // when turret shot starts this will be non zero and count down each frame
 // TurretStep will decrement it.
 turret_1_count: .byte 0
+turret_1_cur_frame: .byte 0
 
 turret_1_all_color_stream:
         .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 0)
@@ -186,6 +187,18 @@ turret_1_all_color_stream:
         .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 10)
         .word $FFFF  // stream command marker
         .byte $FF    // stream quit command
+
+
+// table of the addresses of all the streams for each frame
+Turret1StreamAddrTable:
+    .word turret_1_stream_frame_1
+    .word turret_1_stream_frame_2
+    .word turret_1_stream_frame_3
+    .word turret_1_stream_frame_4
+    .word turret_1_stream_frame_5
+    .word turret_1_stream_frame_6
+    .word turret_1_stream_frame_7
+
 
 turret_1_stream_frame_1:
         // copy characters to screen mem for the frame
