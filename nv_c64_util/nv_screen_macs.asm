@@ -44,6 +44,20 @@
 // 40 chars per row in default screen mode.
 .const NV_SCREEN_CHARS_PER_ROW = 40
 
+
+
+.function nv_screen_char_addr_from_xy(char_col, char_row)
+{
+    .return SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*char_row) + char_col
+}
+
+.function nv_screen_color_addr_from_xy(char_col, char_row)
+{
+    .return SCREEN_COLOR_START + (NV_SCREEN_CHARS_PER_ROW*char_row) + char_col
+}
+
+
+
 // clear screen and leave cursor in upper left
 .macro nv_screen_clear()
 {

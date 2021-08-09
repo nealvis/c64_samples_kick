@@ -50,12 +50,12 @@ WindAlreadyStarted:
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to call once per raster frame while wind is happening
-// if wind_count is zero and wind_glimmer_count is $FF then this routine
+// if wind_count is zero and wind_glimmer_count is zero then this routine
 // will do nothing. continually calling the routine will eventually get to 
-// the state of wind_count = 0 and wind_glimmer_count = $FF so its safe
+// the state of wind_count = 0 and wind_glimmer_count = 0 so its safe
 // to call this once every raster frame regardless of if wind is active
 // or not.  It is possible for wind_count to get to zero before 
-// wind_glimmer_count is $FF so its not sufficient to just check wind_count
+// wind_glimmer_count is zero so its not sufficient to just check wind_count
 WindStep:
     lda ship_1.x_vel
     bpl WindCheckLeftShip2
@@ -73,9 +73,6 @@ WindCheckLeftShip2:
     nv_bgt16_immediate(ship_2.x_loc, WIND_SHIP_MIN_LEFT, CheckGlimmerFrame)
     lda #$01
     sta ship_2.x_vel
-    //lda #$00
-    //sta wind_count
-    //jmp WindDoneVelShip1    
     lda #$01
     sta wind_ship_2_done
 

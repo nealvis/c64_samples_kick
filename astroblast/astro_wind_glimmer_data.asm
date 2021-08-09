@@ -1,6 +1,7 @@
 // astro_wind_data
 #importonce
 #import "../nv_c64_util/nv_color_macs.asm"
+#import "../nv_c64_util/nv_screen_macs.asm"
 
 .const CHAR_COLON = $3A
 .const CHAR_LOWEST_LINE = $46
@@ -15,84 +16,386 @@
 .const CHAR_CUSTOM_FULL_LINES = $1D // 29
 .const CHAR_CUSTOM_MEDIUM = $1E   // 30
 
+.const WIND_GLIMMER_FRAMES = 7
 
-wind_glimmer_count: .byte $FF
+wind_glimmer_count: .byte $00
 
-wind_step0_point_list_with_color_char: .byte NV_COLOR_WHITE // color to poke
-wind_step0_point_list_with_char:       .byte CHAR_CUSTOM_FULL     // char to poke
-wind_step0_point_list_addr: .byte 37, 1     // x, y ie col, row
-                            .byte 38, 3
-                            .byte 37, 4
-                            .byte 36, 5
-                            .byte 39, 6
-                            .byte 38, 7
-                            .byte 37, 9
-                            .byte 36, 11
-                            .byte 36, 12
-                            .byte 35, 15
-                            .byte 36, 17
-                            .byte 37, 18
-                            .byte 36, 19
-                            .byte 38, 21
-                            .byte 36, 24
-                            
-                            .byte $FF
+///////////////////////////////////////////////////////
+.const WG_BRIGHT_COLOR = NV_COLOR_WHITE
+.const WG_MED_COLOR = NV_COLOR_LITE_GREY
+.const WG_DIM_COLOR = NV_COLOR_GREY
 
-wind_step1_point_list_with_color_char: .byte NV_COLOR_WHITE // poke color
-wind_step1_point_list_with_char:       .byte CHAR_CUSTOM_FULL // poke char
-wind_step1_point_list_addr: .byte 33, 1
-                            .byte 31, 3
-                            .byte 32, 4
-                            .byte 32, 5
-                            .byte 33, 6
-                            .byte 34, 9
-                            .byte 32, 12
-                            .byte 30, 14
-                            .byte 32, 18
-                            .byte 33, 21
-                            .byte 31, 23
-                            .byte $FF
+.const WG_CHAR_GALE = $1B
+.const WG_CHAR_GUST = $1E
+.const WG_CHAR_WIND = $1C
+.const WG_CHAR_BREEZE = $3A
 
-wind_step2_point_list_with_color_char: .byte NV_COLOR_WHITE // poke color
-wind_step2_point_list_with_char:       .byte CHAR_CUSTOM_MEDIUM  // poke char
-wind_step2_point_list_addr: .byte 28, 3
-                            .byte 26, 5
-                            .byte 29, 9
-                            .byte 26, 12
-                            .byte 25, 14
-                            .byte 27, 18
-                            .byte 27, 21
-                            .byte 26, 22
-                            .byte $FF
+// table of the addresses of all the streams for each frame
+WindGlimmerStreamAddrTable:
+    .word wind_glimmer_stream_frame_1
+    .word wind_glimmer_stream_frame_2
+    .word wind_glimmer_stream_frame_3
+    .word wind_glimmer_stream_frame_4
+    .word wind_glimmer_stream_frame_5
+    .word wind_glimmer_stream_frame_6
+    .word wind_glimmer_stream_frame_7
 
-wind_step3_point_list_with_color_char: .byte NV_COLOR_WHITE // poke color
-wind_step3_point_list_with_char:       .byte CHAR_CUSTOM_SPARSE      // poke char
-wind_step3_point_list_addr: .byte 24, 3
-                            .byte 22, 5
-                            .byte 24, 9
-                            .byte 20, 12
-                            .byte 21, 14
-                            .byte 24, 18
-                            .byte 23, 21
-                            .byte 20, 21
-                            .byte $FF
 
-wind_step4_point_list_with_color_char: .byte NV_COLOR_WHITE // Poke color
-wind_step4_point_list_with_char:       .byte CHAR_CUSTOM_SPARSE      // Poke char
-wind_step4_point_list_addr: .byte 19, 3
-                            .byte 18, 9
-                            .byte 15, 12
-                            .byte 16, 14
-                            .byte 19, 20
-                            .byte 16, 22
-                            .byte $FF
+wind_glimmer_stream_frame_1:
+        // copy characters to screen mem for the frame
+        .word $FFFF                // stream command marker
+        .byte $01, WG_CHAR_GALE    // new source byte is the gale wind char
+        .word nv_screen_char_addr_from_xy(37, 1)
+        .word nv_screen_char_addr_from_xy(38, 3)
+        .word nv_screen_char_addr_from_xy(37, 4)
+        .word nv_screen_char_addr_from_xy(36, 5)
+        .word nv_screen_char_addr_from_xy(39, 6)
+        .word nv_screen_char_addr_from_xy(38, 7)
+        .word nv_screen_char_addr_from_xy(37, 9)
+        .word nv_screen_char_addr_from_xy(36, 11)
+        .word nv_screen_char_addr_from_xy(38, 12)
+        .word nv_screen_char_addr_from_xy(35, 15)
+        .word nv_screen_char_addr_from_xy(36, 17)
+        .word nv_screen_char_addr_from_xy(37, 18)
+        .word nv_screen_char_addr_from_xy(36, 19)
+        .word nv_screen_char_addr_from_xy(38, 21)
+        .word nv_screen_char_addr_from_xy(36, 24)
 
-wind_step5_point_list_with_color_char: .byte NV_COLOR_WHITE // poke color
-wind_step5_point_list_with_char:       .byte CHAR_COLON    // poke char
-wind_step5_point_list_addr: .byte 13, 3
-                            .byte 12, 9
-                            .byte 10, 12
-                            .byte 11, 14
-                            .byte 13, 21
-                            .byte 12, 23
-                            .byte $FF
+        // now copy the color to the color memory for this frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_BRIGHT_COLOR   // new source byte is color
+
+        .word nv_screen_color_addr_from_xy(37, 1)
+        .word nv_screen_color_addr_from_xy(38, 3)
+        .word nv_screen_color_addr_from_xy(37, 4)
+        .word nv_screen_color_addr_from_xy(36, 5)
+        .word nv_screen_color_addr_from_xy(39, 6)
+        .word nv_screen_color_addr_from_xy(38, 7)
+        .word nv_screen_color_addr_from_xy(37, 9)
+        .word nv_screen_color_addr_from_xy(36, 11)
+        .word nv_screen_color_addr_from_xy(38, 12)
+        .word nv_screen_color_addr_from_xy(35, 15)
+        .word nv_screen_color_addr_from_xy(36, 17)
+        .word nv_screen_color_addr_from_xy(37, 18)
+        .word nv_screen_color_addr_from_xy(36, 19)
+        .word nv_screen_color_addr_from_xy(38, 21)
+        .word nv_screen_color_addr_from_xy(36, 24)
+
+        // end the frame
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+
+wind_glimmer_stream_frame_2:
+        // copy characters to screen mem for the frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_CHAR_GUST     // new source byte is the gale wind char
+        .word nv_screen_char_addr_from_xy(33, 1)
+        .word nv_screen_char_addr_from_xy(31, 3)
+        .word nv_screen_char_addr_from_xy(32, 4)
+        .word nv_screen_char_addr_from_xy(32, 5)
+        .word nv_screen_char_addr_from_xy(33, 6)
+        .word nv_screen_char_addr_from_xy(34, 9)
+        .word nv_screen_char_addr_from_xy(32, 12)
+        .word nv_screen_char_addr_from_xy(30, 14)
+        .word nv_screen_char_addr_from_xy(32, 18)
+        .word nv_screen_char_addr_from_xy(33, 21)
+        .word nv_screen_char_addr_from_xy(31, 23)
+
+
+        // now copy the color to the color memory for this frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_BRIGHT_COLOR   // new source byte is color
+
+        .word nv_screen_color_addr_from_xy(33, 1)
+        .word nv_screen_color_addr_from_xy(31, 3)
+        .word nv_screen_color_addr_from_xy(32, 4)
+        .word nv_screen_color_addr_from_xy(32, 5)
+        .word nv_screen_color_addr_from_xy(33, 6)
+        .word nv_screen_color_addr_from_xy(34, 9)
+        .word nv_screen_color_addr_from_xy(32, 12)
+        .word nv_screen_color_addr_from_xy(30, 14)
+        .word nv_screen_color_addr_from_xy(32, 18)
+        .word nv_screen_color_addr_from_xy(33, 21)
+        .word nv_screen_color_addr_from_xy(31, 23)
+
+
+        // change color of Previous frame's chars to be more faint
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_MED_COLOR     // new color
+        .word nv_screen_color_addr_from_xy(37, 1)
+        .word nv_screen_color_addr_from_xy(38, 3)
+        .word nv_screen_color_addr_from_xy(37, 4)
+        .word nv_screen_color_addr_from_xy(36, 5)
+        .word nv_screen_color_addr_from_xy(39, 6)
+        .word nv_screen_color_addr_from_xy(38, 7)
+        .word nv_screen_color_addr_from_xy(37, 9)
+        .word nv_screen_color_addr_from_xy(36, 11)
+        .word nv_screen_color_addr_from_xy(38, 12)
+        .word nv_screen_color_addr_from_xy(35, 15)
+        .word nv_screen_color_addr_from_xy(36, 17)
+        .word nv_screen_color_addr_from_xy(37, 18)
+        .word nv_screen_color_addr_from_xy(36, 19)
+        .word nv_screen_color_addr_from_xy(38, 21)
+        .word nv_screen_color_addr_from_xy(36, 24)
+
+        // end the frame
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+
+wind_glimmer_stream_frame_3:
+        // copy characters to screen mem for the frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_CHAR_WIND    // new source byte is the gust wind char
+        .word nv_screen_char_addr_from_xy(28, 3)
+        .word nv_screen_char_addr_from_xy(26, 5)
+        .word nv_screen_char_addr_from_xy(29, 9)
+        .word nv_screen_char_addr_from_xy(26, 12)
+        .word nv_screen_char_addr_from_xy(25, 14)
+        .word nv_screen_char_addr_from_xy(27, 18)
+        .word nv_screen_char_addr_from_xy(27, 21)
+        .word nv_screen_char_addr_from_xy(26, 22)
+
+        // now copy the color to the color memory for this frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_BRIGHT_COLOR   
+        .word nv_screen_color_addr_from_xy(28, 3)
+        .word nv_screen_color_addr_from_xy(26, 5)
+        .word nv_screen_color_addr_from_xy(29, 9)
+        .word nv_screen_color_addr_from_xy(26, 12)
+        .word nv_screen_color_addr_from_xy(25, 14)
+        .word nv_screen_color_addr_from_xy(27, 18)
+        .word nv_screen_color_addr_from_xy(27, 21)
+        .word nv_screen_color_addr_from_xy(26, 22)
+
+        // change color of previous frame
+        // now copy the color to the color memory for this frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_MED_COLOR     // new source byte is color
+        .word nv_screen_color_addr_from_xy(33, 1)
+        .word nv_screen_color_addr_from_xy(31, 3)
+        .word nv_screen_color_addr_from_xy(32, 4)
+        .word nv_screen_color_addr_from_xy(32, 5)
+        .word nv_screen_color_addr_from_xy(33, 6)
+        .word nv_screen_color_addr_from_xy(34, 9)
+        .word nv_screen_color_addr_from_xy(32, 12)
+        .word nv_screen_color_addr_from_xy(30, 14)
+        .word nv_screen_color_addr_from_xy(32, 18)
+        .word nv_screen_color_addr_from_xy(33, 21)
+        .word nv_screen_color_addr_from_xy(31, 23)
+
+
+        // change color of two frames back 
+        .word $FFFF                 // stream command marker
+        .byte $FE     
+        .word nv_screen_color_addr_from_xy(37, 1)
+        .word nv_screen_color_addr_from_xy(38, 3)
+        .word nv_screen_color_addr_from_xy(37, 4)
+        .word nv_screen_color_addr_from_xy(36, 5)
+        .word nv_screen_color_addr_from_xy(39, 6)
+        .word nv_screen_color_addr_from_xy(38, 7)
+        .word nv_screen_color_addr_from_xy(37, 9)
+        .word nv_screen_color_addr_from_xy(36, 11)
+        .word nv_screen_color_addr_from_xy(38, 12)
+        .word nv_screen_color_addr_from_xy(35, 15)
+        .word nv_screen_color_addr_from_xy(36, 17)
+        .word nv_screen_color_addr_from_xy(37, 18)
+        .word nv_screen_color_addr_from_xy(36, 19)
+        .word nv_screen_color_addr_from_xy(38, 21)
+        .word nv_screen_color_addr_from_xy(36, 24)
+
+        // end the frame
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+
+wind_glimmer_stream_frame_4:
+        // copy characters to screen mem for the frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_CHAR_BREEZE    // new source byte is the gust wind char
+        .word nv_screen_char_addr_from_xy(24, 3)
+        .word nv_screen_char_addr_from_xy(22, 5)
+        .word nv_screen_char_addr_from_xy(24, 9)
+        .word nv_screen_char_addr_from_xy(20, 12)
+        .word nv_screen_char_addr_from_xy(21, 14)
+        .word nv_screen_char_addr_from_xy(24, 18)
+        .word nv_screen_char_addr_from_xy(23, 21)
+        .word nv_screen_char_addr_from_xy(20, 21)
+
+
+        // now copy the color to the color memory for this frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_BRIGHT_COLOR   
+        .word nv_screen_color_addr_from_xy(24, 3)
+        .word nv_screen_color_addr_from_xy(22, 5)
+        .word nv_screen_color_addr_from_xy(24, 9)
+        .word nv_screen_color_addr_from_xy(20, 12)
+        .word nv_screen_color_addr_from_xy(21, 14)
+        .word nv_screen_color_addr_from_xy(24, 18)
+        .word nv_screen_color_addr_from_xy(23, 21)
+        .word nv_screen_color_addr_from_xy(20, 21)
+
+        // change color of previous frame
+        // now copy the color to the color memory for this frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_MED_COLOR     // new source byte is color
+        .word nv_screen_color_addr_from_xy(28, 3)
+        .word nv_screen_color_addr_from_xy(26, 5)
+        .word nv_screen_color_addr_from_xy(29, 9)
+        .word nv_screen_color_addr_from_xy(26, 12)
+        .word nv_screen_color_addr_from_xy(25, 14)
+        .word nv_screen_color_addr_from_xy(27, 18)
+        .word nv_screen_color_addr_from_xy(27, 21)
+        .word nv_screen_color_addr_from_xy(26, 22)
+
+
+        // change color of two frames back 
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // background color is source byte
+        .word nv_screen_color_addr_from_xy(33, 1)
+        .word nv_screen_color_addr_from_xy(31, 3)
+        .word nv_screen_color_addr_from_xy(32, 4)
+        .word nv_screen_color_addr_from_xy(32, 5)
+        .word nv_screen_color_addr_from_xy(33, 6)
+        .word nv_screen_color_addr_from_xy(34, 9)
+        .word nv_screen_color_addr_from_xy(32, 12)
+        .word nv_screen_color_addr_from_xy(30, 14)
+        .word nv_screen_color_addr_from_xy(32, 18)
+        .word nv_screen_color_addr_from_xy(33, 21)
+        .word nv_screen_color_addr_from_xy(31, 23)
+
+        // end the frame
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+
+wind_glimmer_stream_frame_5:
+        // copy characters to screen mem for the frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_CHAR_BREEZE    // new source byte is the gust wind char
+        .word nv_screen_char_addr_from_xy(19, 3)
+        .word nv_screen_char_addr_from_xy(18, 5)
+        .word nv_screen_char_addr_from_xy(15, 12)
+        .word nv_screen_char_addr_from_xy(16, 14)
+        .word nv_screen_char_addr_from_xy(19, 20)
+        .word nv_screen_char_addr_from_xy(16, 22)
+
+        // now copy the color to the color memory for this frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_BRIGHT_COLOR   
+        .word nv_screen_color_addr_from_xy(19, 3)
+        .word nv_screen_color_addr_from_xy(18, 5)
+        .word nv_screen_color_addr_from_xy(15, 12)
+        .word nv_screen_color_addr_from_xy(16, 14)
+        .word nv_screen_color_addr_from_xy(19, 20)
+        .word nv_screen_color_addr_from_xy(16, 22)
+
+
+        // change color of previous frame to be more faint
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_MED_COLOR     // new source byte is color
+        .word nv_screen_color_addr_from_xy(24, 3)
+        .word nv_screen_color_addr_from_xy(22, 5)
+        .word nv_screen_color_addr_from_xy(24, 9)
+        .word nv_screen_color_addr_from_xy(20, 12)
+        .word nv_screen_color_addr_from_xy(21, 14)
+        .word nv_screen_color_addr_from_xy(24, 18)
+        .word nv_screen_color_addr_from_xy(23, 21)
+        .word nv_screen_color_addr_from_xy(20, 21)
+
+        // change color of two frames back 
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // background color is source byte
+        .word nv_screen_color_addr_from_xy(28, 3)
+        .word nv_screen_color_addr_from_xy(26, 5)
+        .word nv_screen_color_addr_from_xy(29, 9)
+        .word nv_screen_color_addr_from_xy(26, 12)
+        .word nv_screen_color_addr_from_xy(25, 14)
+        .word nv_screen_color_addr_from_xy(27, 18)
+        .word nv_screen_color_addr_from_xy(27, 21)
+        .word nv_screen_color_addr_from_xy(26, 22)
+
+        // end the frame
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+
+wind_glimmer_stream_frame_6:
+        // copy characters to screen mem for the frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_CHAR_BREEZE    // new source byte is the gust wind char
+        .word nv_screen_char_addr_from_xy(13, 3)
+        .word nv_screen_char_addr_from_xy(12, 9)
+        .word nv_screen_char_addr_from_xy(10, 12)
+        .word nv_screen_char_addr_from_xy(11, 14)
+        .word nv_screen_char_addr_from_xy(13, 21)
+        .word nv_screen_char_addr_from_xy(12, 23)
+
+        // now copy the color to the color memory for this frame
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_MED_COLOR   
+        .word nv_screen_color_addr_from_xy(13, 3)
+        .word nv_screen_color_addr_from_xy(12, 9)
+        .word nv_screen_color_addr_from_xy(10, 12)
+        .word nv_screen_color_addr_from_xy(11, 14)
+        .word nv_screen_color_addr_from_xy(13, 21)
+        .word nv_screen_color_addr_from_xy(12, 23)
+
+        // change color of previous frame to be more faint
+        .word $FFFF                 // stream command marker
+        .byte $01, WG_DIM_COLOR     // new source byte is color
+        .word nv_screen_color_addr_from_xy(19, 3)
+        .word nv_screen_color_addr_from_xy(18, 5)
+        .word nv_screen_color_addr_from_xy(15, 12)
+        .word nv_screen_color_addr_from_xy(16, 14)
+        .word nv_screen_color_addr_from_xy(19, 20)
+        .word nv_screen_color_addr_from_xy(16, 22)
+
+        // change color of two frames back 
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // background color is source byte
+        .word nv_screen_color_addr_from_xy(24, 3)
+        .word nv_screen_color_addr_from_xy(22, 5)
+        .word nv_screen_color_addr_from_xy(24, 9)
+        .word nv_screen_color_addr_from_xy(20, 12)
+        .word nv_screen_color_addr_from_xy(21, 14)
+        .word nv_screen_color_addr_from_xy(24, 18)
+        .word nv_screen_color_addr_from_xy(23, 21)
+        .word nv_screen_color_addr_from_xy(20, 21)
+
+
+        // end the frame
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+
+wind_glimmer_stream_frame_7:
+        // no new characters to screen mem for the frame
+
+        // no new colors for new chars this frame because no new chars
+
+        // change color of previous two frames frame to be background color
+        .word $FFFF                 // stream command marker
+        .byte $FE                   // new source byte is bg color
+        // one frame back
+        .word nv_screen_color_addr_from_xy(13, 3)
+        .word nv_screen_color_addr_from_xy(12, 9)
+        .word nv_screen_color_addr_from_xy(10, 12)
+        .word nv_screen_color_addr_from_xy(11, 14)
+        .word nv_screen_color_addr_from_xy(13, 21)
+        .word nv_screen_color_addr_from_xy(12, 23)
+
+        // change color of two frames back 
+        .word nv_screen_color_addr_from_xy(19, 3)
+        .word nv_screen_color_addr_from_xy(18, 5)
+        .word nv_screen_color_addr_from_xy(15, 12)
+        .word nv_screen_color_addr_from_xy(16, 14)
+        .word nv_screen_color_addr_from_xy(19, 20)
+        .word nv_screen_color_addr_from_xy(16, 22)
+
+        // end the frame
+        .word $FFFF                 // stream command marker
+        .byte $FF                   // stream quit command
+
+
