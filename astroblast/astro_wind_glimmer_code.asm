@@ -5,6 +5,7 @@
 #import "astro_wind_glimmer_data.asm"
 #import "../nv_c64_util/nv_screen_code.asm"
 #import "astro_vars_data.asm"
+#import "astro_stream_processor_code.asm"
 
 .const WIND_GLIMMER_DARKEN_COLOR = NV_COLOR_GREY
 
@@ -52,7 +53,7 @@ WindGlimmerStep:
     iny                                 // inc index point to MSB of addr in table
     lda WindGlimmerStreamAddrTable, y   // load accum with MSB of stream start
     tay                                 // move MSB of stream start to Y addr
-    jsr WindGlimmerStreamProcessor      // x, and y set for this frame's stream
+    jsr AstroStreamProcessor      // x, and y set for this frame's stream
                                         // so jsr to stream processor
 
     dec wind_glimmer_count      // dec count
@@ -60,7 +61,7 @@ Done:
     rts
 }
 
-
+/*
 //////////////////////////////////////////////////////////////////////////////
 //   Accum: will change, Input: should hold the byte that will be stored 
 //   X Reg: will change, Input: LSB of stream data's addr.  
@@ -71,3 +72,4 @@ WindGlimmerStreamProcessor:
 wg_temp_word: .word $0000
 wg_save_block: .word $0000
                .word $0000
+*/

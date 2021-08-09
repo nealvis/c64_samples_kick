@@ -19,6 +19,7 @@
 #import "../nv_c64_util/nv_pointer_macs.asm"
 #import "../nv_c64_util/nv_stream_processor_macs.asm"
 #import "../nv_c64_util/nv_debug_macs.asm"
+#import "astro_stream_processor_code.asm"
 //#import "../nv_c64_util/nv_debug_code.asm"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -155,7 +156,7 @@ turret_active_retval: .byte 0
     lda background_color
     ldx #<turret_1_all_color_stream
     ldy #>turret_1_all_color_stream
-    jsr TurretStreamProcessor
+    jsr AstroStreamProcessor
 
 }
 
@@ -168,7 +169,7 @@ turret_active_retval: .byte 0
     lda background_color
     ldx #<turret_2_all_color_stream
     ldy #>turret_2_all_color_stream
-    jsr TurretStreamProcessor
+    jsr AstroStreamProcessor
 }
 
 .macro turret_force_stop_id_3(save_block)
@@ -183,7 +184,7 @@ turret_active_retval: .byte 0
     lda background_color
     ldx #<turret_3_all_color_stream
     ldy #>turret_3_all_color_stream
-    jsr TurretStreamProcessor
+    jsr AstroStreamProcessor
 }
 
 
@@ -294,7 +295,7 @@ Turret1DoStep:
     iny                             // inc index point to MSB of addr in table
     lda Turret1StreamAddrTable, y   // load accum with MSB of stream start
     tay                             // move MSB of stream start to Y addr
-    jsr TurretStreamProcessor       // x, and y set for this frame's stream
+    jsr AstroStreamProcessor       // x, and y set for this frame's stream
                                     // so jsr to stream processor
 
     dec turret_1_count              // dec count
@@ -321,7 +322,7 @@ Turret2DoStep:
     iny                             // inc index point to MSB of addr in table
     lda Turret2StreamAddrTable, y   // load accum with MSB of stream start
     tay                             // move MSB of stream start to Y addr
-    jsr TurretStreamProcessor       // x, and y set for this frame's stream
+    jsr AstroStreamProcessor       // x, and y set for this frame's stream
                                     // so jsr to stream processor
 
     dec turret_2_count              // dec count
@@ -350,7 +351,7 @@ Turret3DoStep:
     iny                             // inc index point to MSB of addr in table
     lda Turret3StreamAddrTable, y   // load accum with MSB of stream start
     tay                             // move MSB of stream start to Y addr
-    jsr TurretStreamProcessor       // x, and y set for this frame's stream
+    jsr AstroStreamProcessor       // x, and y set for this frame's stream
                                     // so jsr to stream processor
 
     dec turret_3_count              // dec count
@@ -364,7 +365,7 @@ Done:
 
 
 
-
+/*
 //////////////////////////////////////////////////////////////////////////////
 //   Accum: will change, Input: should hold the byte that will be stored 
 //   X Reg: will change, Input: LSB of stream data's addr.  
@@ -376,5 +377,5 @@ temp_word: .word $0000
 save_block: .word $0000
             .word $0000
 
-
+*/
 
