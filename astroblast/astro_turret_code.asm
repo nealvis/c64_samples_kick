@@ -19,6 +19,7 @@
 #import "../nv_c64_util/nv_pointer_macs.asm"
 #import "../nv_c64_util/nv_stream_processor_macs.asm"
 #import "../nv_c64_util/nv_debug_macs.asm"
+#import "astro_stream_processor_macs.asm"
 #import "astro_stream_processor_code.asm"
 //#import "../nv_c64_util/nv_debug_code.asm"
 
@@ -276,88 +277,30 @@ TurretStep:
 //////////////////////////////////////////////////////////////////////////////
 
 
+
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to call to step turret 1
 Turret1DoStep:
-{
-    // sanity check that count isn't already zero
-    lda turret_1_count
-    beq Done                        // if count has hit zero then done
-    
-    lda #TURRET_1_FRAMES            // load total num frames
-    sec                             // set carry for to prep for subtraction
-    sbc turret_1_count              // sub cur count value to get zero based
-                                    // frame count into accum
-    asl                             // multiply by two since table is 16 bit addrs
-    tay                             // put result in y its index to stream LSB
-    lda Turret1StreamAddrTable, y   // load stream LSB in Accm
-    tax                             // move LSB of stream start to x
-    iny                             // inc index point to MSB of addr in table
-    lda Turret1StreamAddrTable, y   // load accum with MSB of stream start
-    tay                             // move MSB of stream start to Y addr
-    jsr AstroStreamProcessor       // x, and y set for this frame's stream
-                                    // so jsr to stream processor
+    astro_effect_step_sr(AstroStreamProcessor, turret_1_count, 
+                         TURRET_1_FRAMES, Turret1StreamAddrTable)
 
-    dec turret_1_count              // dec count
-Done:
-    rts
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to call to step turret 2
 Turret2DoStep:
-{
-    // sanity check that count isn't already zero
-    lda turret_2_count
-    beq Done                        // if count has hit zero then done
-    
-    lda #TURRET_2_FRAMES            // load total num frames
-    sec                             // set carry for to prep for subtraction
-    sbc turret_2_count              // sub cur count value to get zero based
-                                    // frame count into accum
-    asl                             // multiply by two since table is 16 bit addrs
-    tay                             // put result in y its index to stream LSB
-    lda Turret2StreamAddrTable, y   // load stream LSB in Accm
-    tax                             // move LSB of stream start to x
-    iny                             // inc index point to MSB of addr in table
-    lda Turret2StreamAddrTable, y   // load accum with MSB of stream start
-    tay                             // move MSB of stream start to Y addr
-    jsr AstroStreamProcessor       // x, and y set for this frame's stream
-                                    // so jsr to stream processor
+    astro_effect_step_sr(AstroStreamProcessor, turret_2_count, 
+                         TURRET_2_FRAMES, Turret2StreamAddrTable)
 
-    dec turret_2_count              // dec count
-Done:
-    rts
-}
 // Turret2DoStep - end
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to call to step turret 3
 Turret3DoStep:
-{
-    // sanity check that count isn't already zero
-    lda turret_3_count
-    beq Done                        // if count has hit zero then done
-    
-    lda #TURRET_3_FRAMES            // load total num frames
-    sec                             // set carry for to prep for subtraction
-    sbc turret_3_count              // sub cur count value to get zero based
-                                    // frame count into accum
-    asl                             // multiply by two since table is 16 bit addrs
-    tay                             // put result in y its index to stream LSB
-    lda Turret3StreamAddrTable, y   // load stream LSB in Accm
-    tax                             // move LSB of stream start to x
-    iny                             // inc index point to MSB of addr in table
-    lda Turret3StreamAddrTable, y   // load accum with MSB of stream start
-    tay                             // move MSB of stream start to Y addr
-    jsr AstroStreamProcessor       // x, and y set for this frame's stream
-                                    // so jsr to stream processor
+    astro_effect_step_sr(AstroStreamProcessor, turret_3_count, 
+                         TURRET_3_FRAMES, Turret3StreamAddrTable)
 
-    dec turret_3_count              // dec count
-Done:
-    rts
-}
+
 // Turret3DoStep - end
 //////////////////////////////////////////////////////////////////////////////
 
