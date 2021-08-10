@@ -163,7 +163,9 @@ HitQuitCommand:
     // Normal commands (that require no special info from
     // the main program start from 0 and go up
     .const CMD_NO_OP = $00      // does nothing, no arg
+    
     .const CMD_LOAD_SRC = $01   // 1 byte arg, the new src data to copy
+    
     .const CMD_BLK_CPY = $02    // 1 byte arg, num bytes to copy
                                 // first word is the target base addr
                                 // the src bytes follow, must match arg
@@ -171,6 +173,14 @@ HitQuitCommand:
                                 // addr, the next byte in to target base 
                                 // addr + 1, etc. until num bytes to copy
                                 // have been copied.
+
+    .const CMD_DEST_LIST = $03   // two byte arg which is the 16 bit 
+                                 // address of and address list that 
+                                 // should be used asthe destination 
+                                 // addresses.  An address list is zero
+                                 // or more 16 bit addrs in succession
+                                 // in memory followed by terminating $FFFF  
+    
     .const CMD_QUIT = $FF       // quit is normal but out of order
 
     // special commands that require info from the 
@@ -258,12 +268,23 @@ IsCmdBackgroundSrc:
 
 TryCmdBlockCopy:
     cmp #CMD_BLK_CPY
-    bne TryCmdNop
+    bne TryCmdDestList
 IsCmdBlockCopy:
     // cmd $02 means size of block is next byte
     // followed by a 16 bit destination address 
     // followed by that many number of new source bytes for the dest 
     jsr DoBlkCpy
+    jmp LoopTop
+
+TryCmdDestList:
+    // cmd $03 means the next 2 bytes comprise the address of a
+    // list of addresses that should be used as the destination 
+    // address for the byte that is currently getting copied.  The
+    // list of addresses must be terminated by $FFFF
+    cmp #CMD_DEST_LIST
+    bne TryCmdNop
+IsCmdDestList:
+    jsr DoDestList
     jmp LoopTop
 
 TryCmdNop:
@@ -312,8 +333,72 @@ HitQuitCommand:
 
     rts
 
-blk_cpy_num_bytes: .byte 0
+DoDestList:
+{
+    // read the address of the list from the stream
+    lda (Z2_LO), y                  // first byte is LSB of addr of list start
+    iny                             // advance to next byte of the stream
+    sta ZERO_PAGE_LO
 
+    lda (Z2_LO), y                  // next byte is MSB of addr of list start
+    iny                             // advance to next byte of the stream
+    sta ZERO_PAGE_HI
+    // now ZERO_PAGE_LO/HI points to the address list
+
+    // save current stream position
+    sty dest_list_save_y
+    ldy Z2_LO
+    sty dest_list_save_z2_lo
+    ldy Z2_HI
+    sty dest_list_save_z2_hi
+
+    // read an address from the list
+    ldx #$00
+    ldy #$00
+
+LoopReadDestList:
+    lda (ZERO_PAGE_LO),y            // read LSB of addr in list
+    iny                             // inc to next byte in list
+    sta Z2_LO                       // store LSB in z2_LO
+
+    lda (ZERO_PAGE_LO),y            // read MSB of addr in list
+    iny                             // inc to next byte in list
+    sta Z2_HI                       // store MSB in z2_HI
+
+    lda #$FF
+    cmp Z2_LO
+    bne NotDestListEnd
+    cmp Z2_HI
+    bne NotDestListEnd
+
+IsDestListEnd:
+    // was list end, restore stream state and return
+    lda dest_list_save_z2_hi
+    sta Z2_HI
+    lda dest_list_save_z2_lo
+    sta Z2_LO
+    ldy dest_list_save_y
+    rts
+
+NotDestListEnd:
+    // Not end of list so Z2_LO and Z2_HI point to a destination addr
+    // so copy a byte to that address
+    lda temp_word         // temp_word LSB is the src byte
+    ldx #$00              // load x reg with 0 / no offset
+    sta (Z2_LO,x)         // store accum to pointed to addr
+    jmp LoopReadDestList
+
+    //dest_list_addr: .word $0000
+    dest_list_save_y: .byte $00
+    dest_list_save_z2_lo: .byte $00
+    dest_list_save_z2_hi: .byte $00
+}
+
+// DoDestList - end
+////////////////////////////////////////////////////////////////////////////
+
+
+blk_cpy_num_bytes: .byte 0
 DoBlkCpy:
     // read number of bytes to copy first
     lda (Z2_LO), y                  // read next byte in stream
