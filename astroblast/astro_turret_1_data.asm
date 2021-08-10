@@ -1,3 +1,7 @@
+//////////////////////////////////////////////////////////////////////////////
+// astro_turret_1_data.asm
+// file contains the data for turret 1 frames as they are stepped through.
+
 #importonce
 
 #import "../nv_c64_util/nv_color_macs.asm"
