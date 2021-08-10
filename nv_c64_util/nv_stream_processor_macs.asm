@@ -52,6 +52,7 @@
 //   Accum: may change, initially should hold the byte that will be stored 
 //   X Reg: will change
 //   Y Reg: will change
+/*
 .macro nv_stream_proc(stream_addr, save_block)
 {
     .const CMD_NO_OP = $00
@@ -144,7 +145,7 @@ HitQuitCommand:
     ldy save_block+1
     sty ZERO_PAGE_HI
 }
-
+*/
 
 // macros params
 //   temp_word: is a temp word used internally
@@ -166,6 +167,10 @@ HitQuitCommand:
     .const CMD_BLK_CPY = $02    // 1 byte arg, num bytes to copy
                                 // first word is the target base addr
                                 // the src bytes follow, must match arg
+                                // the first byte is copied to target base
+                                // addr, the next byte in to target base 
+                                // addr + 1, etc. until num bytes to copy
+                                // have been copied.
     .const CMD_QUIT = $FF       // quit is normal but out of order
 
     // special commands that require info from the 
