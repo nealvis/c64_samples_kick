@@ -2,145 +2,8 @@
 #importonce
 
 #import "../nv_c64_util/nv_color_macs.asm"
-
-.const CHAR_PIXEL_WIDTH = $0008
-.const CHAR_PIXEL_HEIGHT = $0008
-
- 
-.function CharCoordToScreenPixelsLeft(char_x, char_y)
-{
-    .var r_left
-    .var r_top
-    .var r_right
-    .var r_bottom
-
-    .const LEFT_OFFSET = 26
-    .const TOP_OFFSET = 53
-   
-    // LEFT
-    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
-    .eval r_left = CHAR_PIXEL_WIDTH
-    .eval r_left = r_left * char_x
-    .eval r_left = r_left + LEFT_OFFSET
-    
-    // TOP
-    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
-    .eval r_top = CHAR_PIXEL_HEIGHT
-    .eval r_top = r_top * char_y
-    .eval r_top = r_top + TOP_OFFSET
-
-    // RIGHT
-    // add width to the left to get right
-    .eval r_right =  r_left + CHAR_PIXEL_WIDTH
-
-    // BOTTOM
-    // add height to the top to get the bottom
-    .eval r_bottom = r_top + CHAR_PIXEL_HEIGHT
-
-    .return r_left
-}
-
-.function CharCoordToScreenPixelsTop(char_x, char_y)
-{
-    .var r_left
-    .var r_top
-    .var r_right
-    .var r_bottom
-
-    .const LEFT_OFFSET = 26
-    .const TOP_OFFSET = 53
-   
-    // LEFT
-    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
-    .eval r_left = CHAR_PIXEL_WIDTH
-    .eval r_left = r_left * char_x
-    .eval r_left = r_left + LEFT_OFFSET
-    
-    // TOP
-    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
-    .eval r_top = CHAR_PIXEL_HEIGHT
-    .eval r_top = r_top * char_y
-    .eval r_top = r_top + TOP_OFFSET
-
-    // RIGHT
-    // add width to the left to get right
-    .eval r_right =  r_left + CHAR_PIXEL_WIDTH
-
-    // BOTTOM
-    // add height to the top to get the bottom
-    .eval r_bottom = r_top + CHAR_PIXEL_HEIGHT
-
-    .return r_top
-}
-
-.function CharCoordToScreenPixelsRight(char_x, char_y)
-{
-    .var r_left
-    .var r_top
-    .var r_right
-    .var r_bottom
-
-    .const LEFT_OFFSET = 26
-    .const TOP_OFFSET = 53
-   
-    // LEFT
-    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
-    .eval r_left = CHAR_PIXEL_WIDTH
-    .eval r_left = r_left * char_x
-    .eval r_left = r_left + LEFT_OFFSET
-    
-    // TOP
-    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
-    .eval r_top = CHAR_PIXEL_HEIGHT
-    .eval r_top = r_top * char_y
-    .eval r_top = r_top + TOP_OFFSET
-
-    // RIGHT
-    // add width to the left to get right
-    .eval r_right =  r_left + CHAR_PIXEL_WIDTH
-
-    // BOTTOM
-    // add height to the top to get the bottom
-    .eval r_bottom = r_top + CHAR_PIXEL_HEIGHT
-
-    .return r_right
-}
-
-.function CharCoordToScreenPixelsBottom(char_x, char_y)
-{
-    .var r_left
-    .var r_top
-    .var r_right
-    .var r_bottom
-
-    .const LEFT_OFFSET = 26
-    .const TOP_OFFSET = 53
-   
-    // LEFT
-    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
-    .eval r_left = CHAR_PIXEL_WIDTH
-    .eval r_left = r_left * char_x
-    .eval r_left = r_left + LEFT_OFFSET
-    
-    // TOP
-    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
-    .eval r_top = CHAR_PIXEL_HEIGHT
-    .eval r_top = r_top * char_y
-    .eval r_top = r_top + TOP_OFFSET
-
-    // RIGHT
-    // add width to the left to get right
-    .eval r_right =  r_left + CHAR_PIXEL_WIDTH
-
-    // BOTTOM
-    // add height to the top to get the bottom
-    .eval r_bottom = r_top + CHAR_PIXEL_HEIGHT
-
-    .return r_bottom
-}
-
-
-
+#import "../nv_c64_util/nv_screen_rect_macs.asm"
+#import "astro_turret_1_data.asm"
 
 /////////////////
 // turret IDs to pass when subroutines require an ID
@@ -150,250 +13,6 @@
 .const TURRET_4_ID = $08
 .const TURRET_ALL_ID = $FF
 
-
-
-//////////////////
-// turret 1 consts and variables
-.const TURRET_1_START_ROW = 10
-.const TURRET_1_START_COL = 37
-.const TURRET_1_COLOR = NV_COLOR_YELLOW
-.const TURRET_1_CHAR = $5D
-.const TURRET_1_BULLET_HEIGHT = 2
-.const TURRET_1_Y_VEL = -1
-.const TURRET_1_X_VEL = 0
-.const TURRET_1_CHAR_MEM_START = 1461
-.const TURRET_1_COLOR_MEM_START = $D800 + (TURRET_1_CHAR_MEM_START - 1024)
-.const TURRET_1_MEM_VEL = ((40*TURRET_1_Y_VEL) + (TURRET_1_X_VEL))  // -40
-
-// number of raster frames for turret effect
-.const TURRET_1_FRAMES=7
-
-// when turret shot starts this will be non zero and count down each frame
-// TurretStep will decrement it.
-turret_1_count: .byte 0
-
-turret_1_all_color_stream:
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 0)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 1)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 2)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 3)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 4)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 5)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 6)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 7)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 8)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 9)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 10)
-        .word $FFFF  // stream command marker
-        .byte $FF    // stream quit command
-
-
-// table of the addresses of all the streams for each frame
-Turret1StreamAddrTable:
-    .word turret_1_stream_frame_1
-    .word turret_1_stream_frame_2
-    .word turret_1_stream_frame_3
-    .word turret_1_stream_frame_4
-    .word turret_1_stream_frame_5
-    .word turret_1_stream_frame_6
-    .word turret_1_stream_frame_7
-
-
-turret_1_stream_frame_1:
-        // copy characters to screen mem for the frame
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 0)
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 1)
-        
-        // now copy the color to the color memory for this frame
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_COLOR   // new source byte is background color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 0)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 1)
-
-        // set the rect for this frame
-        .word $FFFF
-        .byte $02, $08                // blk copy command for 8 bytes
-        .word turret_1_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_1_START_COL, TURRET_1_START_ROW)
-        .word CharCoordToScreenPixelsTop(TURRET_1_START_COL, TURRET_1_START_ROW) - ((TURRET_1_BULLET_HEIGHT-1) * CHAR_PIXEL_HEIGHT)
-        .word CharCoordToScreenPixelsRight(TURRET_1_START_COL, TURRET_1_START_ROW)
-        .word CharCoordToScreenPixelsBottom(TURRET_1_START_COL, TURRET_1_START_ROW)
-        
-        // end the frame
-        .word $FFFF                 // stream command marker
-        .byte $FF                   // stream quit command
-
-turret_1_stream_frame_2:
-        // set to bullet char poke bullet
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 2)
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 3)
-        
-        // set color for bullets and poke bullet color
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 2)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 3)
-
-        // set to background color and clear previous frames color
-        .word $FFFF                 // stream command marker
-        .byte $FE                   // new source byte is background color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 0)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 1)
-
-        // set the rect for this frame
-        .word $FFFF
-        .byte $02, $08                // blk copy command for 8 bytes
-        .word turret_1_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_1_START_COL, TURRET_1_START_ROW-2)
-        .word CharCoordToScreenPixelsTop(TURRET_1_START_COL, TURRET_1_START_ROW-2) - ((TURRET_1_BULLET_HEIGHT-1) * CHAR_PIXEL_HEIGHT)
-        .word CharCoordToScreenPixelsRight(TURRET_1_START_COL, TURRET_1_START_ROW-2)
-        .word CharCoordToScreenPixelsBottom(TURRET_1_START_COL, TURRET_1_START_ROW-2)
-        
-        .word $FFFF                 // stream command marker
-        .byte $FF                   // stream quit command
-
-turret_1_stream_frame_3:
-        // set to bullet char poke bullet
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 4)
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 5)
-        
-        // set color for bullets and poke bullet color
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 4)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 5)
-
-        // set to background color and clear previous frames color
-        .word $FFFF                 // stream command marker
-        .byte $FE                   // new source byte is background color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 2)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 3)
-
-        // set the rect for this frame
-        .word $FFFF
-        .byte $02, $08                // blk copy command for 8 bytes
-        .word turret_1_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_1_START_COL, TURRET_1_START_ROW-4)
-        .word CharCoordToScreenPixelsTop(TURRET_1_START_COL, TURRET_1_START_ROW-4) - ((TURRET_1_BULLET_HEIGHT-1) * CHAR_PIXEL_HEIGHT)
-        .word CharCoordToScreenPixelsRight(TURRET_1_START_COL, TURRET_1_START_ROW-4)
-        .word CharCoordToScreenPixelsBottom(TURRET_1_START_COL, TURRET_1_START_ROW-4)
-
-        .word $FFFF                 // stream command marker
-        .byte $FF                   // stream quit command
-
-turret_1_stream_frame_4:
-        // set to bullet char poke bullet
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 6)
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 7)
-        
-        // set color for bullets and poke bullet color
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 6)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 7)
-
-        // set to background color and clear previous frames color
-        .word $FFFF                 // stream command marker
-        .byte $FE                   // new source byte is background color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 4)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 5)
-
-        // set the rect for this frame
-        .word $FFFF
-        .byte $02, $08                // blk copy command for 8 bytes
-        .word turret_1_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_1_START_COL, TURRET_1_START_ROW-6)
-        .word CharCoordToScreenPixelsTop(TURRET_1_START_COL, TURRET_1_START_ROW-6) - ((TURRET_1_BULLET_HEIGHT-1) * CHAR_PIXEL_HEIGHT)
-        .word CharCoordToScreenPixelsRight(TURRET_1_START_COL, TURRET_1_START_ROW-6)
-        .word CharCoordToScreenPixelsBottom(TURRET_1_START_COL, TURRET_1_START_ROW-6)
-
-        .word $FFFF                 // stream command marker
-        .byte $FF                   // stream quit command
-
-turret_1_stream_frame_5:
-        // set to bullet char poke bullet
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 8)
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 9)
-        
-        // set color for bullets and poke bullet color
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 8)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 9)
-
-        // set to background color and clear previous frames color
-        .word $FFFF                 // stream command marker
-        .byte $FE                   // new source byte is background color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 6)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 7)
-
-        // set the rect for this frame
-        .word $FFFF
-        .byte $02, $08                // blk copy command for 8 bytes
-        .word turret_1_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_1_START_COL, TURRET_1_START_ROW-8)
-        .word CharCoordToScreenPixelsTop(TURRET_1_START_COL, TURRET_1_START_ROW-8 - ((TURRET_1_BULLET_HEIGHT-1) * CHAR_PIXEL_HEIGHT))
-        .word CharCoordToScreenPixelsRight(TURRET_1_START_COL, TURRET_1_START_ROW-8)
-        .word CharCoordToScreenPixelsBottom(TURRET_1_START_COL, TURRET_1_START_ROW-8)
-
-        .word $FFFF                 // stream command marker
-        .byte $FF                   // stream quit command
-
-turret_1_stream_frame_6:
-        // set to bullet char poke bullet
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_CHAR    // new source byte is the bullet char
-        .word TURRET_1_CHAR_MEM_START + (TURRET_1_MEM_VEL * 10)
-        
-        // set color for bullets and poke bullet color
-        .word $FFFF                 // stream command marker
-        .byte $01, TURRET_1_COLOR   // new source byte is yellow color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 10)
-
-        // set to background color and clear previous frames color
-        .word $FFFF                 // stream command marker
-        .byte $FE                   // new source byte is background color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 8)
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 9)
-
-        // set the rect for this frame
-        .word $FFFF
-        .byte $02, $08                // blk copy command for 8 bytes
-        .word turret_1_bullet_rect    // dest base for block copy
-        .word CharCoordToScreenPixelsLeft(TURRET_1_START_COL, TURRET_1_START_ROW-10)
-        .word CharCoordToScreenPixelsTop(TURRET_1_START_COL, TURRET_1_START_ROW-10)
-        .word CharCoordToScreenPixelsRight(TURRET_1_START_COL, TURRET_1_START_ROW-10)
-        .word CharCoordToScreenPixelsBottom(TURRET_1_START_COL, TURRET_1_START_ROW-10)
-
-        .word $FFFF                 // stream command marker
-        .byte $FF                   // stream quit command
-
-turret_1_stream_frame_7:
-        // no bullet for frame 7, its already off screen
-
-        // set to background color and clear previous frames color
-        .word $FFFF                 // stream command marker
-        .byte $FE                   // new source byte is background color
-        .word TURRET_1_COLOR_MEM_START + (TURRET_1_MEM_VEL * 10)
-
-        // set the rect for this frame, clear it out
-        .word $FFFF
-        .byte $02, $08                // blk copy command for 8 bytes
-        .word turret_1_bullet_rect    // dest base for block copy
-        .word $0000, $0000, $0000, $0000
-
-        .word $FFFF                 // stream command marker
-        .byte $FF                   // stream quit command
 
 
 
@@ -431,7 +50,7 @@ turret_2_count: .byte 0
         .eval col = col + 1
         .eval row = row + 1
     }
-    .var screen_left = CharCoordToScreenPixelsLeft(col, row)
+    .var screen_left = nv_screen_rect_char_to_screen_pixel_left(col, row)
     .eval screen_left = screen_left +2
     .if (frame_num > 6)
     {
@@ -450,7 +69,7 @@ turret_2_count: .byte 0
         .eval char_col = char_col + 1
         .eval char_row = char_row + 1
     }
-    .var screen_top = CharCoordToScreenPixelsTop(char_col, char_row)
+    .var screen_top = nv_screen_rect_char_to_screen_pixel_top(char_col, char_row)
     .eval screen_top = screen_top +2
     .if (frame_num > 6)
     {
@@ -469,7 +88,7 @@ turret_2_count: .byte 0
         .eval char_col = char_col + 1
         .eval char_row = char_row + 1
     }
-    .var screen_right = CharCoordToScreenPixelsRight(char_col, char_row)
+    .var screen_right = nv_screen_rect_char_to_screen_pixel_right(char_col, char_row)
     .eval screen_right = screen_right+6
     .if (frame_num > 6)
     {
@@ -488,7 +107,7 @@ turret_2_count: .byte 0
         .eval char_col = char_col + 1
         .eval char_row = char_row + 1
     }
-    .var screen_bottom = CharCoordToScreenPixelsBottom(char_col, char_row)
+    .var screen_bottom = nv_screen_rect_char_to_screen_pixel_bottom(char_col, char_row)
     .eval screen_bottom = screen_bottom + 6
     .if (frame_num > 6)
     {
@@ -570,7 +189,7 @@ turret_2_stream_frame_2:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
+        //.word nv_screen_rect_char_to_screen_pixel_left(TURRET_2_START_COL-3, TURRET_2_START_ROW-3)
         .word DeathRectLeftT2(2)
         .word DeathRectTopT2(2)
         .word DeathRectRightT2(2)
@@ -602,7 +221,7 @@ turret_2_stream_frame_3:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
+        //.word nv_screen_rect_char_to_screen_pixel_left(TURRET_2_START_COL-5, TURRET_2_START_ROW-5)
         .word DeathRectLeftT2(3)
         .word DeathRectTopT2(3)
         .word DeathRectRightT2(3)
@@ -634,7 +253,7 @@ turret_2_stream_frame_4:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
+        //.word nv_screen_rect_char_to_screen_pixel_left(TURRET_2_START_COL-7, TURRET_2_START_ROW-7)
         .word DeathRectLeftT2(4)
         .word DeathRectTopT2(4)
         .word DeathRectRightT2(4)
@@ -666,7 +285,7 @@ turret_2_stream_frame_5:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
+        //.word nv_screen_rect_char_to_screen_pixel_left(TURRET_2_START_COL-9, TURRET_2_START_ROW-9)
         .word DeathRectLeftT2(5)
         .word DeathRectTopT2(5)
         .word DeathRectRightT2(5)
@@ -696,7 +315,7 @@ turret_2_stream_frame_6:
         .word $FFFF
         .byte $02, $08                // blk copy command for 8 bytes
         .word turret_2_bullet_rect    // dest base for block copy
-        //.word CharCoordToScreenPixelsLeft(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
+        //.word nv_screen_rect_char_to_screen_pixel_left(TURRET_2_START_COL-10, TURRET_2_START_ROW-10)
         .word DeathRectLeftT2(6)
         .word DeathRectTopT2(6)
         .word DeathRectRightT2(6)
@@ -756,7 +375,7 @@ turret_3_color_mem_cur: .word TURRET_3_COLOR_MEM_START
 {
     .var char_col = TURRET_3_START_COL - ((frame_num-1) * 3)
     .var char_row = TURRET_3_START_ROW - (frame_num -1)
-    .var screen_left = CharCoordToScreenPixelsLeft(char_col, char_row)
+    .var screen_left = nv_screen_rect_char_to_screen_pixel_left(char_col, char_row)
     .eval screen_left = screen_left - 16 // two chars to the left
     .eval screen_left = screen_left + 4
     .return screen_left
@@ -766,7 +385,7 @@ turret_3_color_mem_cur: .word TURRET_3_COLOR_MEM_START
 {
     .var char_col = TURRET_3_START_COL - ((frame_num-1) * 3)
     .var char_row = TURRET_3_START_ROW - (frame_num -1)
-    .var screen_top = CharCoordToScreenPixelsTop(char_col, char_row)
+    .var screen_top = nv_screen_rect_char_to_screen_pixel_top(char_col, char_row)
     .eval screen_top = screen_top + 3
     .return screen_top
 }
@@ -775,7 +394,7 @@ turret_3_color_mem_cur: .word TURRET_3_COLOR_MEM_START
 {
     .var char_col = TURRET_3_START_COL - ((frame_num-1) * 3)
     .var char_row = TURRET_3_START_ROW - (frame_num -1)
-    .var screen_right = CharCoordToScreenPixelsRight(char_col, char_row)
+    .var screen_right = nv_screen_rect_char_to_screen_pixel_right(char_col, char_row)
     .eval screen_right = screen_right - 4
     .return screen_right
 }
@@ -784,7 +403,7 @@ turret_3_color_mem_cur: .word TURRET_3_COLOR_MEM_START
 {
     .var char_col = TURRET_3_START_COL - ((frame_num-1) * 3)
     .var char_row = TURRET_3_START_ROW - (frame_num -1)
-    .var screen_bottom = CharCoordToScreenPixelsBottom(char_col, char_row)
+    .var screen_bottom = nv_screen_rect_char_to_screen_pixel_bottom(char_col, char_row)
     .eval screen_bottom = screen_bottom - 3
     .return screen_bottom
 }
@@ -1289,12 +908,6 @@ turret_3_stream_frame_12:
 //////////////////////////////////////////////////////////////////////////////
 // Data that will be modified via this wind effect and the main program can 
 // take actions upon
-
-// the death rectangle for bullet 1.  Turret step will update this 
-// rect as the bullet travels.  the main engine can check this rectangle 
-// for overlap with sprites and act accordingly.
-turret_1_bullet_rect: .word $0000, $0000  // (left, top)
-                      .word $0000, $0000  // (right, bottom)
 
 // the death rectangle for bullet 2.  Turret step will update this 
 // rect as the bullet travels.  the main engine can check this rectangle 

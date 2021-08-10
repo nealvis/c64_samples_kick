@@ -16,6 +16,10 @@
 
 #import "nv_math16_macs.asm"
 
+.const CHAR_PIXEL_WIDTH = $0008
+.const CHAR_PIXEL_HEIGHT = $0008
+
+
 //////////////////////////////////////////////////////////////////////////////
 // inline macro to convert the character x, y location on screen
 // to screen pixel coordinates
@@ -37,9 +41,6 @@
 
     .const LEFT_OFFSET = 26
     .const TOP_OFFSET = 53
-    .const CHAR_PIXEL_WIDTH = $0008
-    .const CHAR_PIXEL_HEIGHT = $0008
-
 
     /////// put char's rectangle in rect
     
@@ -215,4 +216,181 @@
     nv_adc16_immediate(r_bottom, CHAR_PIXEL_HEIGHT, r_bottom)
 }
 
+
+//////////////////////////////////////////////////////////////////////////////
+// function that returns the pixel X location for the left edge of the 
+// character at the specified character row and col
+// function params:
+//   char_x: the column of the character for which the left edge will be
+//           returned
+//   char_y: the row of the character for which the left edge will be 
+//             returned.  Valid values depend on screen mode but default
+//             mode is 0-24
+// returns: the screen pixel x location of the left edge of the char
+//          at (char_x, char_y) on the screen
+.function nv_screen_rect_char_to_screen_pixel_left(char_x, char_y)
+{
+    .var r_left
+    .var r_top
+    .var r_right
+    .var r_bottom
+
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+   
+    // LEFT
+    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
+    .eval r_left = CHAR_PIXEL_WIDTH
+    .eval r_left = r_left * char_x
+    .eval r_left = r_left + LEFT_OFFSET
+    
+    // TOP
+    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
+    .eval r_top = CHAR_PIXEL_HEIGHT
+    .eval r_top = r_top * char_y
+    .eval r_top = r_top + TOP_OFFSET
+
+    // RIGHT
+    // add width to the left to get right
+    .eval r_right =  r_left + CHAR_PIXEL_WIDTH
+
+    // BOTTOM
+    // add height to the top to get the bottom
+    .eval r_bottom = r_top + CHAR_PIXEL_HEIGHT
+
+    .return r_left
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// function that returns the pixel Y location for the top edge of the 
+// character at the specified character row and col
+// function params:
+//   char_x: the column of the character for which the top edge will be
+//           returned
+//   char_y: the row of the character for which the top edge will be 
+//             returned.  Valid values depend on screen mode but default
+//             mode is 0-24
+// returns: the screen pixel x location of the top edge of the char
+//          at (char_x, char_y) on the screen
+.function nv_screen_rect_char_to_screen_pixel_top(char_x, char_y)
+{
+    .var r_left
+    .var r_top
+    .var r_right
+    .var r_bottom
+
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+   
+    // LEFT
+    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
+    .eval r_left = CHAR_PIXEL_WIDTH
+    .eval r_left = r_left * char_x
+    .eval r_left = r_left + LEFT_OFFSET
+    
+    // TOP
+    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
+    .eval r_top = CHAR_PIXEL_HEIGHT
+    .eval r_top = r_top * char_y
+    .eval r_top = r_top + TOP_OFFSET
+
+    // RIGHT
+    // add width to the left to get right
+    .eval r_right =  r_left + CHAR_PIXEL_WIDTH
+
+    // BOTTOM
+    // add height to the top to get the bottom
+    .eval r_bottom = r_top + CHAR_PIXEL_HEIGHT
+
+    .return r_top
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// function that returns the pixel X location for the right edge of the 
+// character at the specified character row and col
+// function params:
+//   char_x: the column of the character for which the right edge will be
+//           returned
+//   char_y: the row of the character for which the right edge will be 
+//             returned.  Valid values depend on screen mode but default
+//             mode is 0-24
+// returns: the screen pixel x location of the right edge of the char
+//          at (char_x, char_y) on the screen
+.function nv_screen_rect_char_to_screen_pixel_right(char_x, char_y)
+{
+    .var r_left
+    .var r_top
+    .var r_right
+    .var r_bottom
+
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+   
+    // LEFT
+    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
+    .eval r_left = CHAR_PIXEL_WIDTH
+    .eval r_left = r_left * char_x
+    .eval r_left = r_left + LEFT_OFFSET
+    
+    // TOP
+    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
+    .eval r_top = CHAR_PIXEL_HEIGHT
+    .eval r_top = r_top * char_y
+    .eval r_top = r_top + TOP_OFFSET
+
+    // RIGHT
+    // add width to the left to get right
+    .eval r_right =  r_left + CHAR_PIXEL_WIDTH
+
+    // BOTTOM
+    // add height to the top to get the bottom
+    .eval r_bottom = r_top + CHAR_PIXEL_HEIGHT
+
+    .return r_right
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// function that returns the pixel X location for the bottom edge of the 
+// character at the specified character row and col
+// function params:
+//   char_x: the column of the character for which the bottom edge will be
+//           returned
+//   char_y: the row of the character for which the bottom edge will be 
+//             returned.  Valid values depend on screen mode but default
+//             mode is 0-24
+// returns: the screen pixel x location of the bottom edge of the char
+//          at (char_x, char_y) on the screen
+.function nv_screen_rect_char_to_screen_pixel_bottom(char_x, char_y)
+{
+    .var r_left
+    .var r_top
+    .var r_right
+    .var r_bottom
+
+    .const LEFT_OFFSET = 26
+    .const TOP_OFFSET = 53
+   
+    // LEFT
+    // (col * CHAR_PIXEL_WIDTH) + LEFT_OFFSET
+    .eval r_left = CHAR_PIXEL_WIDTH
+    .eval r_left = r_left * char_x
+    .eval r_left = r_left + LEFT_OFFSET
+    
+    // TOP
+    // (row * CHAR_PIXEL_HEIGHT) + TOP_OFFSET
+    .eval r_top = CHAR_PIXEL_HEIGHT
+    .eval r_top = r_top * char_y
+    .eval r_top = r_top + TOP_OFFSET
+
+    // RIGHT
+    // add width to the left to get right
+    .eval r_right =  r_left + CHAR_PIXEL_WIDTH
+
+    // BOTTOM
+    // add height to the top to get the bottom
+    .eval r_bottom = r_top + CHAR_PIXEL_HEIGHT
+
+    .return r_bottom
+}
 

@@ -45,17 +45,37 @@
 .const NV_SCREEN_CHARS_PER_ROW = 40
 
 
-
+//////////////////////////////////////////////////////////////////////////////
+// function that returns the address in screen memory of the character
+// at the specified row and col
+// function params:
+//   char_col: the column of the character for which the address will
+//             be returned.  valid values depend on mode but default
+//             mode is 0-39
+//   char_row: the row of the character for which the address will be 
+//             returned.  Valid values depend on screen mode but default
+//             mode is 0-24
+// returns: the address within screen memory of the specified character
 .function nv_screen_char_addr_from_xy(char_col, char_row)
 {
     .return SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*char_row) + char_col
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// function that returns the address in color memory for the color of 
+// the char at the specified row and col
+// function params:
+//   char_col: the column of the character for which the color addr  will
+//             be returned.  valid values depend on mode but default
+//             mode is 0-39
+//   char_row: the row of the character for which the color addr will be 
+//             returned.  Valid values depend on screen mode but default
+//             mode is 0-24
+// returns: the address within color memory of the specified character
 .function nv_screen_color_addr_from_xy(char_col, char_row)
 {
     .return SCREEN_COLOR_START + (NV_SCREEN_CHARS_PER_ROW*char_row) + char_col
 }
-
 
 
 // clear screen and leave cursor in upper left
