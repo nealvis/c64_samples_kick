@@ -664,6 +664,8 @@ TryExperimental03:
 WasExperimental03:
     lda #TURRET_2_ID
     jsr TurretStart
+    lda #TURRET_5_ID
+    jsr TurretStart
     jmp DoneKeys
 
 TryExperimental04:
@@ -730,6 +732,9 @@ CheckSpriteHitTurretBullet3:
 CheckSpriteHitTurretBullet4:
     nv_sprite_check_overlap_rect_sr(turret_4_bullet_rect)
 
+//////////////////////////////////////////////////////////////////////////////
+CheckSpriteHitTurretBullet5:
+    nv_sprite_check_overlap_rect_sr(turret_5_bullet_rect)
 
 //////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
@@ -820,6 +825,28 @@ Turret4DidHit:
     jsr TurretForceStop
 
 Turret5HitCheck:
+    lda #TURRET_5_ID
+    jsr TurretLdaActive
+    bne Turret5ActiveTimeToCheckRect
+    // turret not active, try next turret
+    jmp Turret6HitCheck
+    
+Turret5ActiveTimeToCheckRect:  
+    lda #>ship_2.base_addr
+    ldx #<ship_2.base_addr
+    jsr CheckSpriteHitTurretBullet5
+    // now accum is 1 if hit or 0 if didn't
+    //sta turret_hit_ship_1
+    beq Turret6HitCheck
+
+Turret5DidHit:
+    lda #2
+    jsr ShipDeathStart
+    lda #TURRET_5_ID
+    jsr TurretForceStop
+
+
+Turret6HitCheck:
 // TODO
 
 TurretHitCheckDone:

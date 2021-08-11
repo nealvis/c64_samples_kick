@@ -7,6 +7,7 @@
 #import "astro_turret_2_data.asm"
 #import "astro_turret_3_data.asm"
 #import "astro_turret_4_data.asm"
+#import "astro_turret_5_data.asm"
 
 
 /////////////////
@@ -15,6 +16,8 @@
 .const TURRET_2_ID = $02
 .const TURRET_3_ID = $04
 .const TURRET_4_ID = $08
+.const TURRET_5_ID = $10
+.const TURRET_6_ID = $20
 .const TURRET_ALL_ID = $FF
 
 
