@@ -203,6 +203,9 @@ PartialSecond2:
     // step through the effects
     jsr WindStep
     jsr TurretStep
+    lda #1
+    jsr ShipDeathStep
+    lda #2
     jsr ShipDeathStep
 
     // move the sprites based on velocities set above.
@@ -260,7 +263,7 @@ NoChangeUp:
     lda ship_1.collision_sprite     // closest_sprite, will be $FF 
     bmi NoCollisionShip1        // if no collisions so check minus
 HandleCollisionShip1:
-    lda ship_death_count        // if ship1 is dead then ignore collisions
+    lda ship_1_death_count        // if ship1 is dead then ignore collisions
     bne NoCollisionShip1
     // get extra pointer for the sprite that ship1 collided with loaded
     // so that we can then disable it
@@ -278,6 +281,8 @@ NoCollisionShip1:
     lda ship_2.collision_sprite     // closest_sprite, will be $FF
     bmi NoCollisionShip2        // if no collisions so check minus
 HandleCollisionShip2:
+    lda ship_2_death_count        // if ship2 is dead then ignore collisions
+    bne NoCollisionShip2
     // get extra pointer for the sprite that ship1 collided with loaded
     // so that we can then disable it
     ldy ship_2.collision_sprite
@@ -668,6 +673,8 @@ TryExperimental04:
     cmp #KEY_EXPERIMENTAL_04             
     bne TryExperimental01                           
 WasExperimental04:
+    lda #TURRET_4_ID
+    jsr TurretStart
     lda #TURRET_1_ID
     jsr TurretStart
     jmp DoneKeys
@@ -723,6 +730,11 @@ CheckSpriteHitTurretBullet3:
     nv_sprite_check_overlap_rect_sr(turret_3_bullet_rect)
 
 //////////////////////////////////////////////////////////////////////////////
+CheckSpriteHitTurretBullet4:
+    nv_sprite_check_overlap_rect_sr(turret_4_bullet_rect)
+
+
+//////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against
 TurretHitCheck:
@@ -742,6 +754,7 @@ Turret1ActiveTimeToCheckRect:
     beq Turret2HitCheck
 
 Turret1DidHit:
+    lda #1
     jsr ShipDeathStart
     lda #TURRET_1_ID
     jsr TurretForceStop
@@ -762,6 +775,7 @@ Turret2ActiveTimeToCheckRect:
     beq Turret3HitCheck
 
 Turret2DidHit:
+    lda #1
     jsr ShipDeathStart
     lda #TURRET_2_ID
     jsr TurretForceStop
@@ -771,20 +785,45 @@ Turret3HitCheck:
     jsr TurretLdaActive
     bne Turret3ActiveTimeToCheckRect
     // turret not active, try next turret
-    jmp TurretHitCheckDone
+    jmp Turret4HitCheck
 
 Turret3ActiveTimeToCheckRect:  
     lda #>ship_1.base_addr
     ldx #<ship_1.base_addr
     jsr CheckSpriteHitTurretBullet3
     // now accum is 1 if hit or 0 if didn't
-    //sta turret_hit_ship_1
-    beq TurretHitCheckDone
+    beq Turret4HitCheck
 
 Turret3DidHit:
+    lda #1
     jsr ShipDeathStart
     lda #TURRET_3_ID
     jsr TurretForceStop
+
+
+Turret4HitCheck:
+    lda #TURRET_4_ID
+    jsr TurretLdaActive
+    bne Turret4ActiveTimeToCheckRect
+    // turret not active, try next turret
+    jmp Turret5HitCheck
+    
+Turret4ActiveTimeToCheckRect:  
+    lda #>ship_2.base_addr
+    ldx #<ship_2.base_addr
+    jsr CheckSpriteHitTurretBullet4
+    // now accum is 1 if hit or 0 if didn't
+    //sta turret_hit_ship_1
+    beq Turret5HitCheck
+
+Turret4DidHit:
+    lda #2
+    jsr ShipDeathStart
+    lda #TURRET_4_ID
+    jsr TurretForceStop
+
+Turret5HitCheck:
+// TODO
 
 TurretHitCheckDone:
     rts

@@ -251,6 +251,19 @@ IncVelX:
 DoneIncVelX:
     rts
 
+SetColorDead:
+    nv_sprite_set_raw_color_immediate(sprite_num, NV_COLOR_GREY)
+    rts
+
+SetColorAlive:
+    //lda #>info.base_addr
+    //ldx #<info.base_addr
+    //nv_sprite_set_color_from_extra_sr()
+    nv_sprite_set_raw_color_immediate(sprite_num, NV_COLOR_BROWN)
+    rts
+
+
+
 label_vel_x_str: .text @"vel x: \$00"
 
 }

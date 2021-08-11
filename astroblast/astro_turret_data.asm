@@ -6,6 +6,7 @@
 #import "astro_turret_1_data.asm"
 #import "astro_turret_2_data.asm"
 #import "astro_turret_3_data.asm"
+#import "astro_turret_4_data.asm"
 
 
 /////////////////

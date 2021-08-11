@@ -23,8 +23,10 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // internal variables
-
-ship_death_pushed_left_min: .byte 0
+ship_1_death_pushed_left_min: .byte 0   // flag set to 1 if have pushed ship
+                                        // all the way to the left
+ship_2_death_pushed_left_min: .byte 0   // flag set to 1 if have pushed ship
+                                        // all the way to the left
 
 // internal variables end
 //////////////////////////////////////////////////////////////////////////////
@@ -35,7 +37,8 @@ ship_death_pushed_left_min: .byte 0
 
 // Will be zero when ship death effect is not active or 
 // the number of frames remaining in the effect if it is active
-ship_death_count: .byte 0
+ship_1_death_count: .byte 0
+ship_2_death_count: .byte 0
 
 // exposed variables end
 //////////////////////////////////////////////////////////////////////////////

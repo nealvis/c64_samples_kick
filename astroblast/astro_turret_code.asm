@@ -31,6 +31,7 @@ TurretInit:
     sta turret_2_count
     sta turret_3_count
     sta turret_3_frame_number
+    sta turret_4_count
     rts
 // TurretInit end
 //////////////////////////////////////////////////////////////////////////////
@@ -72,8 +73,17 @@ TurretStartIs3:
     sta turret_3_frame_number
     nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
     nv_store16_immediate(turret_3_char_mem_cur, TURRET_3_CHAR_MEM_START)
+
 TurretStartTry4:
-    // TODO
+    lda #TURRET_4_ID
+    bit turret_start_ids
+    beq TurretStartTry5
+TurretStartIs4:
+    lda #TURRET_4_FRAMES
+    sta turret_4_count
+
+TurretStartTry5:
+// todo
 
 TurretStartDone:
     rts
@@ -127,6 +137,16 @@ TurretLdaActive:
     sta turret_active_retval
 
   TurretActiveTry4:
+    lda #TURRET_4_ID
+    bit turret_active_ids
+    beq TurretActiveTry5
+  TurretActiveIs4:
+    ldx turret_4_count
+    beq TurretActiveTry5
+    ora turret_active_retval
+    sta turret_active_retval
+
+  TurretActiveTry5:  
     // TODO
 
   TurretActiveDone:
@@ -158,7 +178,6 @@ turret_active_retval: .byte 0
     ldx #<turret_1_all_color_stream
     ldy #>turret_1_all_color_stream
     jsr AstroStreamProcessor
-
 }
 
 .macro turret_force_stop_id_2()
@@ -185,6 +204,18 @@ turret_active_retval: .byte 0
     lda background_color
     ldx #<turret_3_all_color_stream
     ldy #>turret_3_all_color_stream
+    jsr AstroStreamProcessor
+}
+
+.macro turret_force_stop_id_4()
+{
+    turret_clear_rect(turret_4_bullet_rect)
+    lda #$00
+    sta turret_4_count
+        // all positions to background color 
+    lda background_color
+    ldx #<turret_4_all_color_stream
+    ldy #>turret_4_all_color_stream
     jsr AstroStreamProcessor
 }
 
@@ -227,6 +258,12 @@ TurretForceStop:
   TurretForceStopTry4:
     lda #TURRET_4_ID
     bit turret_force_stop_ids
+    bne TurretForceStopIs4
+    jmp TurretForceStopTry5
+  TurretForceStopIs4:
+    turret_force_stop_id_4()
+
+  TurretForceStopTry5:  
     // TODO
 
   TurretForceStopDone:
@@ -270,6 +307,11 @@ TurretStep:
     jsr Turret3DoStep
 
   TurretStepTry4:
+    lda turret_4_count     // check if turret is active (count != 0)
+    beq TurretStepTry5     // not zero so it is active 
+    jsr Turret4DoStep
+
+  TurretStepTry5:
     //TODO
 
     rts
@@ -300,25 +342,17 @@ Turret3DoStep:
     astro_effect_step_sr(AstroStreamProcessor, turret_3_count, 
                          TURRET_3_FRAMES, Turret3StreamAddrTable)
 
-
 // Turret3DoStep - end
 //////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-/*
 //////////////////////////////////////////////////////////////////////////////
-//   Accum: will change, Input: should hold the byte that will be stored 
-//   X Reg: will change, Input: LSB of stream data's addr.  
-//   Y Reg: will change, Input: MSB of Stream data's addr 
-TurretStreamProcessor:
-    nv_stream_proc_sr(temp_word, save_block, background_color)
+// subroutine to call to step turret 1
+Turret4DoStep:
+    astro_effect_step_sr(AstroStreamProcessor, turret_4_count, 
+                         TURRET_4_FRAMES, Turret4StreamAddrTable)
 
-temp_word: .word $0000
-save_block: .word $0000
-            .word $0000
+// Turret4DoStep - end
+//////////////////////////////////////////////////////////////////////////////
 
-*/
+
 
