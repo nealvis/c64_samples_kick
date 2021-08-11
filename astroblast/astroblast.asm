@@ -203,9 +203,6 @@ PartialSecond2:
     // step through the effects
     jsr WindStep
     jsr TurretStep
-    lda #1
-    jsr ShipDeathStep
-    lda #2
     jsr ShipDeathStep
 
     // move the sprites based on velocities set above.

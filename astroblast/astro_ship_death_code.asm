@@ -27,20 +27,18 @@ ShipDeathInit:
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-// Call once every raster frame through the main loop
-// params:
-//   accum: set to 1 or 2 for ship 1 or ship 2
+// Call once every raster frame through the main loop.
+// will step each ship that is dead
 ShipDeathStep: 
 {
 ShipDeathStepTryShip1:    
-    cmp #1
-    bne ShipDeathStepTryShip2
+    lda ship_1_death_count
+    beq ShipDeathStepTryShip2
     jsr Ship1DeathStep
-    rts
     
  ShipDeathStepTryShip2:   
-    cmp #2
-    bne ShipDeathStepDone
+    lda ship_2_death_count
+    beq ShipDeathStepDone
     jsr Ship2DeathStep
 
 ShipDeathStepDone:
