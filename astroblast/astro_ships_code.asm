@@ -24,7 +24,7 @@
                                           1, 0, 1, 0,   // bounce on top, left, bottom, right  
                                           0, 0, 75, 0,  // min/max top, left, bottom, right
                                           0,            // sprite enabled 
-                                          10, 5, 20, 16) // hitbox left, top, right, bottom
+                                          6, 4, 19, 16) // hitbox left, top, right, bottom
 
         .var sprite_num = info.num
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
@@ -155,7 +155,7 @@ rect2: .word $0000, $0000  // (left, top)
                                         1, 0, 1, 0,   // bounce on top, left, bottom, right  
                                         200, 0, 0, 0, // min/max top, left, bottom, right
                                         0,            // sprite enabled 
-                                        10, 5, 20, 16) // hitbox left, top, right, bottom
+                                        6, 4, 19, 16) // hitbox left, top, right, bottom
 
     .var sprite_num = info.num
     .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
