@@ -30,12 +30,16 @@
     sta nv_rand_index
     .if (pre_calc)
     {
+        ldy #1
+    OuterLoop:
         ldx #0
     Loop:
         lda VOICE_3_WAVE_OUTPUT
         sta nv_rand_bytes, x
         inx
         bne Loop
+        dey
+        beq OuterLoop
     }
 }
 

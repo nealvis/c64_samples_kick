@@ -61,6 +61,12 @@
     .return SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*char_row) + char_col
 }
 
+.function nv_screen_char_addr_from_yx(char_row, char_col)
+{
+    .return nv_screen_char_addr_from_xy(char_col, char_row)
+}
+
+
 //////////////////////////////////////////////////////////////////////////////
 // function that returns the address in color memory for the color of 
 // the char at the specified row and col
@@ -77,6 +83,10 @@
     .return SCREEN_COLOR_START + (NV_SCREEN_CHARS_PER_ROW*char_row) + char_col
 }
 
+.function nv_screen_color_addr_from_yx(char_row, char_col)
+{
+    .return nv_screen_color_addr_from_xy(char_col, char_row)
+}
 
 // clear screen and leave cursor in upper left
 .macro nv_screen_clear()

@@ -26,6 +26,7 @@
 
 #import "astro_vars_data.asm"
 #import "astro_wind_data.asm"
+#import "astro_starfield_data.asm"
 
 // min and max speed for all sprites during the changeup
 .const MAX_SPEED = 6
@@ -71,7 +72,7 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 #import "../nv_c64_util/nv_sprite_extra_code.asm"
 #import "astro_ships_code.asm"
 #import "astro_ship_death_code.asm"
-
+#import "astro_starfield_code.asm"
 //////////////////////////////////////////////////////////////////////////////
 // charset is expected to be at $3000
 *=$3000 "charset start"
@@ -87,7 +88,7 @@ RealStart:
 
     // clear the screen just to have an empty canvas
     nv_screen_clear()
-    jsr CreateField
+    //jsr CreateField
 
     nv_screen_set_border_color_mem(border_color)
     nv_screen_set_background_color_mem(background_color)
@@ -98,6 +99,7 @@ RealStart:
     lda #$00
     sta quit_flag
 
+    jsr StarInit
     jsr WindInit
     jsr TurretInit
     jsr ShipDeathInit
@@ -141,14 +143,16 @@ RealStart:
     .var showFrameCounters = false
         
     nv_key_init()
-    nv_rand_init(true)
+    nv_rand_init(true)              // do before SoundInit
 
     // initialize song 0
     jsr SoundInit
 
     lda #$02
     jsr SoundVolumeSet
-        
+
+    jsr StarStart
+
 MainLoop:
 
     nv_adc16_immediate(frame_counter, 1, frame_counter)
@@ -188,7 +192,7 @@ PartialSecond2:
     {
         nv_screen_poke_hex_word_mem(0, 0, frame_counter, true)
     }
-    jsr UpdateField
+    //jsr UpdateField
 
     //// call function to move sprites around based on X and Y velocity
     // but only modify the position in their extra data block not on screen
@@ -201,6 +205,7 @@ PartialSecond2:
     jsr DoKeyboard
 
     // step through the effects
+    jsr StarStep
     jsr WindStep
     jsr TurretStep
     jsr ShipDeathStep
@@ -303,6 +308,7 @@ ProgramDone:
     nv_screen_set_border_color_immed(NV_COLOR_LITE_BLUE)
     nv_screen_set_background_color_immed(NV_COLOR_BLUE)
 
+    jsr StarCleanup
     jsr TurretCleanup
     jsr WindCleanup
     jsr ShipDeathCleanup
@@ -684,7 +690,7 @@ TryExperimental01:
     cmp #KEY_EXPERIMENTAL_01             
     bne TryQuit                           
 WasExperimental01:
-    jsr WindStart
+    //jsr WindStart
     jmp DoneKeys
 
 TryQuit:
@@ -701,19 +707,26 @@ DoneKeys:
 //////////////////////////////////////////////////////////////////////////////
 // call to determine if its time to start a wind gust.  if it is time then
 // the wind will be started
+// This is the number of bits to consider when comparing
+// second counter to determine if its time for wind
+.const WIND_SECONDS_MASK = $07
 WindCheck:
-    lda wind_start_mask
-    bit second_counter
-    bne WindCheckDone
+{   
+    lda second_counter      // load LSB of second counter
+    and #WIND_SECONDS_MASK  // zero out all but low few bits
+    eor wind_start_mask     // exclusive or with start mask
+    beq WindCheckIsTimeToStart
+    jmp WindCheckDone       // if bits dont match mask bits then done
 
-WindCheckIsTimeToStart:
-    nv_rand_byte_a(true)
-    and #$1F
-    sta wind_start_mask
-    jsr WindStart
+WindCheckIsTimeToStart:     // bits did match with mask, so start wind
+    nv_rand_byte_a(true)    // get new random byte for mask
+    and #WIND_SECONDS_MASK  // clear all but low few bits
+    sta wind_start_mask     // save new mask
+    jsr WindStart           // start wind
 
 WindCheckDone:
     rts
+}
 // WindCheck end
 //////////////////////////////////////////////////////////////////////////////
 
