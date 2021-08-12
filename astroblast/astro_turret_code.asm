@@ -33,6 +33,7 @@ TurretInit:
     sta turret_3_frame_number
     sta turret_4_count
     sta turret_5_count
+    sta turret_6_count
     rts
 // TurretInit end
 //////////////////////////////////////////////////////////////////////////////
@@ -92,7 +93,12 @@ TurretStartIs5:
     sta turret_5_count
 
 TurretStartTry6:
-// todo
+    lda #TURRET_6_ID
+    bit turret_start_ids
+    beq TurretStartDone
+TurretStartIs6:
+    lda #TURRET_6_FRAMES
+    sta turret_6_count
 
 TurretStartDone:
     rts
@@ -166,7 +172,14 @@ TurretLdaActive:
     sta turret_active_retval
 
   TurretActiveTry6:  
-    // TODO
+    lda #TURRET_6_ID
+    bit turret_active_ids
+    beq TurretActiveDone
+  TurretActiveIs6:
+    ldx turret_6_count
+    beq TurretActiveDone
+    ora turret_active_retval
+    sta turret_active_retval
 
   TurretActiveDone:
     lda turret_active_retval
@@ -211,7 +224,7 @@ turret_active_retval: .byte 0
     jsr AstroStreamProcessor
 }
 
-.macro turret_force_stop_id_3(save_block)
+.macro turret_force_stop_id_3()
 {
     lda #0
     sta turret_3_count
@@ -250,6 +263,22 @@ turret_active_retval: .byte 0
     jsr AstroStreamProcessor
 }
 
+.macro turret_force_stop_id_6()
+{
+    lda #0
+    sta turret_6_count
+    sta turret_6_frame_number
+    nv_store16_immediate(turret_6_char_mem_cur, TURRET_6_CHAR_MEM_START)
+    nv_store16_immediate(turret_6_color_mem_cur, TURRET_6_COLOR_MEM_START)
+
+    // all positions to background color 
+    lda background_color
+    ldx #<turret_6_all_color_stream
+    ldy #>turret_6_all_color_stream
+    jsr AstroStreamProcessor
+}
+
+
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to force turret effect to stop if it is active. if not 
 // active then should do nothing
@@ -283,7 +312,7 @@ TurretForceStop:
     bne TurretForceStopIs3
     jmp TurretForceStopTry4
   TurretForceStopIs3:
-    turret_force_stop_id_3(turret_force_stop_save_block)
+    turret_force_stop_id_3()
 
   TurretForceStopTry4:
     lda #TURRET_4_ID
@@ -302,12 +331,16 @@ TurretForceStop:
     turret_force_stop_id_5()
 
   TurretForceStopTry6:  
-    // TODO
+    lda #TURRET_6_ID
+    bit turret_force_stop_ids
+    bne TurretForceStopIs6
+    jmp TurretForceStopDone
+  TurretForceStopIs6:
+      turret_force_stop_id_6()
 
   TurretForceStopDone:
     lda turret_active_retval
     rts
-turret_force_stop_save_block: .byte $00, $00
 turret_force_stop_ids: .byte 0
 }
 // TurretForceStop end
@@ -329,6 +362,7 @@ TurretCleanup:
 //////////////////////////////////////////////////////////////////////////////
 // call once per frame to have turret shoot 
 TurretStep:
+{
   TurretStepTry1:
     lda turret_1_count     // check if turret is active (count != 0)
     beq TurretStepTry2     // not zero so it is active 
@@ -355,9 +389,13 @@ TurretStep:
     jsr Turret5DoStep
 
   TurretStepTry6:
-    //TODO
-
+    lda turret_6_count     // check if turret is active (count != 0)
+    beq TurretStepDone     // not zero so it is active 
+    jsr Turret6DoStep
+  
+  TurretStepDone:
     rts
+}
 // TurretStep subroutine end
 //////////////////////////////////////////////////////////////////////////////
 
@@ -368,6 +406,8 @@ TurretStep:
 Turret1DoStep:
     astro_effect_step_sr(AstroStreamProcessor, turret_1_count, 
                          TURRET_1_FRAMES, Turret1StreamAddrTable)
+// Turret1DoStep - end
+//////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -389,7 +429,7 @@ Turret3DoStep:
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to call to step turret 1
+// subroutine to call to step turret 4
 Turret4DoStep:
     astro_effect_step_sr(AstroStreamProcessor, turret_4_count, 
                          TURRET_4_FRAMES, Turret4StreamAddrTable)
@@ -398,12 +438,20 @@ Turret4DoStep:
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to call to step turret 1
+// subroutine to call to step turret 5
 Turret5DoStep:
     astro_effect_step_sr(AstroStreamProcessor, turret_5_count, 
                          TURRET_5_FRAMES, Turret5StreamAddrTable)
 
-// Turret4DoStep - end
+// Turret5DoStep - end
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to call to step turret 6
+Turret6DoStep:
+    astro_effect_step_sr(AstroStreamProcessor, turret_6_count, 
+                         TURRET_6_FRAMES, Turret6StreamAddrTable)
+
+// Turret6DoStep - end
+//////////////////////////////////////////////////////////////////////////////
 

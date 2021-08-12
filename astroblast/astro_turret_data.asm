@@ -8,6 +8,7 @@
 #import "astro_turret_3_data.asm"
 #import "astro_turret_4_data.asm"
 #import "astro_turret_5_data.asm"
+#import "astro_turret_6_data.asm"
 
 
 /////////////////

@@ -14,17 +14,15 @@
 .const TURRET_3_START_COL = 37
 .const TURRET_3_X_VEL = -3
 .const TURRET_3_Y_VEL = -1
-.const TURRET_3_CHAR_MEM_START = 1461
+.const TURRET_3_CHAR_MEM_START = 1024 + (TURRET_3_START_ROW * 40) + 37  // 1461
 .const TURRET_3_COLOR_MEM_START = $D800 + (TURRET_3_CHAR_MEM_START - 1024)
 .const TURRET_3_MEM_VEL = ((40*TURRET_3_Y_VEL) + (TURRET_3_X_VEL))  //-43
 .const TURRET_3_COLOR = NV_COLOR_YELLOW
 
-// two chars make up turret 3 bullets, both beside each other on the row
-.const TURRET_3_CHAR_RIGHT = $25 // $4D
-.const TURRET_3_CHAR_LEFT = $4D
-
-.const TURRET_3_BULLET_HEIGHT = 1
-.const TURRET_3_BULLET_WIDTH = 2
+// 3 chars make up turret 3 bullets, all beside each other on the row
+// the right most is specified here the two beside it the next two chars 
+// in the set
+.const TURRET_3_CHAR_RIGHT = $25 
 
 // number of raster frames for turret effect
 .const TURRET_3_FRAMES=12

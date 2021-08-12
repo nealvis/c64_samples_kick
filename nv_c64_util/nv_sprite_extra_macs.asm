@@ -88,9 +88,9 @@
 
     // the hitbox coords are within the sprite's rectangle where the upper left
     // corner of the sprite (ie the sprites official location) is (0, 0)
-    // so typically the min value will be 0 and max will be sprite height/width
-    // to get the screen coords of the hitbox just add the sprite location to 
-    // these coords.
+    // So the min value will be 0 and max will be sprite height/width.
+    // To get the screen coords of the hitbox just add the sprite location to 
+    // the hitbox coords within the sprite.
     sprite_hitbox_left_addr: .byte spt_info.hitbox_left
     sprite_hitbox_top_addr: .byte spt_info.hitbox_top
     sprite_hitbox_right_addr: .byte spt_info.hitbox_right

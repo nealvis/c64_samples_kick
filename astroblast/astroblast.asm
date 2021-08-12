@@ -424,7 +424,7 @@ CreateField:
     nv_screen_poke_color_char_xa(7, 15)
     nv_screen_poke_color_char_xa(22, 38)
     nv_screen_poke_color_char_xa(6, 4)
-    nv_screen_poke_color_char_xa(24, 5)
+    nv_screen_poke_color_char_xa(23, 6)
     nv_screen_poke_color_char_xa(12, 28)
     nv_screen_poke_color_char_xa(6, 17)
 
@@ -520,7 +520,7 @@ UpdateField:
     nv_screen_poke_color_a(22, 38)
     nv_screen_poke_color_a(6, 4)
     nv_rand_color_a(true)
-    nv_screen_poke_color_a(24, 5)
+    nv_screen_poke_color_a(23, 6)
     //nv_screen_poke_color_a(12, 28)
     nv_screen_poke_color_a(6, 17)
 
@@ -656,6 +656,8 @@ TryExperimental02:
 WasExperimental02:
     lda #TURRET_3_ID
     jsr TurretStart
+    lda #TURRET_6_ID
+    jsr TurretStart
     jmp DoneKeys
 
 TryExperimental03:
@@ -735,6 +737,10 @@ CheckSpriteHitTurretBullet4:
 //////////////////////////////////////////////////////////////////////////////
 CheckSpriteHitTurretBullet5:
     nv_sprite_check_overlap_rect_sr(turret_5_bullet_rect)
+
+//////////////////////////////////////////////////////////////////////////////
+CheckSpriteHitTurretBullet6:
+    nv_sprite_check_overlap_rect_sr(turret_6_bullet_rect)
 
 //////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
@@ -847,7 +853,24 @@ Turret5DidHit:
 
 
 Turret6HitCheck:
-// TODO
+    lda #TURRET_6_ID
+    jsr TurretLdaActive
+    bne Turret6ActiveTimeToCheckRect
+    // turret not active, try next turret
+    jmp TurretHitCheckDone
+    
+Turret6ActiveTimeToCheckRect:  
+    lda #>ship_2.base_addr
+    ldx #<ship_2.base_addr
+    jsr CheckSpriteHitTurretBullet6
+    // now accum is 1 if hit or 0 if didn't
+    beq TurretHitCheckDone
+
+Turret6DidHit:
+    lda #2
+    jsr ShipDeathStart
+    lda #TURRET_6_ID
+    jsr TurretForceStop
 
 TurretHitCheckDone:
     rts
