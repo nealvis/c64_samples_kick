@@ -73,6 +73,7 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 #import "astro_ships_code.asm"
 #import "astro_ship_death_code.asm"
 #import "astro_starfield_code.asm"
+#import "astro_turret_armer_code.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // charset is expected to be at $3000
@@ -103,6 +104,7 @@ RealStart:
     jsr StarInit
     jsr WindInit
     jsr TurretInit
+    jsr TurretArmInit
     jsr ShipDeathInit
 
     // setup everything for the sprite_ship so its ready to enable
@@ -209,7 +211,12 @@ PartialSecond2:
     jsr StarStep
     jsr WindStep
     jsr TurretStep
+    jsr TurretArmStep
     jsr ShipDeathStep
+    jsr TurretArmStep
+
+    // fire the turret automatically if its time.
+    jsr TurretAutoStart
 
     // move the sprites based on velocities set above.
     jsr ship_1.MoveInExtraData
@@ -310,6 +317,7 @@ ProgramDone:
     nv_screen_set_background_color_immed(NV_COLOR_BLUE)
 
     jsr StarCleanup
+    jsr TurretArmCleanup
     jsr TurretCleanup
     jsr WindCleanup
     jsr ShipDeathCleanup
@@ -615,9 +623,8 @@ TryExperimental02:
     bne TryExperimental03                           
 WasExperimental02:
     lda #TURRET_3_ID
-    jsr TurretStart
-    lda #TURRET_6_ID
-    jsr TurretStart
+    ora #TURRET_6_ID
+    jsr TurretStartIfArmed
     jmp DoneKeys
 
 TryExperimental03:
@@ -625,9 +632,8 @@ TryExperimental03:
     bne TryExperimental04                           
 WasExperimental03:
     lda #TURRET_2_ID
-    jsr TurretStart
-    lda #TURRET_5_ID
-    jsr TurretStart
+    ora #TURRET_5_ID
+    jsr TurretStartIfArmed
     jmp DoneKeys
 
 TryExperimental04:
@@ -635,9 +641,8 @@ TryExperimental04:
     bne TryExperimental01                           
 WasExperimental04:
     lda #TURRET_4_ID
-    jsr TurretStart
-    lda #TURRET_1_ID
-    jsr TurretStart
+    ora #TURRET_1_ID
+    jsr TurretStartIfArmed
     jmp DoneKeys
 
 TryExperimental01:
@@ -684,6 +689,81 @@ WindCheckDone:
 // WindCheck end
 //////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to start shooting turret if its currently armed
+// accum: must have turret ID to start 
+TurretStartIfArmed:
+{
+    tay                             // save turret ID in y reg
+    jsr TurretCurrentlyArmedLda     // check if turret is armed
+    beq TurretNotArmedCantStart     // not armed, so can't shoot
+TurretIsArmedCanStart:
+    tya                             // get turret ID back in accum
+    jsr TurretStart                 // start the turret with ID/s
+    jsr TurretArmStart              // start arming the turret again
+TurretNotArmedCantStart:
+    rts
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to start shooting automatically and aim at each ship based
+// on its x location on the screen.  if turret not armed then does nothing 
+TurretAutoStart:
+{
+    .const ZONE_1_MAX = nv_screen_rect_char_to_screen_pixel_left(25, 0)
+    .const ZONE_2_MAX = nv_screen_rect_char_to_screen_pixel_left(35, 0)
+    .const ZONE_3_MAX = nv_screen_rect_char_to_screen_pixel_left(39, 0)
+
+    jsr TurretCurrentlyArmedLda
+    beq TurretAutoStartDone
+
+TurretAutoStartReady:
+TurretAutoTryShip1Zone1:    
+    nv_bgt16_immediate(ship_1.x_loc, ZONE_1_MAX, TurretAutoTryShip1Zone2)
+    lda #TURRET_3_ID
+    sta turret_auto_start_ids
+    jmp TurretAutoTryShip2
+
+TurretAutoTryShip1Zone2:
+    nv_bgt16_immediate(ship_1.x_loc, ZONE_2_MAX, TurretAutoTryShip1Zone3)
+    lda #TURRET_2_ID
+    sta turret_auto_start_ids
+    jmp TurretAutoTryShip2
+
+TurretAutoTryShip1Zone3:
+    lda #TURRET_1_ID
+    sta turret_auto_start_ids
+
+TurretAutoTryShip2:    
+TurretAutoTryShip2Zone1:    
+    nv_bgt16_immediate(ship_2.x_loc, ZONE_1_MAX, TurretAutoTryShip2Zone2)
+    lda #TURRET_6_ID
+    ora turret_auto_start_ids
+    sta turret_auto_start_ids
+    jmp TurretAutoStartDoIt
+
+TurretAutoTryShip2Zone2:
+    nv_bgt16_immediate(ship_2.x_loc, ZONE_2_MAX, TurretAutoTryShip2Zone3)
+    lda #TURRET_5_ID
+    ora turret_auto_start_ids
+    sta turret_auto_start_ids
+    jmp TurretAutoStartDoIt
+
+TurretAutoTryShip2Zone3:
+    lda #TURRET_4_ID
+    ora turret_auto_start_ids
+    sta turret_auto_start_ids
+
+TurretAutoStartDoIt:
+    lda turret_auto_start_ids
+    jsr TurretStartIfArmed
+
+TurretAutoStartDone:
+    rts
+turret_auto_start_ids: .byte $00
+
+}
 
 //////////////////////////////////////////////////////////////////////////////
 CheckSpriteHitTurretBullet1:
