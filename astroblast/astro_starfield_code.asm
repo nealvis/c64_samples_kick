@@ -1,14 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
-// astro_turret_code.asm
+// astro_starfield_code.asm
 //////////////////////////////////////////////////////////////////////////////
 // The following subroutines should be called from the main engine
 // as follows
-// TurretInit: Call once before main loop and before other routines
-// TurretStep: Call once every raster frame through the main loop
-// TurretStart: Call to start the effect See subroutine header for params
-// TurretActive: Call to determine if a turret active
-// TurretForceStop: Call to force effect to stop if it is active
-// TurretCleanup: Call at end of program after main loop to clean up
+// StarInit: Call once before main loop and before other routines
+// StarStep: Call once every raster frame through the main loop
+// StarStart: Call to start the effect See subroutine header for params
+// StarActive: Call to determine if a turret active
+// StarForceStop: Call to force effect to stop if it is active
+// StarCleanup: Call at end of program after main loop to clean up
 //////////////////////////////////////////////////////////////////////////////
 
 #importonce 
@@ -31,7 +31,7 @@ StarInit:
     sta star_count
     rts
 }
-// TurretInit end
+// StarInit end
 //////////////////////////////////////////////////////////////////////////////
 
 
@@ -43,7 +43,6 @@ StarStart:
     sta star_count
     rts
 }
-
 // StarStart subroutine end
 //////////////////////////////////////////////////////////////////////////////
 
@@ -75,8 +74,8 @@ StarForceStop:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to call at end of program when done with all other wind
-// data and routines.
+// subroutine to call at end of program when done with all other routines
+// in this file.
 StarCleanup:
 {
     jsr StarForceStop
