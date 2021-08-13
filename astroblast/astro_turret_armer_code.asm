@@ -116,7 +116,7 @@ TurretArmCleanup:
 // call once per frame to have turret shoot 
 TurretArmStep:
 {
-    .const TURRET_SECONDS_TO_ARM = 5
+    .const TURRET_SECONDS_TO_ARM = 2
     lda turret_currently_armed
     bne TurretSkipArming                // already armed 
 
