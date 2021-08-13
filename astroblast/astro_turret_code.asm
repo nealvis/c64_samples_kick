@@ -34,6 +34,11 @@ TurretInit:
     sta turret_4_count
     sta turret_5_count
     sta turret_6_count
+
+    ldx #<turret_init_stream        // load stream LSB in x reg
+    ldy #>turret_init_stream        // load stream MSB in y reg
+    jsr AstroStreamProcessor        // stream include the byte to copy 
+                                    // so don't load accum  
     rts
 // TurretInit end
 //////////////////////////////////////////////////////////////////////////////

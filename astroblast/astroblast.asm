@@ -26,6 +26,7 @@
 
 #import "astro_vars_data.asm"
 #import "astro_wind_data.asm"
+#import "astro_ship_death_data.asm"
 
 // min and max speed for all sprites during the changeup
 .const MAX_SPEED = 6
@@ -88,7 +89,7 @@ RealStart:
 
     // clear the screen just to have an empty canvas
     nv_screen_clear()
-    jsr CreateField
+    //jsr CreateField
 
     nv_screen_set_border_color_mem(border_color)
     nv_screen_set_background_color_mem(background_color)
@@ -418,61 +419,8 @@ DoPause:
 
 //////////////////////////////////////////////////////////////////////////////
 // CreateField subroutine
-
-CreateField:
 /*
-    lda #46
-    ldx #NV_COLOR_LITE_GREY
-    nv_screen_poke_color_char_xa(3, 12)
-    nv_screen_poke_color_char_xa(10, 35)
-    nv_screen_poke_color_char_xa(4, 20)
-    nv_screen_poke_color_char_xa(15, 25)
-    nv_screen_poke_color_char_xa(20, 37)
-    nv_screen_poke_color_char_xa(23, 27)
-    nv_screen_poke_color_char_xa(7, 15)
-    nv_screen_poke_color_char_xa(22, 38)
-    nv_screen_poke_color_char_xa(6, 4)
-    nv_screen_poke_color_char_xa(23, 6)
-    nv_screen_poke_color_char_xa(12, 28)
-    nv_screen_poke_color_char_xa(6, 17)
-
-    lda #81
-    nv_screen_poke_color_char_xa(14, 22)
-    nv_screen_poke_color_char_xa(07, 9)
-    nv_screen_poke_color_char_xa(21, 14)
-    nv_screen_poke_color_char_xa(4, 22)
-
-    //lda #$58
-    //nv_screen_poke_color_char_xa(5, 5)
-
-    .var planet_row = 15
-    .var planet_col = 8
-    lda #$5A
-    ldx #NV_COLOR_BROWN
-    nv_screen_poke_color_char_xa(planet_row, planet_col)
-
-    lda #$57
-    ldx #NV_COLOR_LITE_GREY
-    nv_screen_poke_color_char_xa(planet_row-1, planet_col+1)
-    lda #$1D
-    nv_screen_poke_color_char_xa(planet_row+1, planet_col-1)
-    lda #$5C
-    nv_screen_poke_color_char_xa(planet_row+1, planet_col)
-    nv_screen_poke_color_char_xa(planet_row, planet_col+1)
-    lda #$5E
-    nv_screen_poke_color_char_xa(planet_row-1, planet_col)
-    nv_screen_poke_color_char_xa(planet_row, planet_col-1)
-
-
-    //ldx #NV_COLOR_GREY
-    //lda #$7C    // commet head
-    //nv_screen_poke_color_char_xa(17, 6)
-
-    //ldx #NV_COLOR_LITE_GREY
-    //lda #$4E   // commet trail
-    //nv_screen_poke_color_char_xa(16, 7)
-
-*/
+CreateField:
     // turret below here
     ldx #NV_COLOR_RED
     lda #248
@@ -511,6 +459,7 @@ CreateField:
     //nv_screen_poke_color_char_xa(12, 37)
 
     rts
+*/
 
 /*
 //////////////////////////////////////////////////////////////////////////////
