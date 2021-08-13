@@ -4,8 +4,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // TODO: add comments
-.macro astro_effect_step_sr(stream_proc_addr, effect_count_addr, 
-                            effect_frames, effect_table_addr)
+.macro astro_effect_step(stream_proc_addr, effect_count_addr, 
+                         effect_frames, effect_table_addr)
 {
     // sanity check that count isn't already zero
     lda effect_count_addr
@@ -27,5 +27,17 @@
 
     dec effect_count_addr            // dec count
 Done:
+    
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// TODO: add comments
+.macro astro_effect_step_sr(stream_proc_addr, effect_count_addr, 
+                            effect_frames, effect_table_addr)
+{
+    astro_effect_step(stream_proc_addr, effect_count_addr, 
+                      effect_frames, effect_table_addr)
     rts
 }
+

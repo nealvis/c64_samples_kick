@@ -91,8 +91,14 @@ StarCleanup:
 // call once per frame to have turret shoot 
 StarStep:
 {
-    astro_effect_step_sr(AstroStreamProcessor, star_count, 
-                         STAR_FRAMES, StarStreamAddrTable)
+    astro_effect_step(AstroStreamProcessor, star_count, 
+                      STAR_FRAMES, StarStreamAddrTable)
+    lda star_count
+    bne Done
+    lda #STAR_FRAMES-1
+    sta star_count
+Done:    
+    rts
 }
 // StarStep subroutine end
 //////////////////////////////////////////////////////////////////////////////

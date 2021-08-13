@@ -26,7 +26,6 @@
 
 #import "astro_vars_data.asm"
 #import "astro_wind_data.asm"
-#import "astro_starfield_data.asm"
 
 // min and max speed for all sprites during the changeup
 .const MAX_SPEED = 6
@@ -73,6 +72,7 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 #import "astro_ships_code.asm"
 #import "astro_ship_death_code.asm"
 #import "astro_starfield_code.asm"
+
 //////////////////////////////////////////////////////////////////////////////
 // charset is expected to be at $3000
 *=$3000 "charset start"
@@ -88,7 +88,7 @@ RealStart:
 
     // clear the screen just to have an empty canvas
     nv_screen_clear()
-    //jsr CreateField
+    jsr CreateField
 
     nv_screen_set_border_color_mem(border_color)
     nv_screen_set_background_color_mem(background_color)
@@ -418,7 +418,9 @@ DoPause:
 
 //////////////////////////////////////////////////////////////////////////////
 // CreateField subroutine
+
 CreateField:
+/*
     lda #46
     ldx #NV_COLOR_LITE_GREY
     nv_screen_poke_color_char_xa(3, 12)
@@ -461,16 +463,16 @@ CreateField:
     nv_screen_poke_color_char_xa(planet_row-1, planet_col)
     nv_screen_poke_color_char_xa(planet_row, planet_col-1)
 
-/*
-    ldx #NV_COLOR_GREY
-    lda #$7C    // commet head
-    nv_screen_poke_color_char_xa(17, 6)
 
-    ldx #NV_COLOR_LITE_GREY
-    lda #$4E   // commet trail
-    nv_screen_poke_color_char_xa(16, 7)
+    //ldx #NV_COLOR_GREY
+    //lda #$7C    // commet head
+    //nv_screen_poke_color_char_xa(17, 6)
+
+    //ldx #NV_COLOR_LITE_GREY
+    //lda #$4E   // commet trail
+    //nv_screen_poke_color_char_xa(16, 7)
+
 */
-
     // turret below here
     ldx #NV_COLOR_RED
     lda #248
@@ -510,6 +512,7 @@ CreateField:
 
     rts
 
+/*
 //////////////////////////////////////////////////////////////////////////////
 //
 UpdateField:
@@ -537,6 +540,8 @@ UpdateField:
     nv_screen_poke_color_a(4, 22)
 
     rts
+*/
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Subroutine to set all character colors for the whole screen to the color
@@ -690,7 +695,7 @@ TryExperimental01:
     cmp #KEY_EXPERIMENTAL_01             
     bne TryQuit                           
 WasExperimental01:
-    //jsr WindStart
+    jsr WindStart
     jmp DoneKeys
 
 TryQuit:
@@ -709,7 +714,7 @@ DoneKeys:
 // the wind will be started
 // This is the number of bits to consider when comparing
 // second counter to determine if its time for wind
-.const WIND_SECONDS_MASK = $07
+.const WIND_SECONDS_MASK = $0F
 WindCheck:
 {   
     lda second_counter      // load LSB of second counter
