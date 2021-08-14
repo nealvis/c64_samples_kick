@@ -114,7 +114,7 @@ RealStart:
     nv_store16_immediate(ship_1.score, $0000)
 
     jsr ship_2.Setup
-    nv_store16_immediate(ship_1.score, $0000)
+    nv_store16_immediate(ship_2.score, $0000)
 
     // setup everything for the sprite_asteroid so its ready to enable
     jsr asteroid_1.Setup
