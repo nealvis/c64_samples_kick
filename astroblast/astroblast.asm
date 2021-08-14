@@ -74,6 +74,7 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 #import "astro_ship_death_code.asm"
 #import "astro_starfield_code.asm"
 #import "astro_turret_armer_code.asm"
+#import "../nv_c64_util/nv_joystick_code.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // charset is expected to be at $3000
@@ -106,6 +107,7 @@ RealStart:
     jsr TurretInit
     jsr TurretArmInit
     jsr ShipDeathInit
+    jsr JoyInit
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
@@ -206,6 +208,7 @@ PartialSecond2:
     // read keyboard and take action before other effects incase
     // other effects will override keyboard action
     jsr DoKeyboard
+    jsr DoJoystick
 
     // step through the effects
     jsr StarStep
@@ -321,6 +324,7 @@ ProgramDone:
     jsr TurretCleanup
     jsr WindCleanup
     jsr ShipDeathCleanup
+    jsr JoyCleanup
 
     jsr SoundMuteOn
     jsr SoundDone
@@ -546,7 +550,7 @@ WasShip1SlowX:
 
 TryShip1FastX:
     cmp #KEY_SHIP1_FAST_X      // check ship1 speed up x key
-    bne TryTransitionKeys               // not speed up x key, skip to bottom
+    bne TryTransitionKeys      // not speed up x key, skip to bottom
 WasShip1FastX:
     ldx wind_count
     bne CantIncBecuaseWind
@@ -661,6 +665,56 @@ WasQuit:
 
 DoneKeys:
     rts
+
+//////////////////////////////////////////////////////////////////////////////
+// process joystick input
+DoJoystick:
+{
+    jsr JoyScan
+
+Joy1TryLeft:
+    ldx #JOY_PORT_1_ID
+    jsr JoyIsLeft
+    beq Joy1TryRight
+Joy1IsLeft:
+    jsr ship_1.DecVelX          // slow down the ship X
+    jmp Joy1Done                // was left, can't be right too
+
+Joy1TryRight:
+    ldx #JOY_PORT_1_ID
+    jsr JoyIsRight
+    beq Joy1Done
+Joy1IsRight:
+    ldx wind_count
+    bne Joy1CantIncBecuaseWind
+    jsr ship_1.IncVelX          // inc the ship X velocity
+Joy1CantIncBecuaseWind:   
+
+Joy1Done:
+
+Joy2TryLeft:
+    ldx #JOY_PORT_2_ID
+    jsr JoyIsLeft
+    beq Joy2TryRight
+Joy2IsLeft:
+    jsr ship_2.DecVelX          // slow down the ship X
+    jmp Joy2Done                // was left cant be right too
+
+Joy2TryRight:
+    ldx #JOY_PORT_2_ID
+    jsr JoyIsRight
+    beq Joy2Done
+Joy2IsRight:
+    ldx wind_count
+    bne Joy2CantIncBecuaseWind
+    jsr ship_2.IncVelX          // inc the ship X velocity
+Joy2CantIncBecuaseWind:   
+
+Joy2Done:
+
+JoyDone:
+    rts
+}
 
 
 //////////////////////////////////////////////////////////////////////////////

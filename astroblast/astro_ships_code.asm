@@ -10,8 +10,8 @@
 #import "../nv_c64_util/nv_sprite_raw_collisions_code.asm"
 
 // max and min speed for ships when inc/dec speed
-.const SHIP_MAX_SPEED = 6
-.const SHIP_MIN_SPEED = -6
+.const SHIP_MAX_SPEED = 5
+.const SHIP_MIN_SPEED = -5
 
 //////////////////////////////////////////////////////////////////////////////
 // namespace with everything related to ship sprite
@@ -101,14 +101,18 @@ CheckShipCollision:
 temp_label: .text @"coll reg: \$00"
 
 DecVelX:
+{
     //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_1.x_vel, true, false)
     dec ship_1.x_vel        // decrement ship speed
     bpl DoneDecVelX         // if its not zero yet then skip setting to max
     inc ship_1.x_vel
 DoneDecVelX:
     rts
+}
+
 
 IncVelX:
+{
     //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_1.x_vel, true, false)
     lda ship_1.x_vel        // decrement ship speed
     cmp #SHIP_MAX_SPEED         // if its not zero yet then skip setting to max
@@ -116,7 +120,7 @@ IncVelX:
     inc ship_1.x_vel
 DoneIncVelX:
     rts
-
+}
 //////////////////////////////////////////////////////////////////////////////
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against.  it doesn't matter what character is at the location
@@ -235,21 +239,26 @@ CheckShipCollision:
 
 
 DecVelX:
-    //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_1.x_vel, true, false)
-    dec ship_1.x_vel        // decrement ship speed
-    bpl DoneDecVelX         // if its not zero yet then skip setting to max
-    inc ship_1.x_vel
-DoneDecVelX:
+{
+    //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_2.x_vel, true, false)
+    dec ship_2.x_vel        // decrement ship speed
+    bpl DoneShip2DecVelX         // if its not zero yet then skip setting to max
+    inc ship_2.x_vel
+DoneShip2DecVelX:
     rts
+}
 
 IncVelX:
-    //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_1.x_vel, true, false)
-    lda ship_1.x_vel        // decrement ship speed
+{
+    //nv_debug_print_labeled_byte_mem(10, 0, label_vel_x_str, 7, ship_2.x_vel, true, false)
+    lda ship_2.x_vel        // decrement ship speed
     cmp #SHIP_MAX_SPEED         // if its not zero yet then skip setting to max
-    beq DoneIncVelX
-    inc ship_1.x_vel
-DoneIncVelX:
+    beq DoneShip2IncVelX
+    inc ship_2.x_vel
+DoneShip2IncVelX:
     rts
+}
+
 
 SetColorDead:
     nv_sprite_set_raw_color_immediate(sprite_num, NV_COLOR_GREY)

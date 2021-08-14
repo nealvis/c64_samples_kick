@@ -57,10 +57,11 @@ WindAlreadyStarted:
 // or not.  It is possible for wind_count to get to zero before 
 // wind_glimmer_count is zero so its not sufficient to just check wind_count
 WindStep:
-    lda ship_1.x_vel
-    bpl WindCheckLeftShip2
 
 WindCheckLeftShip1:
+    lda ship_1.x_vel
+    bpl WindCheckLeftShip2  // ship1 x_vel + so not going backwards
+
     // if pushing ship off left of screen, then just set its velocity to 1
     nv_bgt16_immediate(ship_1.x_loc, WIND_SHIP_MIN_LEFT, WindCheckLeftShip2)
     lda #$01
@@ -69,6 +70,9 @@ WindCheckLeftShip1:
     sta wind_ship_1_done
 
 WindCheckLeftShip2:
+    lda ship_2.x_vel
+    bpl CheckGlimmerFrame   // ship2 x_vel positive, not going back
+
     // if pushing ship off left of screen, then just set its velocity to 1
     nv_bgt16_immediate(ship_2.x_loc, WIND_SHIP_MIN_LEFT, CheckGlimmerFrame)
     lda #$01
