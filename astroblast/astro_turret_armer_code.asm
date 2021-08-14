@@ -127,7 +127,7 @@ TurretArmStep:
 TurretNewSecond:
     sta turret_second_saved_value
     inc turret_second_counter
-    nv_screen_poke_hex_byte_mem(8, 30, turret_second_counter, true)
+    //nv_screen_poke_hex_byte_mem(8, 30, turret_second_counter, true)
     lda #TURRET_SECONDS_TO_ARM
     cmp turret_second_counter 
     bne TurretSkipArming
