@@ -30,7 +30,6 @@ TurretInit:
     sta turret_1_count
     sta turret_2_count
     sta turret_3_count
-    //sta turret_3_frame_number
     sta turret_4_count
     sta turret_5_count
     sta turret_6_count
@@ -76,10 +75,6 @@ TurretStartTry3:
 TurretStartIs3:
     lda #TURRET_3_FRAMES
     sta turret_3_count
-    //lda #0
-    //sta turret_3_frame_number
-    //nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
-    //nv_store16_immediate(turret_3_char_mem_cur, TURRET_3_CHAR_MEM_START)
 
 TurretStartTry4:
     lda #TURRET_4_ID
@@ -237,9 +232,6 @@ turret_active_retval: .byte 0
 
     lda #0
     sta turret_3_count
-    //sta turret_3_frame_number
-    //nv_store16_immediate(turret_3_char_mem_cur, TURRET_3_CHAR_MEM_START)
-    //nv_store16_immediate(turret_3_color_mem_cur, TURRET_3_COLOR_MEM_START)
 
     // all positions to background color 
     lda background_color

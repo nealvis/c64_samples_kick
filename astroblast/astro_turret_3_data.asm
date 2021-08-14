@@ -30,10 +30,6 @@
 // when turret shot starts this will be non zero and count down each frame
 // TurretStep will decrement it.
 turret_3_count: .byte $00
-turret_3_frame_number: .byte $00
-//turret_3_char_mem_cur: .word TURRET_3_CHAR_MEM_START  // current location of the bullet's tail
-//turret_3_color_mem_cur: .word TURRET_3_COLOR_MEM_START
-
 
 .function DeathRectLeftT3(frame_num)
 {
