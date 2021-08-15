@@ -23,7 +23,7 @@
         .byte $00, $00, $00      // end of basic program (addr $080E from above)
 
 *=$0820 "Main Program Vars"
-
+#import "astro_keyboard_macs.asm"
 #import "astro_vars_data.asm"
 #import "astro_wind_data.asm"
 #import "astro_ship_death_data.asm"
@@ -37,6 +37,7 @@
 .const KEY_COOL_DURATION = $08
 
 // These are the keys that do something in the game
+/*
 .const KEY_SHIP1_SLOW_X = NV_KEY_A
 .const KEY_SHIP1_FAST_X = NV_KEY_D
 .const KEY_QUIT = NV_KEY_Q
@@ -51,7 +52,7 @@
 .const KEY_EXPERIMENTAL_02 = NV_KEY_B
 .const KEY_EXPERIMENTAL_03 = NV_KEY_N
 .const KEY_EXPERIMENTAL_04 = NV_KEY_M
-
+*/
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
 nv_b8_label: .text @"nv b8 coll sprite: \$00"
@@ -90,10 +91,23 @@ RealStart:
     nv_screen_custom_charset_init(6, false)
     nv_screen_set_border_color_mem(border_color)
     nv_screen_set_background_color_mem(background_color)
+    nv_rand_init(true)              // do before SoundInit
+
+    nv_key_init()
+
+    // initialize song 0
+    jsr SoundInit
+
+    lda #$02
+    jsr SoundVolumeSet
+
+    lda #$00
+    sta quit_flag
+
 
     jsr TitleStart              // show title screen
     bne RunGame                 // make sure non zero in accum and run game
-    rts                         // if zero in accum then user quit
+    jmp ProgramDone                         // if zero in accum then user quit
 
 RunGame:
 
@@ -102,9 +116,6 @@ RunGame:
 
     // set the global sprite multi colors        
     nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
-
-    lda #$00
-    sta quit_flag
 
     jsr StarInit
     jsr WindInit
@@ -151,14 +162,6 @@ RunGame:
     .var showTiming = false
     .var showFrameCounters = false
         
-    nv_key_init()
-    nv_rand_init(true)              // do before SoundInit
-
-    // initialize song 0
-    jsr SoundInit
-
-    lda #$02
-    jsr SoundVolumeSet
 
     jsr StarStart
 
