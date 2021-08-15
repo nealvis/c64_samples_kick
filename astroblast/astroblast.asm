@@ -28,6 +28,7 @@
 #import "astro_wind_data.asm"
 #import "astro_ship_death_data.asm"
 
+
 // min and max speed for all sprites during the changeup
 .const MAX_SPEED = 6
 .const MIN_SPEED = -6
@@ -86,15 +87,18 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 #import "astro_turret_code.asm"
 
 RealStart:
-
     nv_screen_custom_charset_init(6, false)
+    nv_screen_set_border_color_mem(border_color)
+    nv_screen_set_background_color_mem(background_color)
+
+    jsr TitleStart              // show title screen
+    bne RunGame                 // make sure non zero in accum and run game
+    rts                         // if zero in accum then user quit
+
+RunGame:
 
     // clear the screen just to have an empty canvas
     nv_screen_clear()
-    //jsr CreateField
-
-    nv_screen_set_border_color_mem(border_color)
-    nv_screen_set_background_color_mem(background_color)
 
     // set the global sprite multi colors        
     nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
@@ -1414,6 +1418,7 @@ InvalidSpriteNumber:
 SpriteExtraPtrLoaded:
     rts
 
+#import "astro_title_code.asm"
 
 
 // our sprite routines will goto this address
