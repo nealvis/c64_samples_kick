@@ -17,6 +17,9 @@
 // Carry Flag	Set if addr1 >= addr2
 // Zero Flag	Set if addr1 == addr2
 // Negative Flag is undefined
+// Accum: changes
+// X Reg: unchanged
+// Y Reg: unchanged
 .macro nv_cmp16(addr1, addr2)
 {
     // first compare the MSBs
@@ -111,6 +114,9 @@ Done:
 //   addr1: the address of the LSB of the word1
 //   addr2: the address of the LSB of the word2 
 //   label: the label to branch to if word1 < word2
+// Accum: changes
+// X Reg: remains unchanged
+// Y Reg: remains unchanged
 .macro nv_ble16(addr1, addr2, label)
 {
     nv_cmp16(addr1, addr2)

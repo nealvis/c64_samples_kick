@@ -179,7 +179,13 @@ HitQuitCommand:
                                  // should be used asthe destination 
                                  // addresses.  An address list is zero
                                  // or more 16 bit addrs in succession
-                                 // in memory followed by terminating $FFFF  
+                                 // in memory followed by terminating $FFFF
+
+    .const CMD_DEST_BLOCK = $04  // 4 bytes of arg
+                                 // 16 bit first dest addr, 
+                                 // 16 bit last dest addr
+                                 // copy current src byte to every dest addr
+                                 // between start and end address inclusive
     
     .const CMD_QUIT = $FF       // quit is normal but out of order
 
@@ -222,6 +228,10 @@ HitQuitCommand:
 
     ldy #$00
     sty blk_cpy_num_bytes
+    sty dest_block_end_addr
+    sty dest_block_end_addr+1
+    sty dest_block_start_addr
+    sty dest_block_start_addr+1
 LoopTop:
 
     // load zero page ptr with pointer from stream (assuming
@@ -282,9 +292,16 @@ TryCmdDestList:
     // address for the byte that is currently getting copied.  The
     // list of addresses must be terminated by $FFFF
     cmp #CMD_DEST_LIST
-    bne TryCmdNop
+    bne TryCmdDestBlock
 IsCmdDestList:
     jsr DoDestList
+    jmp LoopTop
+
+TryCmdDestBlock:
+    cmp #CMD_DEST_BLOCK
+    bne TryCmdNop
+IsCmdDestBlock:
+    jsr DoDestBlock
     jmp LoopTop
 
 TryCmdNop:
@@ -332,6 +349,36 @@ HitQuitCommand:
     sty Z2_HI
 
     rts
+
+dest_block_start_addr: .word $0000
+dest_block_end_addr: .word $0000
+
+DoDestBlock:
+{
+    lda (Z2_LO), y                  // read next byte in stream
+    iny                             // its LSB of Start addr
+    sta ZERO_PAGE_LO                // store in ZERO_PAGE_LO
+    lda (Z2_LO), y                  // read next byte in stream
+    iny                             // its the MS of start addr
+    sta ZERO_PAGE_HI                // store in ZERO_PAGE_HI
+
+    lda (Z2_LO), y                  // read next byte in stream
+    iny
+    sta dest_block_end_addr
+    lda (Z2_LO), y                  // read next byte in stream
+    iny
+    sta dest_block_end_addr+1
+
+DestBlockLoop:
+    lda temp_word         // temp_word LSB is the src byte
+    ldx #$00              // load x reg with 0 / no offset
+    sta (ZERO_PAGE_LO,x)  // store accum to pointed to dest addr
+    nv_adc16_immediate(ZERO_PAGE_LO, 1, ZERO_PAGE_LO)            // inc the dest addr
+    nv_ble16(ZERO_PAGE_LO, dest_block_end_addr, DestBlockLoop)   // loop if not done
+    
+DestBlockDone:
+    rts
+}
 
 DoDestList:
 {
@@ -431,5 +478,7 @@ BlockCopyLoopTop:
 BlockCopyDone:
 NotDoingBlockCopy:
     rts
+
+
 }
 

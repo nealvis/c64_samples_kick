@@ -21,18 +21,98 @@
 #import "astro_starfield_code.asm"
 #import "astro_keyboard_macs.asm"
 #import "astro_sound.asm"
+#import "astro_stream_processor_code.asm"
 
 //#import "../nv_c64_util/nv_debug_code.asm"
-astro_title_str: .text @"  astroblast \$00"
+astro_title_str:     .text @"     astroblast \$00"
 
-title_quit_str:      .text @"q key ... quit \$00"
-title_play_str:      .text @"space ... play \$00"
-title_vol_up_str:    .text @"< key ... vol down \$00"
-title_vol_down_str:  .text @"> key ... vol up \$00"
-
+title_quit_str:      .text @" q key ... quit\$00"
+title_play_str:      .text @" space ... play\$00"
+title_vol_up_str:    .text @" < key ... vol down\$00"
+title_vol_down_str:  .text @" > key ... vol up\$00"
+title_rect_top_str:  .byte 104, 104, 104, 104, 0
 play_flag: .byte $00
 
 .const TITLE_KEY_COOL_DURATION = $08
+.const TITLE_RECT_WIDTH = 20
+.const TITLE_RECT_HEIGHT = 9
+.const TITLE_ROW_START = 6
+.const TITLE_COL_START = NV_SCREEN_CHARS_PER_ROW/2 -(TITLE_RECT_WIDTH/2) 
+
+.const TRS = TITLE_ROW_START
+.const TCS = TITLE_COL_START
+.const TCPR = NV_SCREEN_CHARS_PER_ROW
+.const TITLE_RECT_TOP_CHAR = 82
+
+
+.var index
+/*
+.var col_index = 0
+.var row_index = 0
+title_rect_all_color_addr_list:
+    .for (row_index = 0; row_index<6; row_index = row_index+1)
+    {
+        .for (col_index = 0; col_index < TITLE_RECT_WIDTH; col_index = col_index+1)
+        {
+            .word nv_screen_color_addr_from_yx((TRS + row_index), TCS + col_index)
+        }
+    }
+    .word $FFFF
+*/
+
+title_rect_top_char_addr_list:
+    .for (index = 0; index < TITLE_RECT_WIDTH; index = index+1)
+    {
+        .word nv_screen_char_addr_from_yx((TRS + 0), TCS + index)
+    }
+    .word $FFFF
+
+title_rect_bottom_char_addr_list:
+    .for (index = 0; index < TITLE_RECT_WIDTH; index = index+1)
+    {
+        .word nv_screen_char_addr_from_yx((TRS + TITLE_RECT_HEIGHT-1), TCS + index)
+    }
+    .word $FFFF
+
+.const TITLE_RECT_COLOR_FIRST = nv_screen_color_addr_from_yx((TRS + 0), TCS + 0)
+.const TITLE_RECT_COLOR_LAST = nv_screen_color_addr_from_yx((TRS + TITLE_RECT_HEIGHT), TCS + TITLE_RECT_WIDTH)
+
+title_rect_stream:
+    // set top rect char
+    .word $FFFF
+    .byte $01, TITLE_RECT_TOP_CHAR
+
+    // poke the rect top chars
+    .word $FFFF
+    .byte $03                   // destination list
+    .word title_rect_top_char_addr_list
+
+    // poke the rect bottom chars
+    .word $FFFF
+    .byte $03                   // destination list
+    .word title_rect_bottom_char_addr_list
+
+    // poke the colors of the rect
+    .word $FFFF
+    .byte $01, NV_COLOR_WHITE
+
+    //.word $FFFF
+    //.byte $04                               // destination block command
+    //.word TITLE_RECT_COLOR_FIRST
+    //.word TITLE_RECT_COLOR_FIRST + TITLE_RECT_WIDTH
+
+    .var row_index = 0
+    .for (row_index = 0; row_index<TITLE_RECT_HEIGHT; row_index = row_index + 1)
+    {
+        .word $FFFF
+        .byte $04                               // destination block command
+        .word TITLE_RECT_COLOR_FIRST+(NV_SCREEN_CHARS_PER_ROW * row_index)
+        .word TITLE_RECT_COLOR_FIRST+(NV_SCREEN_CHARS_PER_ROW * row_index) + TITLE_RECT_WIDTH
+    }
+
+    // stream done
+    .word $FFFF
+    .byte $FF
 
 //////////////////////////////////////////////////////////////////////////////
 // call once to initialize starfield variables and stuff
@@ -41,8 +121,6 @@ play_flag: .byte $00
 //   SoundInit
 TitleStart:
 {
-    .const TITLE_ROW_START = 5
-    .const TITLE_COL_START = 12
     nv_screen_clear()
 
     lda #$00
@@ -50,16 +128,24 @@ TitleStart:
 
     jsr StarInit
     jsr StarStart
+
+
+TitleLoop:
+    nv_sprite_wait_last_scanline()         // wait for particular scanline.
+    SoundDoStep()
     jsr StarStep
-    nv_screen_poke_str(TITLE_ROW_START, TITLE_COL_START, astro_title_str)
+
+    ldx #<title_rect_stream
+    ldy #>title_rect_stream
+    jsr AstroStreamProcessor
+
+    nv_screen_poke_str(TITLE_ROW_START+1, TITLE_COL_START, astro_title_str)
     nv_screen_poke_str(TITLE_ROW_START+4, TITLE_COL_START, title_play_str)
     nv_screen_poke_str(TITLE_ROW_START+5, TITLE_COL_START, title_quit_str)
     nv_screen_poke_str(TITLE_ROW_START+6, TITLE_COL_START, title_vol_up_str)
     nv_screen_poke_str(TITLE_ROW_START+7, TITLE_COL_START, title_vol_down_str)
 
-TitleLoop:
-    nv_sprite_wait_last_scanline()         // wait for particular scanline.
-    SoundDoStep()
+
     jsr TitleDoKeyboard
     lda quit_flag
     beq TitleNoQuit
