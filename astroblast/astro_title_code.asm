@@ -12,10 +12,7 @@
 #import "../nv_c64_util/nv_screen_macs.asm"
 #import "../nv_c64_util/nv_screen_rect_macs.asm"
 #import "../nv_c64_util/nv_pointer_macs.asm"
-#import "../nv_c64_util/nv_stream_processor_macs.asm"
 #import "../nv_c64_util/nv_debug_macs.asm"
-#import "astro_stream_processor_macs.asm"
-#import "astro_stream_processor_code.asm"
 #import "../nv_c64_util/nv_math16_macs.asm"
 
 #import "astro_starfield_code.asm"

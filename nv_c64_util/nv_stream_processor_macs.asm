@@ -7,7 +7,7 @@
 #importonce
 
 #if !NV_C64_UTIL_DATA
-.error "Error - nv_pointer_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm"
+.error "Error - nv_stream_processor_macs.asm: NV_C64_UTIL_DATA not defined.  Import nv_c64_util_data.asm"
 #endif
 
 // the #if above doesn't seem to always work so..
@@ -350,9 +350,11 @@ HitQuitCommand:
 
     rts
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to copy src byte to block of memory defined by start and end
+// estination addresses
 dest_block_start_addr: .word $0000
 dest_block_end_addr: .word $0000
-
 DoDestBlock:
 {
     lda (Z2_LO), y                  // read next byte in stream
@@ -380,6 +382,8 @@ DestBlockDone:
     rts
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to copy src byte to destination list
 DoDestList:
 {
     // read the address of the list from the stream
@@ -440,13 +444,17 @@ NotDestListEnd:
     dest_list_save_z2_lo: .byte $00
     dest_list_save_z2_hi: .byte $00
 }
-
 // DoDestList - end
+//////////////////////////////////////////////////////////////////////////////
+
+
 ////////////////////////////////////////////////////////////////////////////
-
-
+// DoBlkCopy subroutine to copy diff src byte to block of bytes in stream
+// to successive locations in memory.  The src byte is read from stream 
+// for every successive destination address.
 blk_cpy_num_bytes: .byte 0
 DoBlkCpy:
+{
     // read number of bytes to copy first
     lda (Z2_LO), y                  // read next byte in stream
     iny
@@ -478,7 +486,9 @@ BlockCopyLoopTop:
 BlockCopyDone:
 NotDoingBlockCopy:
     rts
-
+}
+// DoBlkCopy - end
+//////////////////////////////////////////////////////////////////////////////
 
 }
 

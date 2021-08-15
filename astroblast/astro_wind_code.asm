@@ -13,11 +13,10 @@
 
 #import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
 #import "astro_wind_glimmer_data.asm"
-#import "../nv_c64_util/nv_screen_code.asm"
 #import "astro_vars_data.asm"
 #import "astro_wind_data.asm"
 #import "astro_wind_glimmer_code.asm"
-
+#import "../nv_c64_util/nv_screen_code.asm"
 #import "astro_ships_code.asm"
 
 //////////////////////////////////////////////////////////////////////////////

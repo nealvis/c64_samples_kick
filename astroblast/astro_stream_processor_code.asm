@@ -1,9 +1,11 @@
 #importonce
 
+#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+
 #import "astro_vars_data.asm"
 
-#import "../nv_c64_util/nv_stream_processor_macs.asm"
-
+//#import "../nv_c64_util/nv_stream_processor_macs.asm"
+#import "astro_stream_processor_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 //   Accum: will change, Input: should hold the byte that will be stored 

@@ -12,16 +12,18 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #importonce 
+#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+
 #import "astro_vars_data.asm"
 #import "astro_turret_armer_data.asm"
-#import "../nv_c64_util/nv_screen_macs.asm"
-#import "../nv_c64_util/nv_screen_rect_macs.asm"
-#import "../nv_c64_util/nv_pointer_macs.asm"
-#import "../nv_c64_util/nv_stream_processor_macs.asm"
-#import "../nv_c64_util/nv_debug_macs.asm"
-#import "astro_stream_processor_macs.asm"
+//#import "../nv_c64_util/nv_screen_macs.asm"
+//#import "../nv_c64_util/nv_screen_rect_macs.asm"
+//#import "../nv_c64_util/nv_pointer_macs.asm"
+//#import "../nv_c64_util/nv_stream_processor_macs.asm"
+//#import "../nv_c64_util/nv_debug_macs.asm"
+//#import "astro_stream_processor_macs.asm"
 #import "astro_stream_processor_code.asm"
-#import "../nv_c64_util/nv_math16_macs.asm"
+//#import "../nv_c64_util/nv_math16_macs.asm"
 //#import "../nv_c64_util/nv_debug_code.asm"
 
 //////////////////////////////////////////////////////////////////////////////

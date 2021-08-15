@@ -14,7 +14,8 @@
 // somewhere else without doing it from the _macs.asm files
 #define NV_C64_UTIL_DATA
 
-#import "nv_c64_util_macs.asm"
+//#import "nv_c64_util_macs.asm"
+#import "nv_keyboard_const.asm"
 
 nv_c64_util_data_start_addr: 
 //////////////////////////////////////////////////////////////////////////////
