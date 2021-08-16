@@ -5,6 +5,9 @@
 
 #importonce
 
+.const ASTRO_FPS = 60
+
+
 border_color: .byte NV_COLOR_BLUE
 background_color: .byte NV_COLOR_BLACK
 
@@ -28,7 +31,16 @@ wind_start_mask: .byte $03
 // the turret will just update the bullet's death rectangle
 turret_hit_ship_1: .byte 0
 
+// difficulty mode for the game.
+// setup other vars based on this value
 .const ASTRO_DIFF_EASY = 1
 .const ASTRO_DIFF_MED = 2
 .const ASTRO_DIFF_HARD = 3
 astro_diff_mode: .byte ASTRO_DIFF_EASY // 1=easy, 2=med, 3=hard
+
+// set this to the frame
+.const ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY = ASTRO_FPS * 5
+.const ASTRO_AUTO_TURRET_WAIT_FRAMES_MED = ASTRO_FPS * 3
+.const ASTRO_AUTO_TURRET_WAIT_FRAMES_HARD = ASTRO_FPS * 2
+astro_auto_turret_wait_frames: .word ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY
+astro_auto_turret_next_shot_frame: .word ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY

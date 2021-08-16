@@ -33,7 +33,6 @@
 .const MAX_SPEED = 6
 .const MIN_SPEED = -6
 
-.const FPS = 60
 .const KEY_COOL_DURATION = $08
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
@@ -94,6 +93,17 @@ RealStart:
 
 RunGame:
 
+    // standard initialization
+    nv_store16_immediate(second_counter, $0000)
+    nv_store16_immediate(second_partial_counter, $0000)
+    nv_store16_immediate(frame_counter, $0000)
+    nv_store16_immediate(ship_1.score, $0000)
+    nv_store16_immediate(ship_2.score, $0000)
+
+
+    // initialize based on difficulty (must be after standard init)
+    jsr AstroSetDiffParams
+
     // clear the screen just to have an empty canvas
     nv_screen_clear()
 
@@ -109,10 +119,10 @@ RunGame:
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
-    nv_store16_immediate(ship_1.score, $0000)
+    //nv_store16_immediate(ship_1.score, $0000)
 
     jsr ship_2.Setup
-    nv_store16_immediate(ship_2.score, $0000)
+    //nv_store16_immediate(ship_2.score, $0000)
 
     // setup everything for the sprite_asteroid so its ready to enable
     jsr asteroid_1.Setup
@@ -152,7 +162,7 @@ MainLoop:
 
     nv_adc16_immediate(frame_counter, 1, frame_counter)
     nv_adc16_immediate(second_partial_counter, 1, second_partial_counter)
-    nv_ble16_immediate(second_partial_counter, FPS, PartialSecond1)
+    nv_ble16_immediate(second_partial_counter, ASTRO_FPS, PartialSecond1)
     jmp FullSecond
 PartialSecond1:
     jmp PartialSecond2
@@ -187,7 +197,6 @@ PartialSecond2:
     {
         nv_screen_poke_hex_word_mem(0, 0, frame_counter, true)
     }
-    //jsr UpdateField
 
     //// call function to move sprites around based on X and Y velocity
     // but only modify the position in their extra data block not on screen
@@ -195,6 +204,7 @@ PartialSecond2:
     {
         nv_screen_set_border_color_immed(NV_COLOR_LITE_GREEN)
     }
+
     // read keyboard and take action before other effects incase
     // other effects will override keyboard action
     jsr DoKeyboard
@@ -206,7 +216,6 @@ PartialSecond2:
     jsr TurretStep
     jsr TurretArmStep
     jsr ShipDeathStep
-    //jsr TurretArmStep
 
     // fire the turret automatically if its time.
     jsr TurretAutoStart
@@ -327,7 +336,44 @@ ProgramDone:
     nv_screen_plot_cursor(5, 24)
     nv_screen_clear()
     rts   // program done, return
+// end main program
+//////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to set the program parameters based on the difficulty 
+// option specified on title screen
+AstroSetDiffParams:
+{
+    lda astro_diff_mode
+TryEasy:
+    cmp #ASTRO_DIFF_EASY
+    bne TryMed
+IsEasy:
+    // Set easy mode params here
+    nv_store16_immediate(astro_auto_turret_wait_frames, ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY)
+    jmp DoneDiffParams
+
+TryMed:
+    cmp #ASTRO_DIFF_MED
+    bne TryHard
+IsMed:
+    // Set medium mode params here
+    nv_store16_immediate(astro_auto_turret_wait_frames, ASTRO_AUTO_TURRET_WAIT_FRAMES_MED)
+    jmp DoneDiffParams
+
+TryHard:
+    // if wasn't easy or medium, assume hard
+    // set hard mode params here
+    nv_store16_immediate(astro_auto_turret_wait_frames, ASTRO_AUTO_TURRET_WAIT_FRAMES_HARD)
+
+
+    // fall through to done
+DoneDiffParams:
+    nv_adc16(frame_counter, astro_auto_turret_wait_frames, 
+             astro_auto_turret_next_shot_frame)
+
+    rts
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to wait for no key currently pressed
@@ -670,8 +716,10 @@ WindCheckDone:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to start shooting turret if its currently armed
-// accum: must have turret ID to start 
+// subroutine to start shooting turret if its currently armed.  if not armed
+// then the turret will not be started
+// accum: must have turret ID or IDs to start.  
+// 
 TurretStartIfArmed:
 {
     tay                             // save turret ID in y reg
@@ -697,9 +745,16 @@ TurretAutoStart:
     .const ZONE_3_MAX = nv_screen_rect_char_to_screen_pixel_left(39, 0)
 
     jsr TurretCurrentlyArmedLda
-    beq TurretAutoStartDone
+    bne TurretAutoStartIsArmed
+    jmp TurretAutoStartDone
 
-TurretAutoStartReady:
+TurretAutoStartIsArmed:
+    // turret is armed, now see if its time to fire
+    nv_bgt16(frame_counter, astro_auto_turret_next_shot_frame, TurretAutoWaitOver)
+    // not done waiting for autostart
+    jmp TurretAutoStartDone
+
+TurretAutoWaitOver:
 TurretAutoTryShip1Zone1:    
     nv_bgt16_immediate(ship_1.x_loc, ZONE_1_MAX, TurretAutoTryShip1Zone2)
     lda #TURRET_3_ID
@@ -737,8 +792,16 @@ TurretAutoTryShip2Zone3:
     sta turret_auto_start_ids
 
 TurretAutoStartDoIt:
+    // load all the turret IDs and fire turret
     lda turret_auto_start_ids
     jsr TurretStartIfArmed
+
+    // now set the clock for when the next auto start can happen
+    nv_adc16(frame_counter, astro_auto_turret_wait_frames, 
+             astro_auto_turret_next_shot_frame)
+    // in the unlikely event that next frame number is beyond the 
+    // 16 bit limit it rolls around to some small number but so does
+    // the frame counter so that should be fine.
 
 TurretAutoStartDone:
     rts
