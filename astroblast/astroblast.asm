@@ -332,20 +332,26 @@ ProgramDone:
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to wait for no key currently pressed
 WaitNoKey:
+{
     nv_key_wait_no_key()
     rts
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to put the score onto the screen
 ScoreToScreen:
+{
     nv_screen_poke_bcd_word_mem(0, 0, ship_1.score)
     nv_screen_poke_bcd_word_mem(24, 0, ship_2.score)
     rts
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to cycle the color of a sprite just to show how
 // the nv_sprite_set_color_from_memory macro works.
 ChangeUp:
+{
         ldx cycling_color
         inx
         cpx background_color // this is background color, so skip that one
@@ -408,112 +414,23 @@ CheckAster5:
 
 DoneCheckingDisabledAsteroids:
     rts
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to Pause
 DoPause:
+{
     jsr SoundMuteOn
     nv_key_wait_any_key()
     jsr SoundMuteOff
     rts
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-// CreateField subroutine
-/*
-CreateField:
-    // turret below here
-    ldx #NV_COLOR_RED
-    lda #248
-    nv_screen_poke_color_char_xa(9, 39)
-    //nv_screen_poke_color_char_xa(9, 38)
-    lda #249
-    nv_screen_poke_color_char_xa(15, 39)
-    //nv_screen_poke_color_char_xa(15, 38)
-
-
-    lda #$A0
-    nv_screen_poke_color_char_xa(10, 39)
-    nv_screen_poke_color_char_xa(11, 39)
-    nv_screen_poke_color_char_xa(12, 39)
-    nv_screen_poke_color_char_xa(13, 39)
-    nv_screen_poke_color_char_xa(14, 39)
-
-    //nv_screen_poke_color_char_xa(10, 38)
-    //nv_screen_poke_color_char_xa(11, 38)
-    //nv_screen_poke_color_char_xa(12, 38)
-    //nv_screen_poke_color_char_xa(13, 38)
-    //nv_screen_poke_color_char_xa(14, 38)
-
-    ldx #NV_COLOR_LITE_RED
-    lda #254
-    nv_screen_poke_color_char_xa(13, 38)
-    nv_screen_poke_color_char_xa(10, 38)
-
-
-    lda #251
-    nv_screen_poke_color_char_xa(14, 38)
-    nv_screen_poke_color_char_xa(11, 38)
-
-
-    //lda #225
-    //nv_screen_poke_color_char_xa(12, 37)
-
-    rts
-*/
-
-/*
-//////////////////////////////////////////////////////////////////////////////
-//
-UpdateField:
-    nv_rand_color_a(true)
-    nv_screen_poke_color_a(3, 12)
-    //nv_screen_poke_color_a(10, 35)
-    nv_screen_poke_color_a(4, 20)
-    nv_rand_color_a(true)
-    nv_screen_poke_color_a(15, 25)
-    //nv_screen_poke_color_a(20, 37)
-    //nv_screen_poke_color_a(23, 27)
-    nv_screen_poke_color_a(7, 15)
-    nv_rand_color_a(true)
-    nv_screen_poke_color_a(22, 38)
-    nv_screen_poke_color_a(6, 4)
-    nv_rand_color_a(true)
-    nv_screen_poke_color_a(23, 6)
-    //nv_screen_poke_color_a(12, 28)
-    nv_screen_poke_color_a(6, 17)
-
-    //nv_screen_poke_color_a(14, 22)
-    //nv_rand_color_a(true)
-    //nv_screen_poke_color_a(07, 9)
-    //nv_screen_poke_color_a(21, 14)
-    nv_screen_poke_color_a(4, 22)
-
-    rts
-*/
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Subroutine to set all character colors for the whole screen to the color
-// in the accumulator
-// subroutine params:
-//   Accum: the color (0-15) to put in screen color memory for all locations 
-SetAllCharColorA:
-    nv_screen_poke_all_color_a()
-    rts
-
-//////////////////////////////////////////////////////////////////////////////
-SetAllCharA:
-    nv_screen_poke_all_char_a()
-    rts
-
-is_joy_str:     .text @"is joy\$00"
-no_joy_str:     .text @"no joy\$00"
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to do all the keyboard stuff
 DoKeyboard:
+{
     // Check for joystick activity.
     // if there is any then we won't check keyboard.  
     // need this because joystick and keyboard seem to interfere
@@ -668,9 +585,13 @@ WasQuit:
 
 DoneKeys:
     rts
+}
+// DoKeyboard - end
+//////////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////
-// process joystick input
+// subroutine to process joystick input
 DoJoystick:
 {
     jsr JoyScan
@@ -718,7 +639,8 @@ Joy2Done:
 JoyDone:
     rts
 }
-
+// DoJoystick - end
+//////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 // call to determine if its time to start a wind gust.  if it is time then
@@ -762,6 +684,8 @@ TurretIsArmedCanStart:
 TurretNotArmedCantStart:
     rts
 }
+// TurretStartIfArmed - end
+//////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to start shooting automatically and aim at each ship based
@@ -821,6 +745,9 @@ TurretAutoStartDone:
 turret_auto_start_ids: .byte $00
 
 }
+// TurretAutoStart - end
+//////////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////
 CheckSpriteHitTurretBullet1:
@@ -850,6 +777,7 @@ CheckSpriteHitTurretBullet6:
 // x and y reg have x and y screen loc for the char to check the sprite 
 // location against
 TurretHitCheck:
+{
 Turret1HitCheck:
     lda #TURRET_1_ID
     jsr TurretLdaActive
@@ -978,18 +906,10 @@ Turret6DidHit:
 
 TurretHitCheckDone:
     rts
+}
 // TurretHitCheck End
 //////////////////////////////////////////////////////////////////////////////
 
-/*
-ShipDeathStartWrapper:
-    jsr ShipDeathStart
-    rts
-    
-ShipDeathStepWrapper:
-    jsr ShipDeathStep
-    rts
-*/
 
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
