@@ -508,10 +508,23 @@ SetAllCharA:
     nv_screen_poke_all_char_a()
     rts
 
+is_joy_str:     .text @"is joy\$00"
+no_joy_str:     .text @"no joy\$00"
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to do all the keyboard stuff
-DoKeyboard: 
+DoKeyboard:
+    // Check for joystick activity.
+    // if there is any then we won't check keyboard.  
+    // need this because joystick and keyboard seem to interfere
+    // with each other and joystick activity can be misinterpreted 
+    // as keyboard key presses
+    jsr JoyIsAnyActivity
+    beq NoJoy
+IsJoy:  // Is joystick activity so just return
+    rts
+NoJoy:  // is no joystick activity so check keyboard
+
     nv_key_scan()
 
     lda key_cool_counter

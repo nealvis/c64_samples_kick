@@ -52,7 +52,8 @@ JoyInit:
 
 //////////////////////////////////////////////////////////////////////////////
 // JoyScan
-// initialize everything needed for joystick reading
+// scans the joystick ports and sets bits in nv_joy_port1_state and
+// nv_joy_port2_state 
 JoyScan:
 {
     lda JOY_PORT1_ADDR
@@ -62,7 +63,7 @@ JoyScan:
 
 
     lda JOY_PORT2_ADDR
-    eor #$FF
+    eor #$7F
     sta nv_joy_port2_state
     //nv_screen_poke_hex_byte_a(7, 0, true)
 
@@ -84,6 +85,19 @@ JoyCurStateXY:
 }
 // JoyCurStateXY end
 //////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine that determines if both joysticks are at rest
+// if either joystick is firing or being pushed in any direction
+// then this will set accum to non zero.  if there is no activity 
+// on either joystick then this will set accum to zero
+// note this routine assumes that JoyScan is being called regularly
+JoyIsAnyActivity:
+{
+    lda nv_joy_port1_state
+    ora nv_joy_port2_state
+    rts
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to determine if the joystick is in up state for a particular
