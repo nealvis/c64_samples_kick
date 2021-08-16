@@ -206,7 +206,7 @@ PartialSecond2:
     jsr TurretStep
     jsr TurretArmStep
     jsr ShipDeathStep
-    jsr TurretArmStep
+    //jsr TurretArmStep
 
     // fire the turret automatically if its time.
     jsr TurretAutoStart
