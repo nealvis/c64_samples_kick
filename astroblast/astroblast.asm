@@ -73,8 +73,7 @@ RealStart:
     nv_screen_custom_charset_init(6, false)
     nv_screen_set_border_color_mem(border_color)
     nv_screen_set_background_color_mem(background_color)
-    nv_rand_init(true)              // do before SoundInit
-
+    nv_rand_init(true)          // do before SoundInit
     nv_key_init()
 
     // initialize song 0
@@ -86,10 +85,12 @@ RealStart:
     lda #$00
     sta quit_flag
 
+    lda #ASTRO_DIFF_EASY
+    sta astro_diff_mode
 
     jsr TitleStart              // show title screen
     bne RunGame                 // make sure non zero in accum and run game
-    jmp ProgramDone                         // if zero in accum then user quit
+    jmp ProgramDone             // if zero in accum then user quit
 
 RunGame:
 

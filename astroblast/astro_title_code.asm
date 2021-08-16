@@ -9,12 +9,14 @@
 #importonce 
 #import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
 #import "astro_vars_data.asm"
+
+/*
 #import "../nv_c64_util/nv_screen_macs.asm"
 #import "../nv_c64_util/nv_screen_rect_macs.asm"
 #import "../nv_c64_util/nv_pointer_macs.asm"
 #import "../nv_c64_util/nv_debug_macs.asm"
 #import "../nv_c64_util/nv_math16_macs.asm"
-
+*/
 #import "astro_starfield_code.asm"
 #import "astro_keyboard_macs.asm"
 #import "astro_sound.asm"
@@ -27,13 +29,16 @@ title_quit_str:      .text @" q key ... quit\$00"
 title_play_str:      .text @" space ... play\$00"
 title_vol_up_str:    .text @" < key ... vol down\$00"
 title_vol_down_str:  .text @" > key ... vol up\$00"
-title_rect_top_str:  .byte 104, 104, 104, 104, 0
+title_easy_mode_str: .text @" 1 key ... easy\$00"
+title_med_mode_str:  .text @" 2 key ... med\$00"
+title_hard_mode_str: .text @" 3 key ... hard\$00"
+
 play_flag: .byte $00
 
 .const TITLE_KEY_COOL_DURATION = $08
 .const TITLE_RECT_WIDTH = 20
-.const TITLE_RECT_HEIGHT = 9
-.const TITLE_ROW_START = 6
+.const TITLE_RECT_HEIGHT = 14
+.const TITLE_ROW_START = 3
 .const TITLE_COL_START = NV_SCREEN_CHARS_PER_ROW/2 -(TITLE_RECT_WIDTH/2) 
 
 .const TRS = TITLE_ROW_START
@@ -43,19 +48,6 @@ play_flag: .byte $00
 
 
 .var index
-/*
-.var col_index = 0
-.var row_index = 0
-title_rect_all_color_addr_list:
-    .for (row_index = 0; row_index<6; row_index = row_index+1)
-    {
-        .for (col_index = 0; col_index < TITLE_RECT_WIDTH; col_index = col_index+1)
-        {
-            .word nv_screen_color_addr_from_yx((TRS + row_index), TCS + col_index)
-        }
-    }
-    .word $FFFF
-*/
 
 title_rect_top_char_addr_list:
     .for (index = 0; index < TITLE_RECT_WIDTH; index = index+1)
@@ -97,15 +89,17 @@ title_rect_stream:
     //.byte $04                               // destination block command
     //.word TITLE_RECT_COLOR_FIRST
     //.word TITLE_RECT_COLOR_FIRST + TITLE_RECT_WIDTH
+    
+    .word $FFFF
+    .byte $04                               // destination block command
+    .word TITLE_RECT_COLOR_FIRST+(NV_SCREEN_CHARS_PER_ROW * 0)
+    .word TITLE_RECT_COLOR_FIRST+(NV_SCREEN_CHARS_PER_ROW * 0) + TITLE_RECT_WIDTH
 
-    .var row_index = 0
-    .for (row_index = 0; row_index<TITLE_RECT_HEIGHT; row_index = row_index + 1)
-    {
-        .word $FFFF
-        .byte $04                               // destination block command
-        .word TITLE_RECT_COLOR_FIRST+(NV_SCREEN_CHARS_PER_ROW * row_index)
-        .word TITLE_RECT_COLOR_FIRST+(NV_SCREEN_CHARS_PER_ROW * row_index) + TITLE_RECT_WIDTH
-    }
+    .word $FFFF
+    .byte $04                               // destination block command
+    .word TITLE_RECT_COLOR_FIRST+(NV_SCREEN_CHARS_PER_ROW * (TITLE_RECT_HEIGHT-1))
+    .word TITLE_RECT_COLOR_FIRST+(NV_SCREEN_CHARS_PER_ROW * (TITLE_RECT_HEIGHT-1)) + TITLE_RECT_WIDTH
+
 
     // stream done
     .word $FFFF
@@ -136,12 +130,48 @@ TitleLoop:
     ldy #>title_rect_stream
     jsr AstroStreamProcessor
 
-    nv_screen_poke_str(TITLE_ROW_START+1, TITLE_COL_START, astro_title_str)
-    nv_screen_poke_str(TITLE_ROW_START+4, TITLE_COL_START, title_play_str)
-    nv_screen_poke_str(TITLE_ROW_START+5, TITLE_COL_START, title_quit_str)
-    nv_screen_poke_str(TITLE_ROW_START+6, TITLE_COL_START, title_vol_up_str)
-    nv_screen_poke_str(TITLE_ROW_START+7, TITLE_COL_START, title_vol_down_str)
+    .var poke_row = TITLE_ROW_START + 1
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, astro_title_str)
+    .eval poke_row = poke_row + 1
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_play_str)
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_quit_str)
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_vol_up_str)
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_vol_down_str)
+    .eval poke_row++
+    .var easy_mode_row = poke_row
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_easy_mode_str)
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_med_mode_str)
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_hard_mode_str)
 
+    lda #65
+    ldx background_color
+    nv_screen_poke_color_char_xa(easy_mode_row, TITLE_COL_START)
+    nv_screen_poke_color_char_xa(easy_mode_row+1, TITLE_COL_START)
+    nv_screen_poke_color_char_xa(easy_mode_row+2, TITLE_COL_START)
+
+    lda #NV_COLOR_YELLOW
+    ldy astro_diff_mode
+TryAstroEasyMode:
+    cpy #ASTRO_DIFF_EASY
+    bne TryAstroMedMode
+IsAstroEasyMode:
+    nv_screen_poke_color_a(easy_mode_row, TITLE_COL_START)
+    jmp DoneAstroDiffMode
+
+TryAstroMedMode:
+    cpy #ASTRO_DIFF_MED
+    bne TryAstroHardMode
+IsAstroMedMode:
+    nv_screen_poke_color_a(easy_mode_row+1, TITLE_COL_START)
+    jmp DoneAstroDiffMode
+
+TryAstroHardMode:
+    // assume its hard mode if get here
+IsAstroHardMode:
+        nv_screen_poke_color_a(easy_mode_row+2, TITLE_COL_START)
+
+
+DoneAstroDiffMode:
 
     jsr TitleDoKeyboard
     lda quit_flag
@@ -211,10 +241,31 @@ WasIncVolume:
 
 TryDecVolume:
     cmp #KEY_DEC_VOLUME             
-    bne TryPlay                          
+    bne TryDiffEasy                          
 WasDecVolume:
     jsr SoundVolumeDown
     jmp TitleDoneKeys
+
+TryDiffEasy:
+    cmp #NV_KEY_1            
+    bne TryDiffMed                          
+WasDiffEasy:
+    lda #ASTRO_DIFF_EASY
+    sta astro_diff_mode
+
+TryDiffMed:
+    cmp #NV_KEY_2
+    bne TryDiffHard
+WasDiffMed:
+    lda #ASTRO_DIFF_MED
+    sta astro_diff_mode
+
+TryDiffHard:
+    cmp #NV_KEY_3
+    bne TryPlay
+WasDiffHard:
+    lda #ASTRO_DIFF_HARD
+    sta astro_diff_mode
 
 TryPlay:
     cmp #KEY_PLAY               

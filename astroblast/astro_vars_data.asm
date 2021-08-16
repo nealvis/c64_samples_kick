@@ -28,3 +28,7 @@ wind_start_mask: .byte $03
 // the turret will just update the bullet's death rectangle
 turret_hit_ship_1: .byte 0
 
+.const ASTRO_DIFF_EASY = 1
+.const ASTRO_DIFF_MED = 2
+.const ASTRO_DIFF_HARD = 3
+astro_diff_mode: .byte ASTRO_DIFF_EASY // 1=easy, 2=med, 3=hard

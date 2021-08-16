@@ -271,6 +271,23 @@ DirectLoop:
 Done:
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// inline macro to poke chars for a string to screen memory
+.macro nv_screen_poke_color_str(row, col, color, str_to_poke)
+{
+    .var screen_poke_start = SCREEN_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
+    .var color_poke_start = SCREEN_COLOR_START + (NV_SCREEN_CHARS_PER_ROW*row) + col 
+    ldx #0                  // use x reg as loop index start at 0
+DirectLoop:
+    lda str_to_poke,x       // put a byte from string into accum
+    beq Done                // if the byte was 0 then we're done 
+    sta screen_poke_start,x  // Store the byte to screen
+    lda #color
+    sta color_poke_start,x
+    inx                     // inc to next byte and next screen location 
+    jmp DirectLoop          // Go back for next byte
+Done:
+}
 
 //////////////////////////////////////////////////////////////////////////
 // inline macro to poke a single char to the screen at row/col
