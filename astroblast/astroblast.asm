@@ -114,6 +114,7 @@ RunGame:
     jsr WindInit
     jsr TurretInit
     jsr TurretArmInit
+    jsr TurretArmStart
     jsr ShipDeathInit
     jsr JoyInit
 

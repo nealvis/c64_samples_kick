@@ -35,6 +35,8 @@ TurretArmInit:
     sta turret_currently_armed
     sta turret_second_counter
     sta turret_second_saved_value
+    sta turret_arm_frame_counter
+
     rts
 }
 // TurretArmInit end
@@ -47,6 +49,10 @@ TurretArmStart:
 {
     lda #TURRET_ARM_FRAMES
     sta turret_arm_count
+
+    lda #TURRET_FRAMES_BETWEEN_STEPS        // reset counter for next step
+    sta turret_arm_frame_counter
+
     lda #$00
     sta turret_currently_armed
     sta turret_second_counter
@@ -54,7 +60,6 @@ TurretArmStart:
     // save LSB of the second value
     lda second_counter
     sta turret_second_saved_value  
-    //nv_xfer16_mem_mem(second_counter, turret_start_seconds)
     rts
 }
 
@@ -95,6 +100,8 @@ TurretArmForceStop:
     lda #$00
     sta turret_arm_count
     sta turret_currently_armed
+    sta turret_arm_frame_counter
+
     rts
 }
 // TurretArmForceStop end
@@ -118,7 +125,12 @@ TurretArmCleanup:
 // call once per frame to have turret shoot 
 TurretArmStep:
 {
-    .const TURRET_SECONDS_TO_ARM = 2
+    //nv_screen_poke_hex_byte_mem(3, 0, turret_arm_frame_counter, true)
+    lda turret_arm_count
+    bne TurretArmStepContinue
+    rts
+TurretArmStepContinue:
+
     lda turret_currently_armed
     bne TurretSkipArming                // already armed 
 
@@ -138,12 +150,27 @@ TurretDoArming:
     sta turret_currently_armed
 
 TurretSkipArming:
+    // arming seconds taken care of above, now run the step if
+    // appropriate.
+
+    dec turret_arm_frame_counter
+    bne TurretNoStepThisFrame
+
+TurretIsStepThisFrame:
+    lda #TURRET_FRAMES_BETWEEN_STEPS        // reset counter for next step
+    sta turret_arm_frame_counter
     astro_effect_step(AstroStreamProcessor, turret_arm_count, 
                       TURRET_ARM_FRAMES, TurretArmStreamAddrTable)
     lda turret_arm_count
     bne TurretArmStepDone
-    lda #TURRET_ARM_FRAMES-1
-    sta turret_arm_count
+    inc turret_currently_armed
+/*
+    lda turret_arm_count
+    bne TurretArmStepDone
+    lda #1                   // if we've stepped to zero just stay at the last step
+    sta turret_arm_count     // 
+*/
+TurretNoStepThisFrame:
 
 TurretArmStepDone:
     rts
