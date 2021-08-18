@@ -21,10 +21,10 @@
 .const TURRET_ARM_FRAMES=5
 
 // number of seconds it should take to arm the turret
-.const TURRET_SECONDS_TO_ARM = 2
+.const TURRET_SECONDS_TO_ARM = 1.75
 
 // number of frames it takes before a step should be made
-.const TURRET_FRAMES_BETWEEN_STEPS = (TURRET_SECONDS_TO_ARM * ASTRO_FPS) / TURRET_ARM_FRAMES
+.const TURRET_FRAMES_BETWEEN_STEPS = ((TURRET_SECONDS_TO_ARM * ASTRO_FPS) / TURRET_ARM_FRAMES)
 
 
 
