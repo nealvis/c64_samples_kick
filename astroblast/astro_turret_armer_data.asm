@@ -68,11 +68,11 @@ star_char_med_addr_list:
 
 // table of the addresses of all the streams for each frame for turret 2
 TurretArmStreamAddrTable:
-    .word turret_arm_stream_empty_frame_1
-    .word turret_arm_stream_empty_frame_2
-    .word turret_arm_stream_empty_frame_3
-    .word turret_arm_stream_empty_frame_4
-    .word turret_arm_stream_empty_frame_5
+    .word turret_arm_stream_frame_1
+    .word turret_arm_stream_frame_2
+    .word turret_arm_stream_frame_3
+    .word turret_arm_stream_frame_4
+    .word turret_arm_stream_frame_5
 
 
 turret_arm_stream_empty_frame:
@@ -85,7 +85,7 @@ turret_arm_stream_empty_frame:
 .const TURRET_ARM_CHAR_TOP = $53
 .const TURRET_ARM_CHAR_BOTTOM = $4A
 
-turret_arm_stream_empty_frame_1:
+turret_arm_stream_frame_1:
 /*
     .word $FFFF
     .byte $01, TURRET_ARM_CHAR_TOP
@@ -106,7 +106,7 @@ turret_arm_stream_empty_frame_1:
     .word $FFFF
     .word $FF
 
-turret_arm_stream_empty_frame_2:
+turret_arm_stream_frame_2:
     .word $FFFF
     .byte $01, NV_COLOR_LITE_RED
     .word nv_screen_color_addr_from_yx(TURRET_ARM_ROW, TURRET_ARM_COL)
@@ -119,7 +119,7 @@ turret_arm_stream_empty_frame_2:
     .word $FF
 
 
-turret_arm_stream_empty_frame_3:
+turret_arm_stream_frame_3:
     .word $FFFF
     .byte $01, NV_COLOR_LITE_GREY
     .word nv_screen_color_addr_from_yx(TURRET_ARM_ROW, TURRET_ARM_COL)
@@ -132,7 +132,7 @@ turret_arm_stream_empty_frame_3:
     .word $FF
 
 
-turret_arm_stream_empty_frame_4:
+turret_arm_stream_frame_4:
     .word $FFFF
     .byte $01, NV_COLOR_LITE_GREY
     .word nv_screen_color_addr_from_yx(TURRET_ARM_ROW, TURRET_ARM_COL)
@@ -145,7 +145,7 @@ turret_arm_stream_empty_frame_4:
     .word $FF
 
 
-turret_arm_stream_empty_frame_5:    
+turret_arm_stream_frame_5:    
     .word $FFFF
     .byte $01, NV_COLOR_YELLOW
     .word nv_screen_color_addr_from_yx(TURRET_ARM_ROW, TURRET_ARM_COL)

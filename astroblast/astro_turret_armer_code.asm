@@ -126,33 +126,24 @@ TurretArmCleanup:
 TurretArmStep:
 {
     //nv_screen_poke_hex_byte_mem(3, 0, turret_arm_frame_counter, true)
-    lda turret_arm_count
-    bne TurretArmStepContinue
-    rts
-TurretArmStepContinue:
+    
+    // check if turret is arming now, if its not then just return
+    jsr TurretArmLdaActive
+    bne TurretArmCurrentlyActive
+    rts                                        // not active, just return
 
+TurretArmCurrentlyActive:
+    // is active, check if already armed
     lda turret_currently_armed
-    bne TurretSkipArming                // already armed 
+    beq TurretNotCurrentlyArmed                // not armed yet 
 
-    lda second_counter
-    cmp turret_second_saved_value
-    beq TurretSkipArming
-
-TurretNewSecond:
-    sta turret_second_saved_value
-    inc turret_second_counter
-    //nv_screen_poke_hex_byte_mem(8, 30, turret_second_counter, true)
-    lda #TURRET_SECONDS_TO_ARM
-    cmp turret_second_counter 
-    bne TurretSkipArming
-TurretDoArming:
-    lda #$01
-    sta turret_currently_armed
-
-TurretSkipArming:
-    // arming seconds taken care of above, now run the step if
-    // appropriate.
-
+TurretIsCurrentlyArmed:
+    // turret is already armed, so just keep steping
+    jsr TurretArmStepWhenArmed
+    rts
+    
+TurretNotCurrentlyArmed:
+    // not armed yet, see if we need to step
     dec turret_arm_frame_counter
     bne TurretNoStepThisFrame
 
@@ -163,18 +154,36 @@ TurretIsStepThisFrame:
                       TURRET_ARM_FRAMES, TurretArmStreamAddrTable)
     lda turret_arm_count
     bne TurretArmStepDone
-    inc turret_currently_armed
-/*
-    lda turret_arm_count
-    bne TurretArmStepDone
-    lda #1                   // if we've stepped to zero just stay at the last step
-    sta turret_arm_count     // 
-*/
-TurretNoStepThisFrame:
+    
+    // turret fully armed now.  
+    inc turret_currently_armed              // set the armed flag
+    inc turret_arm_count                    // inc arm count so can keep animating
+    inc turret_arm_count
 
+TurretNoStepThisFrame:
 TurretArmStepDone:
     rts
 }
 // TurretArmStep subroutine end
 //////////////////////////////////////////////////////////////////////////////
 
+TurretArmStepWhenArmed:
+{
+    // continually run the last two frames while armed
+    lda #$03
+    and frame_counter
+    beq DoStep
+    rts
+
+DoStep:
+    astro_effect_step(AstroStreamProcessor, turret_arm_count, 
+                      TURRET_ARM_FRAMES, TurretArmStreamAddrTable)
+    lda turret_arm_count
+    bne Continue
+    inc turret_arm_count
+    inc turret_arm_count
+
+
+Continue:
+    rts
+}

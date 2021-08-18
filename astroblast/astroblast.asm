@@ -729,6 +729,14 @@ TurretStartIfArmed:
 TurretIsArmedCanStart:
     tya                             // get turret ID back in accum
     jsr TurretStart                 // start the turret with ID/s
+
+    // now set the clock for when the next auto start can happen
+    nv_adc16(frame_counter, astro_auto_turret_wait_frames, 
+             astro_auto_turret_next_shot_frame)
+    // in the unlikely event that next frame number is beyond the 
+    // 16 bit limit it rolls around to some small number but so does
+    // the frame counter so that should be fine.
+
     jsr TurretArmStart              // start arming the turret again
 TurretNotArmedCantStart:
     rts
@@ -796,13 +804,6 @@ TurretAutoStartDoIt:
     // load all the turret IDs and fire turret
     lda turret_auto_start_ids
     jsr TurretStartIfArmed
-
-    // now set the clock for when the next auto start can happen
-    nv_adc16(frame_counter, astro_auto_turret_wait_frames, 
-             astro_auto_turret_next_shot_frame)
-    // in the unlikely event that next frame number is beyond the 
-    // 16 bit limit it rolls around to some small number but so does
-    // the frame counter so that should be fine.
 
 TurretAutoStartDone:
     rts
