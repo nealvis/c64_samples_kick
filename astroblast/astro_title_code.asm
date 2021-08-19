@@ -21,6 +21,7 @@
 #import "astro_keyboard_macs.asm"
 #import "astro_sound.asm"
 #import "astro_stream_processor_code.asm"
+#import "astro_ships_code.asm"
 
 //#import "../nv_c64_util/nv_debug_code.asm"
 astro_title_str:     .text @"     astroblast \$00"
@@ -120,10 +121,34 @@ TitleStart:
     jsr StarInit
     jsr StarStart
 
+    // set up ship 1 to rotate around the top of the screen
+    nv_store16_immediate(ship_1.x_loc, 50)
+    lda #52
+    sta ship_1.y_loc
+    lda #0
+    sta ship_1.y_vel
+    lda #2 
+    sta ship_1.x_vel
+    jsr ship_1.Enable
+
+    // set up ship 2 to rotate around the bottom of the screen
+    nv_store16_immediate(ship_2.x_loc, 50)
+    lda #226
+    sta ship_2.y_loc
+    lda #0
+    sta ship_2.y_vel
+    lda #2 
+    sta ship_2.x_vel
+    jsr ship_2.SetColorAlive
+    jsr ship_2.Enable
+
+
 
 TitleLoop:
     nv_sprite_wait_last_scanline()         // wait for particular scanline.
     SoundDoStep()
+    jsr ship_1.SetLocationFromExtraData
+    jsr ship_2.SetLocationFromExtraData
     jsr StarStep
 
     ldx #<title_rect_stream
@@ -172,6 +197,8 @@ IsAstroHardMode:
 
 
 DoneAstroDiffMode:
+    jsr ship_1.MoveInExtraData
+    jsr ship_2.MoveInExtraData
 
     jsr TitleDoKeyboard
     lda quit_flag
