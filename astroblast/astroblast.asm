@@ -315,7 +315,7 @@ DoPreTitleInit:
     nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
 
     // setup the score required to win to default value
-    nv_store16_immediate(astro_score_to_win, $0004)
+    nv_store16_immediate(astro_score_to_win, ASTRO_DEFAULT_SCORE_TO_WIN)
 
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
