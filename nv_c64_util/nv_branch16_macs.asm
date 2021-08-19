@@ -42,6 +42,9 @@ Done:
 // Carry Flag	Set if addr1 >= addr2
 // Zero Flag	Set if addr1 == addr2
 // Negative Flag is undefined
+// Accum: changes
+// X Reg: no change
+// Y Reg: no change
 .macro nv_cmp16_immediate(addr1, num)
 {
     // first compare the MSBs
@@ -170,6 +173,9 @@ Done:
 //   num: is the immediate 16 bit value to compare with the contents of addr1
 //   label: is the label to branch to
 // todo print macro
+//   Accum: changes
+//   X Reg: no change
+//   Y Reg: no change
 .macro nv_bgt16_immediate(addr1, num, label)
 {
     nv_cmp16_immediate(addr1, num)

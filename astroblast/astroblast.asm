@@ -268,6 +268,8 @@ ProgramDone:
     jsr SoundMuteOn
     jsr SoundDone
 
+    jsr AllSpritesDisable
+
     nv_key_done()
     nv_rand_done()
 
@@ -819,6 +821,24 @@ DoJoystick:
 {
     jsr JoyScan
 
+Joy1TryFire:
+    ldx #JOY_PORT_1_ID
+    jsr JoyIsFiring
+    beq Joy2TryFire
+Joy1IsFiring:
+    jsr TurretLdaSmartFireBottomID
+    jsr TurretStartIfArmed          // slow down the ship X
+    // fall through
+
+Joy2TryFire:
+    ldx #JOY_PORT_2_ID
+    jsr JoyIsFiring
+    beq Joy1TryLeft
+Joy2IsFiring:
+    jsr TurretLdaSmartFireTopID
+    jsr TurretStartIfArmed          // slow down the ship X
+    // fall through
+
 Joy1TryLeft:
     ldx #JOY_PORT_1_ID
     jsr JoyIsLeft
@@ -920,14 +940,61 @@ TurretNotArmedCantStart:
 // TurretStartIfArmed - end
 //////////////////////////////////////////////////////////////////////////////
 
+.const SMART_FIRE_ZONE_1_MAX = nv_screen_rect_char_to_screen_pixel_left(25, 0)
+.const SMART_FIRE_ZONE_2_MAX = nv_screen_rect_char_to_screen_pixel_left(35, 0)
+.const SMART_FIRE_ZONE_3_MAX = nv_screen_rect_char_to_screen_pixel_left(39, 0)
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to load accum with the Turret ID to smartly choose
+// to shoot the top ship, based on the top ship's x position
+// the accum will have the ID in it upon return.
+TurretLdaSmartFireTopID:
+{
+
+TurretSmartTopTryShip1Zone1:    
+    nv_bgt16_immediate(ship_1.x_loc, SMART_FIRE_ZONE_1_MAX, TurretSmartTopTryShip1Zone2)
+    lda #TURRET_3_ID
+    rts
+
+TurretSmartTopTryShip1Zone2:
+    nv_bgt16_immediate(ship_1.x_loc, SMART_FIRE_ZONE_2_MAX, TurretSmartTopTryShip1Zone3)
+    lda #TURRET_2_ID
+    rts
+    
+TurretSmartTopTryShip1Zone3:
+    lda #TURRET_1_ID
+    rts
+}
+// TurretLdaSmartFireTopID - end
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to load accum with the Turret ID to smartly choose
+// to shoot the bottom ship, based on the bottom ship's x position
+// accum will have the ID in it upon return.
+TurretLdaSmartFireBottomID:
+{
+TurretAutoTryShip2Zone1:    
+    nv_bgt16_immediate(ship_2.x_loc, SMART_FIRE_ZONE_1_MAX, TurretSmartBottomTryShip2Zone2)
+    lda #TURRET_6_ID
+    rts
+    
+TurretSmartBottomTryShip2Zone2:
+    nv_bgt16_immediate(ship_2.x_loc, SMART_FIRE_ZONE_2_MAX, TurretSmartBottomTryShip2Zone3)
+    lda #TURRET_5_ID
+    rts
+
+TurretSmartBottomTryShip2Zone3:
+    lda #TURRET_4_ID
+    rts
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to start shooting automatically and aim at each ship based
 // on its x location on the screen.  if turret not armed then does nothing 
 TurretAutoStart:
 {
-    .const ZONE_1_MAX = nv_screen_rect_char_to_screen_pixel_left(25, 0)
-    .const ZONE_2_MAX = nv_screen_rect_char_to_screen_pixel_left(35, 0)
-    .const ZONE_3_MAX = nv_screen_rect_char_to_screen_pixel_left(39, 0)
 
     jsr TurretCurrentlyArmedLda
     bne TurretAutoStartIsArmed
@@ -940,51 +1007,25 @@ TurretAutoStartIsArmed:
     jmp TurretAutoStartDone
 
 TurretAutoWaitOver:
-TurretAutoTryShip1Zone1:    
-    nv_bgt16_immediate(ship_1.x_loc, ZONE_1_MAX, TurretAutoTryShip1Zone2)
-    lda #TURRET_3_ID
-    sta turret_auto_start_ids
-    jmp TurretAutoTryShip2
+    // Turret is armed and the autostart wait time passed
+    // time to fire
 
-TurretAutoTryShip1Zone2:
-    nv_bgt16_immediate(ship_1.x_loc, ZONE_2_MAX, TurretAutoTryShip1Zone3)
-    lda #TURRET_2_ID
-    sta turret_auto_start_ids
-    jmp TurretAutoTryShip2
+    jsr TurretLdaSmartFireTopID      // get the ID to use for top
+    sta turret_auto_top_id        // store that ID
 
-TurretAutoTryShip1Zone3:
-    lda #TURRET_1_ID
-    sta turret_auto_start_ids
-
-TurretAutoTryShip2:    
-TurretAutoTryShip2Zone1:    
-    nv_bgt16_immediate(ship_2.x_loc, ZONE_1_MAX, TurretAutoTryShip2Zone2)
-    lda #TURRET_6_ID
-    ora turret_auto_start_ids
-    sta turret_auto_start_ids
-    jmp TurretAutoStartDoIt
-
-TurretAutoTryShip2Zone2:
-    nv_bgt16_immediate(ship_2.x_loc, ZONE_2_MAX, TurretAutoTryShip2Zone3)
-    lda #TURRET_5_ID
-    ora turret_auto_start_ids
-    sta turret_auto_start_ids
-    jmp TurretAutoStartDoIt
-
-TurretAutoTryShip2Zone3:
-    lda #TURRET_4_ID
-    ora turret_auto_start_ids
-    sta turret_auto_start_ids
+    jsr TurretLdaSmartFireBottomID   // get the ID to use for bottom
+    ora turret_auto_top_id        // or it into the stored top ID
+    // now Accum has a smartly selected turret ID from top and bottom
+    // combinined via bitwise OR
 
 TurretAutoStartDoIt:
     // load all the turret IDs and fire turret
-    lda turret_auto_start_ids
+    //lda turret_auto_start_ids
     jsr TurretStartIfArmed
 
 TurretAutoStartDone:
     rts
-turret_auto_start_ids: .byte $00
-
+turret_auto_top_id: .byte $00
 }
 // TurretAutoStart - end
 //////////////////////////////////////////////////////////////////////////////
