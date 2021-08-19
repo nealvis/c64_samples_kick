@@ -44,3 +44,8 @@ astro_diff_mode: .byte ASTRO_DIFF_EASY // 1=easy, 2=med, 3=hard
 .const ASTRO_AUTO_TURRET_WAIT_FRAMES_HARD = ASTRO_FPS * 2
 astro_auto_turret_wait_frames: .word ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY
 astro_auto_turret_next_shot_frame: .word ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY
+
+
+// this is the score required to win the game it in BCD format
+.const ASTRO_DEFAULT_SCORE_TO_WIN = $0100
+astro_score_to_win: .word ASTRO_DEFAULT_SCORE_TO_WIN

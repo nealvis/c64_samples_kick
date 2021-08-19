@@ -69,24 +69,10 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 #import "astro_turret_code.asm"
 
 RealStart:
-    nv_screen_custom_charset_init(6, false)
-    nv_screen_set_border_color_mem(border_color)
-    nv_screen_set_background_color_mem(background_color)
-    nv_rand_init(true)          // do before SoundInit
-    nv_key_init()
 
-    // initialize song 0
-    jsr SoundInit
+    jsr DoPreTitleInit
 
-    lda #$02
-    jsr SoundVolumeSet
-
-    lda #$00
-    sta quit_flag
-
-    lda #ASTRO_DIFF_EASY
-    sta astro_diff_mode
-
+DoTitle:
     jsr TitleStart              // show title screen
     bne RunGame                 // make sure non zero in accum and run game
     jmp ProgramDone             // if zero in accum then user quit
@@ -94,68 +80,10 @@ RealStart:
 RunGame:
 
     // standard initialization
-    nv_store16_immediate(second_counter, $0000)
-    nv_store16_immediate(second_partial_counter, $0000)
-    nv_store16_immediate(frame_counter, $0000)
-    nv_store16_immediate(ship_1.score, $0000)
-    nv_store16_immediate(ship_2.score, $0000)
-
-
-    // initialize based on difficulty (must be after standard init)
-    jsr AstroSetDiffParams
-
-    // clear the screen just to have an empty canvas
-    nv_screen_clear()
-
-    // set the global sprite multi colors        
-    nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
-
-    jsr StarInit
-    jsr WindInit
-    jsr TurretInit
-    jsr TurretArmInit
-    jsr TurretArmStart
-    jsr ShipDeathInit
-    jsr JoyInit
-
-    // setup everything for the sprite_ship so its ready to enable
-    jsr ship_1.Setup
-    //nv_store16_immediate(ship_1.score, $0000)
-
-    jsr ship_2.Setup
-    //nv_store16_immediate(ship_2.score, $0000)
-
-    // setup everything for the sprite_asteroid so its ready to enable
-    jsr asteroid_1.Setup
-    jsr asteroid_2.Setup
-    jsr asteroid_3.Setup
-    jsr asteroid_4.Setup
-    jsr asteroid_5.Setup
-
-
-    // initialize sprite locations from their extra data blocks 
-    jsr ship_1.SetLocationFromExtraData
-    jsr ship_2.SetLocationFromExtraData
-    jsr asteroid_1.SetLocationFromExtraData
-    jsr asteroid_2.SetLocationFromExtraData
-    jsr asteroid_3.SetLocationFromExtraData
-    jsr asteroid_4.SetLocationFromExtraData
-    jsr asteroid_5.SetLocationFromExtraData
-    
-    nv_sprite_set_raw_color_immediate(7, NV_COLOR_BROWN)
-
-    // enable sprites
-    jsr ship_1.Enable
-    jsr ship_2.Enable
-    jsr asteroid_1.Enable
-    jsr asteroid_2.Enable
-    jsr asteroid_3.Enable
-    jsr asteroid_4.Enable
-    jsr asteroid_5.Enable
+    jsr DoPostTitleInit
 
     .var showTiming = false
     .var showFrameCounters = false
-        
 
     jsr StarStart
 
@@ -274,7 +202,7 @@ NoChangeUp:
     //// check for ship1 collisions
     jsr ship_1.CheckShipCollision
     lda ship_1.collision_sprite     // closest_sprite, will be $FF 
-    bmi NoCollisionShip1        // if no collisions so check minus
+    bmi NoCollisionShip1            // if no collisions so check minus
 HandleCollisionShip1:
     lda ship_1_death_count        // if ship1 is dead then ignore collisions
     bne NoCollisionShip1
@@ -285,7 +213,12 @@ HandleCollisionShip1:
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip1AsteroidFX
     nv_bcd_adc16_immediate(ship_1.score, $0001, ship_1.score)
-
+    nv_blt16(ship_1.score, astro_score_to_win, NoWinShip1)
+    // if we get here then ship1 won
+    jsr ScoreToScreen
+    jsr DoWinner
+    jmp DoTitle
+NoWinShip1:
 NoCollisionShip1:
 
     //////////////////////////////////////////////////////////////////////
@@ -303,7 +236,13 @@ HandleCollisionShip2:
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip2AsteroidFX
     nv_bcd_adc16_immediate(ship_2.score, $0001, ship_2.score)
+    nv_blt16(ship_2.score, astro_score_to_win, NoWinShip2)
+    // if we get here then ship2 won
+    jsr ScoreToScreen
+    jsr DoWinner
+    jmp DoTitle
 
+NoWinShip2:
 NoCollisionShip2:
 
     jsr TurretHitCheck
@@ -339,6 +278,243 @@ ProgramDone:
     rts   // program done, return
 // end main program
 //////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to initialize the things that must be initialized before
+// screen is started
+DoPreTitleInit:
+{
+    nv_screen_custom_charset_init(6, false)
+    nv_screen_set_border_color_mem(border_color)
+    nv_screen_set_background_color_mem(background_color)
+
+    // initialize random numbers, needs to be before soundstarts
+    nv_rand_init(true)          // do before SoundInit
+
+    // initialized keyboard routine so user can use keyboard  
+    // in title screen for changing options etc.
+    nv_key_init()
+
+    // initialize song 0 so we can hear music during title 
+    // so user can adjust volume
+    jsr SoundInit
+
+    // start at volumen 2
+    lda #$02
+    jsr SoundVolumeSet
+
+    // clear quit flag since it can be set in title screen
+    lda #$00
+    sta quit_flag
+
+    // start out in easy mode, user can adjust in title screen
+    lda #ASTRO_DIFF_EASY
+    sta astro_diff_mode
+
+    // set the global sprite multi colors        
+    nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
+
+    // setup the score required to win to default value
+    nv_store16_immediate(astro_score_to_win, $0004)
+
+    // setup everything for the sprite_ship so its ready to enable
+    jsr ship_1.Setup
+    jsr ship_2.Setup
+
+    // setup everything for the sprite_asteroid so its ready to enable
+    jsr asteroid_1.Setup
+    jsr asteroid_2.Setup
+    jsr asteroid_3.Setup
+    jsr asteroid_4.Setup
+    jsr asteroid_5.Setup
+
+
+    // initialize sprite locations from their extra data blocks 
+    jsr ship_1.SetLocationFromExtraData
+    jsr ship_2.SetLocationFromExtraData
+    jsr asteroid_1.SetLocationFromExtraData
+    jsr asteroid_2.SetLocationFromExtraData
+    jsr asteroid_3.SetLocationFromExtraData
+    jsr asteroid_4.SetLocationFromExtraData
+    jsr asteroid_5.SetLocationFromExtraData
+    
+    rts
+}
+// DoPreTitleInit - end
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to initialize the things that must be initialized after the
+// title screen is started
+DoPostTitleInit:
+{
+    nv_store16_immediate(second_counter, $0000)
+    nv_store16_immediate(second_partial_counter, $0000)
+    nv_store16_immediate(frame_counter, $0000)
+    nv_store16_immediate(ship_1.score, $0000)
+    nv_store16_immediate(ship_2.score, $0000)
+
+    lda #$00
+    sta sprite_collision_reg_value
+
+    // initialize based on difficulty (must be after standard init)
+    jsr AstroSetDiffParams
+
+    // clear the screen just to have an empty canvas
+    nv_screen_clear()
+
+    jsr StarInit
+    jsr WindInit
+    jsr TurretInit
+    jsr TurretArmInit
+    jsr TurretArmStart
+    jsr ShipDeathInit
+    jsr JoyInit
+
+    // initialize sprite locations to locations to start game 
+    .const SHIP1_INIT_X_LOC = 22
+    .const SHIP1_INIT_Y_LOC = 50
+    .const SHIP1_INIT_X_VEL = 1
+    .const SHIP1_INIT_Y_VEL = 1
+
+    .const SHIP2_INIT_X_LOC = 22
+    .const SHIP2_INIT_Y_LOC = 210
+    .const SHIP2_INIT_X_VEL = 1
+    .const SHIP2_INIT_Y_VEL = 1
+
+    // init ship 1
+    nv_store16_immediate(ship_1.x_loc, SHIP1_INIT_X_LOC) 
+    lda #SHIP1_INIT_Y_LOC
+    sta ship_1.y_loc
+    lda #SHIP1_INIT_X_VEL
+    sta ship_1.x_vel
+    lda #SHIP1_INIT_Y_VEL
+    sta ship_1.y_vel
+    jsr ship_1.SetLocationFromExtraData
+    jsr ship_2.SetColorAlive
+
+
+    // init ship 2
+    nv_store16_immediate(ship_2.x_loc, 0) 
+    lda #SHIP2_INIT_Y_LOC
+    sta ship_2.y_loc
+    lda #SHIP2_INIT_X_VEL
+    sta ship_2.x_vel
+    lda #SHIP2_INIT_Y_VEL
+    sta ship_2.y_vel
+    jsr ship_2.SetLocationFromExtraData
+
+    // set color for ship 2 
+    jsr ship_2.SetColorAlive
+
+
+    jsr asteroid_1.SetLocationFromExtraData
+    jsr asteroid_2.SetLocationFromExtraData
+    jsr asteroid_3.SetLocationFromExtraData
+    jsr asteroid_4.SetLocationFromExtraData
+    jsr asteroid_5.SetLocationFromExtraData
+
+
+    jsr AllSpritesEnable
+
+    // update astro_score_to_win when its modifiable in the title screen
+
+    // position sprites here
+
+
+    rts
+}
+// DoPostInit - end
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to enable all sprites
+AllSpritesEnable:
+{
+    // enable sprites
+    jsr ship_1.Enable
+    jsr ship_2.Enable
+    jsr asteroid_1.Enable
+    jsr asteroid_2.Enable
+    jsr asteroid_3.Enable
+    jsr asteroid_4.Enable
+    jsr asteroid_5.Enable
+
+    rts
+}
+// AllSpritesEnable
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to disable all sprites
+AllSpritesDisable:
+{
+    // enable sprites
+    jsr ship_1.Disable
+    jsr ship_2.Disable
+    jsr asteroid_1.Disable
+    jsr asteroid_2.Disable
+    jsr asteroid_3.Disable
+    jsr asteroid_4.Disable
+    jsr asteroid_5.Disable
+
+    rts
+}
+// AllSpritesDisable
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to call when there is a winner detected
+DoWinner:
+{
+    .const WINNER_SHIP_X_LOC = 69
+    .const WINNER_SHIP_Y_LOC = 123
+    jsr SoundMuteOn
+
+    jsr AllSpritesDisable
+
+    nv_screen_clear()
+
+    nv_screen_poke_str(10, 10, winner_str)
+
+
+    nv_bge16(ship_1.score, ship_2.score, WinnerShip1)
+
+WinnerShip2:
+    nv_store16_immediate(ship_2.x_loc, WINNER_SHIP_X_LOC)
+    lda #WINNER_SHIP_Y_LOC
+    sta ship_2.y_loc
+    jsr ship_2.SetLocationFromExtraData
+    jsr ship_2.Enable
+    jmp WinnerWaitForKey
+
+WinnerShip1:
+    nv_store16_immediate(ship_1.x_loc, WINNER_SHIP_X_LOC)
+    lda #WINNER_SHIP_Y_LOC
+    sta ship_1.y_loc
+    jsr ship_1.SetLocationFromExtraData
+
+    jsr ship_1.Enable
+    // fall through
+
+WinnerWaitForKey:
+    nv_key_wait_any_key()
+    jsr SoundMuteOff
+
+    jsr AllSpritesDisable
+
+    // clear collsions so replaying won't use value from last 
+    // frame of this game
+    lda #$00
+    sta sprite_collision_reg_value
+    rts
+
+    winner_str: .text @"winner!\$00"
+    //winner_ship2_str: .text @"ship2 won\$00"
+}
+// DoWinner End
+//////////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to set the program parameters based on the difficulty 
@@ -1034,6 +1210,11 @@ Enable:
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
 
+Disable:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_disable_sr()
+
 LoadEnabledToA:
         lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
         rts
@@ -1102,6 +1283,11 @@ Enable:
         lda #>info.base_addr
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
+
+Disable:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_disable_sr()
 
 LoadEnabledToA:
         lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
@@ -1174,6 +1360,11 @@ Enable:
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
 
+Disable:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_disable_sr()
+
 LoadEnabledToA:
         lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
         rts
@@ -1244,6 +1435,11 @@ Enable:
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
 
+Disable:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_disable_sr()
+
 LoadEnabledToA:
         lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
         rts
@@ -1313,6 +1509,11 @@ Enable:
         lda #>info.base_addr
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
+
+Disable:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_disable_sr()
 
 LoadEnabledToA:
         lda info.base_addr + NV_SPRITE_ENABLED_OFFSET

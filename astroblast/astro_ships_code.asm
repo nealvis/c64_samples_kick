@@ -77,6 +77,12 @@ Enable:
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
 
+Disable:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_disable_sr()
+
+
 LoadEnabledToA:
         lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
         rts
@@ -215,6 +221,11 @@ Enable:
         lda #>info.base_addr
         ldx #<info.base_addr
         nv_sprite_extra_enable_sr()
+
+Disable:
+        lda #>info.base_addr
+        ldx #<info.base_addr
+        nv_sprite_extra_disable_sr()
 
 LoadEnabledToA:
         lda info.base_addr + NV_SPRITE_ENABLED_OFFSET
