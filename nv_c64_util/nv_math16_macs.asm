@@ -290,6 +290,9 @@ Loop:
 //   addr2 is the address of the LSB of op2
 //   result_addr is the address to store the result.
 // Note: clears decimal mode after the addition is done 
+// Accum: changes
+// X Reg: No change
+// Y Reg: No Change
 .macro nv_bcd_adc16(addr1, addr2, result_addr)
 {
     sed
@@ -314,6 +317,9 @@ Loop:
 //        number which is hex values with no letters in any digit.
 //   result_addr is the address of the LSB of the 16 bit memory location 
 //               to store the result.
+// Accum: changes
+// X Reg: No change
+// Y Reg: No Change
 .macro nv_bcd_adc16_immediate(addr1, num, result_addr)
 {
     sed
@@ -325,6 +331,47 @@ Loop:
     adc #((num >> 8) & $00FF)
     sta result_addr+1
     cld
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline mcaro to subtract 16 bit values.  
+// All operands and result are BCD
+// subtract contents at addr2 from those at addr1 and store result in 
+// result_addr
+// Accum: changes
+// X Reg: No change
+// Y Reg: No Change
+.macro nv_bcd_sbc16(addr1, addr2, result_addr)
+{
+    sed                     // set decimal (BCD) mode
+    sec
+    lda addr1
+    sbc addr2
+    sta result_addr
+    lda addr1+1
+    sbc addr2+1
+    sta result_addr+1
+    cld                     // clear decimal (BCD) mode 
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// inline mcaro to subtract 16 bit immediate value from 16 bit 
+// value in memory and store result into 16 bit result addr
+// All operands and result are BCD
+// Accum: changes
+// X Reg: No change
+// Y Reg: No Change
+.macro nv_bcd_sbc16_immediate(addr1, num, result_addr)
+{
+    sed                         // set decimal (BCD) mode
+    sec                         // set carry for subtraction
+    lda addr1
+    sbc #(num & $00FF)          // subtract LSBs
+    sta result_addr             // store LSB of result
+    lda addr1+1
+    sbc #((num >> 8) & $00FF)   // subtract MSBs
+    sta result_addr+1           // store MSB of result
+    cld                         // clear decimal (BCD) mode 
 }
 
 
