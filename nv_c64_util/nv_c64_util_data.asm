@@ -102,8 +102,8 @@ nv_key_col4_table:
 
 // table of chars to report for col5 keys:
 nv_key_col5_table: 
-.byte $2B, NV_KEY_P, NV_KEY_L, $2D, NV_KEY_PERIOD, $3A, $0, NV_KEY_COMMA
-//     +,  P,        L,          -,  <period>,     :,    @, <comma>
+.byte NV_KEY_PLUS, NV_KEY_P, NV_KEY_L, NV_KEY_MINUS, NV_KEY_PERIOD, $3A, $0, NV_KEY_COMMA
+//    +,           P,        L,        -,            <period>,      :,    @, <comma>
 
 // table of chars to report for col6 keys:
 nv_key_col6_table: 

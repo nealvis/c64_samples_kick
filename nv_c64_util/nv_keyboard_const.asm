@@ -44,6 +44,8 @@
 .const NV_KEY_8 = $38
 .const NV_KEY_9 = $39
 
+.const NV_KEY_PLUS = $2B
+.const NV_KEY_MINUS = $2D
 .const NV_KEY_COMMA = $2C
 .const NV_KEY_PERIOD = $2E
 .const NV_KEY_SPACE = $20   
