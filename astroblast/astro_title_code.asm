@@ -33,12 +33,17 @@ title_vol_down_str:  .text @" > key ... vol up\$00"
 title_easy_mode_str: .text @" 1 key ... easy\$00"
 title_med_mode_str:  .text @" 2 key ... med\$00"
 title_hard_mode_str: .text @" 3 key ... hard\$00"
+title_plus_str:      .text @" \$40 key ... longer\$00"
+title_minus_str:     .text @" \$5b key ... shorter\$00"
+title_game_len_str:  .text @" game len.\$00"
+title_blank4_str:    .text @"    "
+
 
 play_flag: .byte $00
 
 .const TITLE_KEY_COOL_DURATION = $08
 .const TITLE_RECT_WIDTH = 20
-.const TITLE_RECT_HEIGHT = 14
+.const TITLE_RECT_HEIGHT = 19
 .const TITLE_ROW_START = 3
 .const TITLE_COL_START = NV_SCREEN_CHARS_PER_ROW/2 -(TITLE_RECT_WIDTH/2) 
 
@@ -47,6 +52,9 @@ play_flag: .byte $00
 .const TCPR = NV_SCREEN_CHARS_PER_ROW
 .const TITLE_RECT_TOP_CHAR = 82
 
+.const TITLE_MIN_GAME_LEN = $0010
+.const TITLE_MAX_GAME_LEN = $0200
+.const TITLE_GAME_LEN_INC_DEC = $0010
 
 .var index
 
@@ -197,6 +205,13 @@ IsAstroHardMode:
 
 
 DoneAstroDiffMode:
+    .eval poke_row++
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_game_len_str)
+    nv_screen_poke_color_str((poke_row-1), TITLE_COL_START+11, NV_COLOR_CYAN, title_blank4_str)
+    nv_screen_poke_hex_word_mem((poke_row-1), TITLE_COL_START+11, astro_score_to_win, false)
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_plus_str)
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_minus_str)
+
     jsr ship_1.MoveInExtraData
     jsr ship_2.MoveInExtraData
 
@@ -279,6 +294,7 @@ TryDiffEasy:
 WasDiffEasy:
     lda #ASTRO_DIFF_EASY
     sta astro_diff_mode
+    jmp TitleDoneKeys                // and skip to bottom
 
 TryDiffMed:
     cmp #NV_KEY_2
@@ -286,13 +302,33 @@ TryDiffMed:
 WasDiffMed:
     lda #ASTRO_DIFF_MED
     sta astro_diff_mode
+    jmp TitleDoneKeys                // and skip to bottom
 
 TryDiffHard:
     cmp #NV_KEY_3
-    bne TryPlay
+    bne TryPlus
 WasDiffHard:
     lda #ASTRO_DIFF_HARD
     sta astro_diff_mode
+    jmp TitleDoneKeys                // and skip to bottom
+
+TryPlus:
+    cmp #NV_KEY_PLUS
+    bne TryMinus
+WasPlus:
+    nv_bge16_immediate(astro_score_to_win, TITLE_MAX_GAME_LEN-TITLE_GAME_LEN_INC_DEC, TitleGameLenSkipAdd)
+    nv_bcd_adc16_immediate(astro_score_to_win, TITLE_GAME_LEN_INC_DEC, astro_score_to_win)
+TitleGameLenSkipAdd:
+    jmp TitleDoneKeys                // and skip to bottom
+
+TryMinus:
+    cmp #NV_KEY_MINUS
+    bne TryPlay
+WasMinus:
+    nv_blt16_immediate(astro_score_to_win, TITLE_MIN_GAME_LEN+TITLE_GAME_LEN_INC_DEC, TitleGameLenSkipAdd)
+    nv_bcd_sbc16_immediate(astro_score_to_win, TITLE_GAME_LEN_INC_DEC, astro_score_to_win)
+TitleGameLenSkipSub:
+    jmp TitleDoneKeys                // and skip to bottom
 
 TryPlay:
     cmp #KEY_PLAY               
@@ -309,6 +345,7 @@ TryQuit:
 WasQuit:
     lda #1                      
     sta quit_flag
+    // fall throught to TitleDoneKeys
 
 TitleDoneKeys:
     rts

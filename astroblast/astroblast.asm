@@ -29,10 +29,6 @@
 #import "astro_ship_death_data.asm"
 
 
-// min and max speed for all sprites during the changeup
-//.const MAX_SPEED = 6
-//.const MIN_SPEED = -6
-
 .const KEY_COOL_DURATION = $08
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
