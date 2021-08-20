@@ -30,8 +30,8 @@
 
 
 // min and max speed for all sprites during the changeup
-.const MAX_SPEED = 6
-.const MIN_SPEED = -6
+//.const MAX_SPEED = 6
+//.const MIN_SPEED = -6
 
 .const KEY_COOL_DURATION = $08
 
@@ -595,9 +595,9 @@ SetColor:
 SkipShipMax:                   
         inc asteroid_1.y_vel    // increment asteroid Y velocity 
         lda asteroid_1.y_vel    // load new speed just incremented
-        cmp #MAX_SPEED+1        // compare new spead with max +1
+        cmp #SHIP_MAX_SPEED+1   // compare new spead with max +1
         bne SkipAsteroidMin     // if we haven't reached max + 1 then skip setting to min
-        lda #MIN_SPEED          // else, we have reached max+1 so need to reset it back min
+        lda #SHIP_MIN_SPEED     // else, we have reached max+1 so need to reset it back min
         sta asteroid_1.y_vel
 
 SkipAsteroidMin:
