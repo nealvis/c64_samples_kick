@@ -63,6 +63,7 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 //////////////////////////////////////////////////////////////////////////////
 
 #import "astro_turret_code.asm"
+.const ASTRO_CHANGE_UP_MASK = $03
 
 RealStart:
 
@@ -80,44 +81,58 @@ RunGame:
 
     .var showTiming = false
     .var showFrameCounters = false
-
+    .var showSecondCounter = true
     jsr StarStart
 
 MainLoop:
 
     nv_adc16_immediate(frame_counter, 1, frame_counter)
     nv_adc16_immediate(second_partial_counter, 1, second_partial_counter)
-    nv_ble16_immediate(second_partial_counter, ASTRO_FPS, PartialSecond1)
-    jmp FullSecond
-PartialSecond1:
-    jmp PartialSecond2
+    
+    // check if a full second has elapsed
+    nv_bge16_immediate(second_partial_counter, ASTRO_FPS, FullSecond)
+    // not a full second (or time to change up) so do the regular frame stuff
+    jmp RegularFrame
+
 FullSecond:
-    jsr WindCheck
-    lda quit_flag
-    beq NotQuitting
-    jmp ProgramDone
-NotQuitting:
-    lda #0 
-    sta second_partial_counter
-    sta second_partial_counter+1
+    // a full second has elapsed, do the stuff that we do once per second
+
+    // add one to the second counter and display second counter
     nv_adc16_immediate(second_counter, 1, second_counter)
-    lda #$03
+    .if (showSecondCounter)
+    {
+        nv_screen_poke_hex_word_mem(12, 0, second_counter, true)
+    }
+
+    // clear partial second counter which counts frame up to a 
+    // full second then back to zero
+    nv_store16_immediate(second_partial_counter, $0000)
+
+    // now check the "change up" stuff that happens once per x seconds
+    lda #ASTRO_CHANGE_UP_MASK
     and second_counter  //set flag every 4 secs when bits 0 and 1 clear
-    bne NoSetFlag
-    lda #1
-    sta change_up_flag
-    nv_adc16_immediate(change_up_counter, 1, change_up_counter)
+    bne RegularFrame
+    // if here its time to changeup
+    jsr ChangeUp
     .if (showFrameCounters)
     {
         nv_screen_poke_hex_word_mem(0, 14, change_up_counter, true)
     }
-   
-NoSetFlag:
-    .if (showFrameCounters)
-    {
-        nv_screen_poke_hex_word_mem(0, 7, second_counter, true)
-    }
-PartialSecond2:
+
+    // check if its time to start some wind
+    jsr WindCheck
+
+    // check the quit flag which is set if user presses quit key
+    lda quit_flag
+    beq RegularFrame
+    
+    // quit flag is set, program done
+    jmp ProgramDone
+
+
+RegularFrame:
+    // its a new frame, but not a new second and not time to change up
+
     .if (showFrameCounters)
     {
         nv_screen_poke_hex_word_mem(0, 0, frame_counter, true)
@@ -153,17 +168,6 @@ PartialSecond2:
     jsr asteroid_3.MoveInExtraData
     jsr asteroid_4.MoveInExtraData
     jsr asteroid_5.MoveInExtraData
-
-    lda #1 
-    bit change_up_flag
-    beq NoChangeUp
-YesChangeUp:
-    // every few seconds change up some sprite properties
-    jsr ChangeUp 
-    lda #0 
-    sta change_up_flag
-NoChangeUp:
-    // not changing this frame, 
 
     .if (showTiming)
     {
@@ -638,32 +642,34 @@ ScoreToScreen:
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to cycle the color of a sprite just to show how
-// the nv_sprite_set_color_from_memory macro works.
+// subroutine to change things up every x seconds.
 ChangeUp:
 {
-        ldx cycling_color
-        inx
-        cpx background_color // this is background color, so skip that one
-        bne NotBG
-        inx
-NotBG:
-        cpx #NV_COLOR_LAST + 1
-        bne SetColor
-        ldx #NV_COLOR_FIRST
-        stx cycling_color
-SetColor:
-        stx cycling_color
-        nv_sprite_raw_set_color_from_memory(1, cycling_color)
+    // increment the changeup counter.
+    nv_adc16_immediate(change_up_counter, 1, change_up_counter)
 
-        // change some speeds
+    ldx cycling_color
+    inx
+    cpx background_color // this is background color, so skip that one
+    bne NotBG
+    inx
+NotBG:
+    cpx #NV_COLOR_LAST + 1
+    bne SetColor
+    ldx #NV_COLOR_FIRST
+    stx cycling_color
+SetColor:
+    stx cycling_color
+    nv_sprite_raw_set_color_from_memory(1, cycling_color)
+
+    // change some speeds
 SkipShipMax:                   
-        inc asteroid_1.y_vel    // increment asteroid Y velocity 
-        lda asteroid_1.y_vel    // load new speed just incremented
-        cmp #SHIP_MAX_SPEED+1   // compare new spead with max +1
-        bne SkipAsteroidMin     // if we haven't reached max + 1 then skip setting to min
-        lda #SHIP_MIN_SPEED     // else, we have reached max+1 so need to reset it back min
-        sta asteroid_1.y_vel
+    inc asteroid_1.y_vel    // increment asteroid Y velocity 
+    lda asteroid_1.y_vel    // load new speed just incremented
+    cmp #SHIP_MAX_SPEED+1   // compare new spead with max +1
+    bne SkipAsteroidMin     // if we haven't reached max + 1 then skip setting to min
+    lda #SHIP_MIN_SPEED     // else, we have reached max+1 so need to reset it back min
+    sta asteroid_1.y_vel
 
 SkipAsteroidMin:
 

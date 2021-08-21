@@ -14,6 +14,7 @@ background_color: .byte NV_COLOR_BLACK
 // some loop indices
 frame_counter: .word 0
 second_counter: .word 0
+second_countdown: .word 0           // BCD game end seconds count down to zero
 change_up_counter: .word 0
 second_partial_counter: .word 0
 key_cool_counter: .byte 0
@@ -21,7 +22,7 @@ quit_flag: .byte 0                  // set to non zero to quit
 sprite_collision_reg_value: .byte 0 // updated each frame with sprite coll
 
 cycling_color: .byte NV_COLOR_FIRST
-change_up_flag: .byte 0
+//change_up_flag: .byte 0
 
 // mask to tell us when to start wind
 wind_start_mask: .byte $03
