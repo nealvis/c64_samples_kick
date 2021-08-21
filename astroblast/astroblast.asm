@@ -30,6 +30,8 @@
 
 
 .const KEY_COOL_DURATION = $08
+.const ASTRO_GAME_SECONDS_ROW = 12
+.const ASTRO_GAME_SECONDS_COL = 0
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
 nv_b8_label: .text @"nv b8 coll sprite: \$00"
@@ -84,6 +86,11 @@ RunGame:
     .var showSecondCounter = true
     jsr StarStart
 
+    // display timer with initial value if time based game
+    lda astro_end_on_seconds
+    beq MainLoop
+    nv_screen_poke_hex_word_mem(ASTRO_GAME_SECONDS_ROW, ASTRO_GAME_SECONDS_COL, astro_game_seconds, false)
+
 MainLoop:
 
     nv_adc16_immediate(frame_counter, 1, frame_counter)
@@ -99,10 +106,22 @@ FullSecond:
 
     // add one to the second counter and display second counter
     nv_adc16_immediate(second_counter, 1, second_counter)
-    .if (showSecondCounter)
+    .if (showFrameCounters)
     {
-        nv_screen_poke_hex_word_mem(12, 0, second_counter, true)
+        nv_screen_poke_hex_word_mem(0, 7, second_counter, true)
     }
+    lda astro_end_on_seconds
+    beq DoneEndOnSeconds
+        // playing until some number of seconds elapses
+        nv_bcd_sbc16_immediate(astro_game_seconds, $0001, astro_game_seconds)
+        nv_screen_poke_hex_word_mem(ASTRO_GAME_SECONDS_ROW, ASTRO_GAME_SECONDS_COL, astro_game_seconds, false)
+        lda astro_game_seconds
+        bne DoneEndOnSeconds
+        // game is over
+        jsr DoWinner
+        jmp DoTitle
+
+DoneEndOnSeconds:
 
     // clear partial second counter which counts frame up to a 
     // full second then back to zero
@@ -274,6 +293,11 @@ HandleCollisionShip1:
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip1AsteroidFX
     nv_bcd_adc16_immediate(ship_1.score, $0001, ship_1.score)
+
+    // check if playing time based or score based game end
+    lda astro_end_on_seconds
+    bne NoWinShip1
+
     nv_blt16(ship_1.score, astro_score_to_win, NoWinShip1)
     // if we get here then ship1 has winning score
     lda #1
@@ -309,6 +333,10 @@ HandleCollisionShip2:
     // add one to ship score
     nv_bcd_adc16_immediate(ship_2.score, $0001, ship_2.score)
 
+    // check if playing time based or score based end 
+    lda astro_end_on_seconds
+    bne NoWinShip2
+    
     // check if that is the winning score
     nv_blt16(ship_2.score, astro_score_to_win, NoWinShip2)
     // if we get here then ship2 won
@@ -355,6 +383,13 @@ DoPreTitleInit:
     // start out in easy mode, user can adjust in title screen
     lda #ASTRO_DIFF_EASY
     sta astro_diff_mode
+
+    // set the default game seconds
+    nv_store16_immediate(astro_game_seconds, ASTRO_GAME_SECONDS_DEFAULT)
+
+    // set default, play to reach seconds or to reach score
+    lda #0
+    sta astro_end_on_seconds
 
     // set the global sprite multi colors        
     nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
@@ -513,9 +548,11 @@ AllSpritesDisable:
 DoWinner:
 {
     .const WINNER_SHIP_X_LOC = 69
-    .const WINNER_SHIP_Y_LOC = 123
+    .const WINNER_SHIP_Y_LOC = 131
     .const WINNER_TIE_SHIP_X_LOC = WINNER_SHIP_X_LOC - 30
     .const WINNER_TIE_SHIP_Y_LOC = WINNER_SHIP_Y_LOC
+    .const WINNER_TEXT_ROW = 11
+    .const WINNER_TEXT_COL = 10
     jsr SoundMuteOn
 
     jsr AllSpritesDisable
@@ -530,7 +567,7 @@ DoWinner:
     nv_beq16(ship_1.score, ship_2.score, WinnerTie)
 
     // not a tie, there was a winner 
-    nv_screen_poke_str(10, 10, winner_str)
+    nv_screen_poke_str(WINNER_TEXT_ROW, WINNER_TEXT_COL, winner_str)
     nv_bge16(ship_1.score, ship_2.score, WinnerShip1)
 
 WinnerShip2:
@@ -550,7 +587,7 @@ WinnerShip1:
     jmp WinnerWaitForKey
 
 WinnerTie:
-    nv_screen_poke_str(10, 10, winner_tie_str)
+    nv_screen_poke_str(WINNER_TEXT_ROW, WINNER_TEXT_COL, winner_tie_str)
 
     // display ship 1
     nv_store16_immediate(ship_1.x_loc, WINNER_SHIP_X_LOC)

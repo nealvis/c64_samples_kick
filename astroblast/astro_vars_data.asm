@@ -11,10 +11,14 @@
 border_color: .byte NV_COLOR_BLUE
 background_color: .byte NV_COLOR_BLACK
 
+.const ASTRO_GAME_SECONDS_DEFAULT = $0060
+
 // some loop indices
 frame_counter: .word 0
 second_counter: .word 0
-second_countdown: .word 0           // BCD game end seconds count down to zero
+astro_game_seconds: .word 0         // BCD game end seconds count down to zero
+astro_end_on_seconds: .byte 0        // if zero then play until score reached, 
+                                    // if non zero then play till seconds reached
 change_up_counter: .word 0
 second_partial_counter: .word 0
 key_cool_counter: .byte 0

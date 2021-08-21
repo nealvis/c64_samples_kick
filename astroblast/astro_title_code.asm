@@ -26,17 +26,19 @@
 //#import "../nv_c64_util/nv_debug_code.asm"
 astro_title_str:     .text @"     astroblast \$00"
 
-title_quit_str:      .text @" q key ... quit\$00"
-title_play_str:      .text @" space ... play\$00"
-title_vol_up_str:    .text @" < key ... vol down\$00"
-title_vol_down_str:  .text @" > key ... vol up\$00"
-title_easy_mode_str: .text @" 1 key ... easy\$00"
-title_med_mode_str:  .text @" 2 key ... med\$00"
-title_hard_mode_str: .text @" 3 key ... hard\$00"
-title_plus_str:      .text @" \$40 key ... longer\$00"
-title_minus_str:     .text @" \$5b key ... shorter\$00"
-title_game_len_str:  .text @" game len.\$00"
-title_blank4_str:    .text @"    "
+title_quit_str:        .text @" q key .. quit\$00"
+title_play_str:        .text @" space .. play\$00"
+title_vol_up_str:      .text @" < key .. vol down\$00"
+title_vol_down_str:    .text @" > key .. vol up\$00"
+title_easy_mode_str:   .text @" 1 key .. easy\$00"
+title_med_mode_str:    .text @" 2 key .. med\$00"
+title_hard_mode_str:   .text @" 3 key .. hard\$00"
+title_time_based_str:  .text @" t key .. len=time\$00"
+title_score_based_str: .text @" s key .. len=score\$00"
+title_plus_str:     .text @" \$40 key .. longer\$00"
+title_minus_str:    .text @" \$5b key .. shorter\$00"
+title_game_len_str:    .text @" len   ..\$00"
+title_blank4_str:      .text @"    "
 
 
 play_flag: .byte $00
@@ -55,6 +57,8 @@ play_flag: .byte $00
 .const TITLE_MIN_GAME_LEN = $0010
 .const TITLE_MAX_GAME_LEN = $0200
 .const TITLE_GAME_LEN_INC_DEC = $0010
+
+.const TITLE_INDICATOR_CHAR = 65
 
 .var index
 
@@ -176,7 +180,7 @@ TitleLoop:
     nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_med_mode_str)
     nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_hard_mode_str)
 
-    lda #65
+    lda #TITLE_INDICATOR_CHAR
     ldx background_color
     nv_screen_poke_color_char_xa(easy_mode_row, TITLE_COL_START)
     nv_screen_poke_color_char_xa(easy_mode_row+1, TITLE_COL_START)
@@ -207,8 +211,34 @@ IsAstroHardMode:
 DoneAstroDiffMode:
     .eval poke_row++
     nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_game_len_str)
-    nv_screen_poke_color_str((poke_row-1), TITLE_COL_START+11, NV_COLOR_CYAN, title_blank4_str)
-    nv_screen_poke_hex_word_mem((poke_row-1), TITLE_COL_START+11, astro_score_to_win, false)
+    nv_screen_poke_color_str((poke_row-1), TITLE_COL_START+10, NV_COLOR_CYAN, title_blank4_str)
+
+    // game length
+    nv_screen_poke_hex_word_mem((poke_row-1), TITLE_COL_START+10, astro_score_to_win, false)
+
+    // timed or score based
+    .var score_based_row = poke_row
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_score_based_str)
+    .var timer_based_row = poke_row
+    nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_time_based_str)
+
+    // poke indicator for timed or score based
+    lda #TITLE_INDICATOR_CHAR
+    ldx background_color
+    nv_screen_poke_color_char_xa(score_based_row, TITLE_COL_START)
+    nv_screen_poke_color_char_xa(timer_based_row, TITLE_COL_START)
+    lda #NV_COLOR_YELLOW
+    ldy astro_end_on_seconds
+    beq TitleScoreBasedGame
+TitleTimerBasedGame:
+    nv_screen_poke_color_a(timer_based_row, TITLE_COL_START)
+    jmp TitleTimerScoreBasedDone
+TitleScoreBasedGame:
+    nv_screen_poke_color_a(score_based_row, TITLE_COL_START)
+
+TitleTimerScoreBasedDone:
+
+    // inc/dec game len
     nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_plus_str)
     nv_screen_poke_color_str(poke_row++, TITLE_COL_START, NV_COLOR_WHITE, title_minus_str)
 
@@ -223,6 +253,7 @@ TitleNoQuit:
     jmp TitleLoop
 
 TitleDone:
+    nv_xfer16_mem_mem(astro_score_to_win, astro_game_seconds)
     jsr StarCleanup
     lda play_flag
     beq QuitGame
@@ -323,11 +354,27 @@ TitleGameLenSkipAdd:
 
 TryMinus:
     cmp #NV_KEY_MINUS
-    bne TryPlay
+    bne TryTimedGame
 WasMinus:
     nv_blt16_immediate(astro_score_to_win, TITLE_MIN_GAME_LEN+TITLE_GAME_LEN_INC_DEC, TitleGameLenSkipAdd)
     nv_bcd_sbc16_immediate(astro_score_to_win, TITLE_GAME_LEN_INC_DEC, astro_score_to_win)
 TitleGameLenSkipSub:
+    jmp TitleDoneKeys                // and skip to bottom
+
+TryTimedGame:
+    cmp #NV_KEY_T
+    bne TryScoredGame
+WasTimedGame:
+    lda #1
+    sta astro_end_on_seconds
+    jmp TitleDoneKeys                // and skip to bottom
+
+TryScoredGame:
+    cmp #NV_KEY_S
+    bne TryPlay
+WasScoredGame:
+    lda #0
+    sta astro_end_on_seconds
     jmp TitleDoneKeys                // and skip to bottom
 
 TryPlay:
