@@ -473,6 +473,9 @@ DoWinner:
 
     nv_screen_clear()
 
+    // show the score
+    jsr ScoreToScreen
+
     nv_screen_poke_str(10, 10, winner_str)
 
 
@@ -507,7 +510,7 @@ WinnerWaitForKey:
     sta sprite_collision_reg_value
     rts
 
-    winner_str: .text @"winner!\$00"
+    winner_str: .text @"the winner!\$00"
     //winner_ship2_str: .text @"ship2 won\$00"
 }
 // DoWinner End
