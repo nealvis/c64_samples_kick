@@ -465,8 +465,14 @@ AllSpritesDisable:
 // subroutine to call when there is a winner detected
 DoWinner:
 {
+
+    nv_store16_immediate(ship_1.score, $0010)
+    nv_store16_immediate(ship_2.score, $0010)
+
     .const WINNER_SHIP_X_LOC = 69
     .const WINNER_SHIP_Y_LOC = 123
+    .const WINNER_TIE_SHIP_X_LOC = WINNER_SHIP_X_LOC - 30
+    .const WINNER_TIE_SHIP_Y_LOC = WINNER_SHIP_Y_LOC
     jsr SoundMuteOn
 
     jsr AllSpritesDisable
@@ -476,9 +482,12 @@ DoWinner:
     // show the score
     jsr ScoreToScreen
 
+
+    // check for a tie
+    nv_beq16(ship_1.score, ship_2.score, WinnerTie)
+
+    // not a tie, there was a winner 
     nv_screen_poke_str(10, 10, winner_str)
-
-
     nv_bge16(ship_1.score, ship_2.score, WinnerShip1)
 
 WinnerShip2:
@@ -494,9 +503,27 @@ WinnerShip1:
     lda #WINNER_SHIP_Y_LOC
     sta ship_1.y_loc
     jsr ship_1.SetLocationFromExtraData
-
     jsr ship_1.Enable
-    // fall through
+    jmp WinnerWaitForKey
+
+WinnerTie:
+    nv_screen_poke_str(10, 10, winner_tie_str)
+
+    // display ship 1
+    nv_store16_immediate(ship_1.x_loc, WINNER_SHIP_X_LOC)
+    lda #WINNER_SHIP_Y_LOC
+    sta ship_1.y_loc
+    jsr ship_1.SetLocationFromExtraData
+    jsr ship_1.Enable
+
+    // display ship 2
+    nv_store16_immediate(ship_2.x_loc, WINNER_TIE_SHIP_X_LOC)
+    lda #WINNER_TIE_SHIP_Y_LOC
+    sta ship_2.y_loc
+    jsr ship_2.SetLocationFromExtraData
+    jsr ship_2.Enable
+
+    // fall through to wait for key
 
 WinnerWaitForKey:
     nv_key_wait_any_key()
@@ -511,7 +538,7 @@ WinnerWaitForKey:
     rts
 
     winner_str: .text @"the winner!\$00"
-    //winner_ship2_str: .text @"ship2 won\$00"
+    winner_tie_str: .text @"tie game!\$00"
 }
 // DoWinner End
 //////////////////////////////////////////////////////////////////////////////
