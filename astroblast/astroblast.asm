@@ -211,35 +211,22 @@ HandleCollisionShip1:
     nv_bcd_adc16_immediate(ship_1.score, $0001, ship_1.score)
     nv_blt16(ship_1.score, astro_score_to_win, NoWinShip1)
     // if we get here then ship1 won
-    jsr ScoreToScreen
+    // update ship2's score just in case he also scored
+    // this frame, it could be a tie score
+    jsr CheckCollisionsUpdateScoreShip2
     jsr DoWinner
     jmp DoTitle
 NoWinShip1:
 NoCollisionShip1:
 
-    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////
     //// check for ship2 collisions
-    jsr ship_2.CheckShipCollision
-    lda ship_2.collision_sprite     // closest_sprite, will be $FF
-    bmi NoCollisionShip2        // if no collisions so check minus
-HandleCollisionShip2:
-    lda ship_2_death_count        // if ship2 is dead then ignore collisions
-    bne NoCollisionShip2
-    // get extra pointer for the sprite that ship1 collided with loaded
-    // so that we can then disable it
-    ldy ship_2.collision_sprite
-    jsr AstroSpriteExtraPtrToRegs 
-    jsr NvSpriteExtraDisable
-    jsr SoundPlayShip2AsteroidFX
-    nv_bcd_adc16_immediate(ship_2.score, $0001, ship_2.score)
-    nv_blt16(ship_2.score, astro_score_to_win, NoWinShip2)
-    // if we get here then ship2 won
-    jsr ScoreToScreen
+    jsr CheckCollisionsUpdateScoreShip2
+    beq NoWinShip2
     jsr DoWinner
     jmp DoTitle
 
 NoWinShip2:
-NoCollisionShip2:
 
     jsr TurretHitCheck
 
@@ -276,6 +263,43 @@ ProgramDone:
     rts   // program done, return
 // end main program
 //////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to check if ship 2 hit asteroid and update score accordingly
+// return values:
+//   Accum: will have 0 if ship didn't win, or non zero if ship won 
+CheckCollisionsUpdateScoreShip2:
+{
+    jsr ship_2.CheckShipCollision
+    lda ship_2.collision_sprite     // closest_sprite, will be $FF
+    bmi NoCollisionShip2            // if no collisions so check minus
+HandleCollisionShip2:
+    lda ship_2_death_count          // if ship2 is dead then ignore collisions
+    bne NoCollisionShip2
+    // get extra pointer for the sprite that ship1 collided with loaded
+    // so that we can then disable it
+    ldy ship_2.collision_sprite
+    jsr AstroSpriteExtraPtrToRegs 
+    jsr NvSpriteExtraDisable
+    jsr SoundPlayShip2AsteroidFX
+
+    // add one to ship score
+    nv_bcd_adc16_immediate(ship_2.score, $0001, ship_2.score)
+
+    // check if that is the winning score
+    nv_blt16(ship_2.score, astro_score_to_win, NoWinShip2)
+    // if we get here then ship2 won
+    lda #1
+    rts
+NoWinShip2:
+NoCollisionShip2:
+    lda #0
+    rts
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to initialize the things that must be initialized before
@@ -465,10 +489,6 @@ AllSpritesDisable:
 // subroutine to call when there is a winner detected
 DoWinner:
 {
-
-    nv_store16_immediate(ship_1.score, $0010)
-    nv_store16_immediate(ship_2.score, $0010)
-
     .const WINNER_SHIP_X_LOC = 69
     .const WINNER_SHIP_Y_LOC = 123
     .const WINNER_TIE_SHIP_X_LOC = WINNER_SHIP_X_LOC - 30
