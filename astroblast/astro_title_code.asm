@@ -22,18 +22,18 @@
 #import "astro_sound.asm"
 #import "astro_stream_processor_code.asm"
 #import "astro_ships_code.asm"
-#import "../nv_c64_util/nv_joystick_code.asm"
+//#import "../nv_c64_util/nv_joystick_code.asm"
 
 //#import "../nv_c64_util/nv_debug_code.asm"
 astro_title_str:     .text @"     astroblast \$00"
 
 title_quit_str:        .text @" q key .. quit\$00"
-title_play_str:        .text @" space .. play\$00"
+title_play_str:        .text @" p key .. play\$00"
 title_vol_up_str:      .text @" < key .. vol down\$00"
 title_vol_down_str:    .text @" > key .. vol up\$00"
-title_easy_mode_str:   .text @" 1 key .. easy\$00"
-title_med_mode_str:    .text @" 2 key .. med\$00"
-title_hard_mode_str:   .text @" 3 key .. hard\$00"
+title_easy_mode_str:   .text @" e key .. easy\$00"
+title_med_mode_str:    .text @" m key .. med\$00"
+title_hard_mode_str:   .text @" h key .. hard\$00"
 title_time_based_str:  .text @" t key .. len=time\$00"
 title_score_based_str: .text @" s key .. len=score\$00"
 title_plus_str:     .text @" \$40 key .. longer\$00"
@@ -60,6 +60,14 @@ play_flag: .byte $00
 .const TITLE_GAME_LEN_INC_DEC = $0010
 
 .const TITLE_INDICATOR_CHAR = 65
+.const TITLE_KEY_EASY         = NV_KEY_E 
+.const TITLE_KEY_MED          = NV_KEY_M
+.const TITLE_KEY_HARD         = NV_KEY_H
+.const TITLE_KEY_TIMED_GAME   = NV_KEY_T
+.const TITLE_KEY_SCORED_GAME  = NV_KEY_S
+.const TITLE_KEY_PLAY         = NV_KEY_P
+.const TITLE_KEY_LONGER_GAME  = NV_KEY_PLUS
+.const TITLE_KEY_SHORTER_GAME = NV_KEY_MINUS
 
 .var index
 
@@ -159,6 +167,7 @@ TitleStart:
 
 TitleLoop:
     nv_sprite_wait_last_scanline()         // wait for particular scanline.
+    //jsr JoyScan
     SoundDoStep()
     jsr ship_1.SetLocationFromExtraData
     jsr ship_2.SetLocationFromExtraData
@@ -276,10 +285,10 @@ QuitGame:
 // subroutine to do all the keyboard stuff
 TitleDoKeyboard: 
 {
-    jsr JoyIsAnyActivity
-    beq TitleNoJoystickActiviity
-    rts                             // joystick activity, so don't read keyboard
-TitleNoJoystickActiviity:
+    //jsr JoyIsAnyActivity
+    //beq TitleNoJoystickActiviity
+    //rts                             // joystick activity, so don't read keyboard
+//TitleNoJoystickActiviity:
     nv_key_scan()
 
     lda key_cool_counter
@@ -325,7 +334,7 @@ WasDecVolume:
     jmp TitleDoneKeys
 
 TryDiffEasy:
-    cmp #NV_KEY_1            
+    cmp #TITLE_KEY_EASY            
     bne TryDiffMed                          
 WasDiffEasy:
     lda #ASTRO_DIFF_EASY
@@ -333,7 +342,7 @@ WasDiffEasy:
     jmp TitleDoneKeys                // and skip to bottom
 
 TryDiffMed:
-    cmp #NV_KEY_2
+    cmp #TITLE_KEY_MED
     bne TryDiffHard
 WasDiffMed:
     lda #ASTRO_DIFF_MED
@@ -341,7 +350,7 @@ WasDiffMed:
     jmp TitleDoneKeys                // and skip to bottom
 
 TryDiffHard:
-    cmp #NV_KEY_3
+    cmp #TITLE_KEY_HARD
     bne TryPlus
 WasDiffHard:
     lda #ASTRO_DIFF_HARD
@@ -349,7 +358,7 @@ WasDiffHard:
     jmp TitleDoneKeys                // and skip to bottom
 
 TryPlus:
-    cmp #NV_KEY_PLUS
+    cmp #TITLE_KEY_LONGER_GAME
     bne TryMinus
 WasPlus:
     nv_bge16_immediate(astro_score_to_win, TITLE_MAX_GAME_LEN-TITLE_GAME_LEN_INC_DEC, TitleGameLenSkipAdd)
@@ -358,7 +367,7 @@ TitleGameLenSkipAdd:
     jmp TitleDoneKeys                // and skip to bottom
 
 TryMinus:
-    cmp #NV_KEY_MINUS
+    cmp #TITLE_KEY_SHORTER_GAME
     bne TryTimedGame
 WasMinus:
     nv_blt16_immediate(astro_score_to_win, TITLE_MIN_GAME_LEN+TITLE_GAME_LEN_INC_DEC, TitleGameLenSkipAdd)
@@ -367,7 +376,7 @@ TitleGameLenSkipSub:
     jmp TitleDoneKeys                // and skip to bottom
 
 TryTimedGame:
-    cmp #NV_KEY_T
+    cmp #TITLE_KEY_TIMED_GAME
     bne TryScoredGame
 WasTimedGame:
     lda #1
@@ -375,7 +384,7 @@ WasTimedGame:
     jmp TitleDoneKeys                // and skip to bottom
 
 TryScoredGame:
-    cmp #NV_KEY_S
+    cmp #TITLE_KEY_SCORED_GAME
     bne TryPlay
 WasScoredGame:
     lda #0
@@ -383,7 +392,7 @@ WasScoredGame:
     jmp TitleDoneKeys                // and skip to bottom
 
 TryPlay:
-    cmp #KEY_PLAY               
+    cmp #TITLE_KEY_PLAY               
     bne TryQuit                 
 WasPlay:
     lda #1                      

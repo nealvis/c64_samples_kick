@@ -241,7 +241,6 @@ Done:
 //            any key based on that assumption. 
 .macro nv_key_wait_any_key()
 {
-    
     lda nv_key_last_pressed
     cmp #NV_KEY_UNINITIALIZED
     bne IsInitialized

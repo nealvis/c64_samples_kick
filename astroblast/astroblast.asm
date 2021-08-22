@@ -179,7 +179,7 @@ RegularFrame:
     // fire the turret automatically if its time.
     jsr TurretAutoStart
 
-    
+
 
     // move the sprites based on velocities set above.
     jsr ship_1.MoveInExtraData
@@ -405,6 +405,8 @@ DoPreTitleInit:
     // setup everything for the sprite_ship so its ready to enable
     jsr ship_1.Setup
     jsr ship_2.Setup
+    jsr ship_1.SetColorAlive
+    jsr ship_2.SetColorAlive
 
     // setup everything for the sprite_asteroid so its ready to enable
     jsr asteroid_1.Setup
@@ -475,7 +477,7 @@ DoPostTitleInit:
     lda #SHIP1_INIT_Y_VEL
     sta ship_1.y_vel
     jsr ship_1.SetLocationFromExtraData
-    jsr ship_2.SetColorAlive
+    jsr ship_1.SetColorAlive
 
 
     // init ship 2
@@ -551,6 +553,8 @@ DoWinner:
     .const WINNER_TIE_SHIP_Y_LOC = WINNER_SHIP_Y_LOC
     .const WINNER_TEXT_ROW = 11
     .const WINNER_TEXT_COL = 10
+    .const WINNER_CONTINUE_ROW = 23
+    .const WINNER_CONTINUE_COL = 10
     jsr SoundMuteOn
 
     jsr AllSpritesDisable
@@ -565,7 +569,7 @@ DoWinner:
     nv_beq16(ship_1.score, ship_2.score, WinnerTie)
 
     // not a tie, there was a winner 
-    nv_screen_poke_str(WINNER_TEXT_ROW, WINNER_TEXT_COL, winner_str)
+    nv_screen_poke_color_str(WINNER_TEXT_ROW, WINNER_TEXT_COL, NV_COLOR_WHITE, winner_str)
     nv_bge16(ship_1.score, ship_2.score, WinnerShip1)
 
 WinnerShip2:
@@ -573,6 +577,7 @@ WinnerShip2:
     lda #WINNER_SHIP_Y_LOC
     sta ship_2.y_loc
     jsr ship_2.SetLocationFromExtraData
+    jsr ship_2.SetColorAlive
     jsr ship_2.Enable
     jmp WinnerWaitForKey
 
@@ -581,17 +586,19 @@ WinnerShip1:
     lda #WINNER_SHIP_Y_LOC
     sta ship_1.y_loc
     jsr ship_1.SetLocationFromExtraData
+    jsr ship_1.SetColorAlive
     jsr ship_1.Enable
     jmp WinnerWaitForKey
 
 WinnerTie:
-    nv_screen_poke_str(WINNER_TEXT_ROW, WINNER_TEXT_COL, winner_tie_str)
+    nv_screen_poke_color_str(WINNER_TEXT_ROW, WINNER_TEXT_COL, NV_COLOR_WHITE, winner_tie_str)
 
     // display ship 1
     nv_store16_immediate(ship_1.x_loc, WINNER_SHIP_X_LOC)
     lda #WINNER_SHIP_Y_LOC
     sta ship_1.y_loc
     jsr ship_1.SetLocationFromExtraData
+    jsr ship_1.SetColorAlive
     jsr ship_1.Enable
 
     // display ship 2
@@ -599,14 +606,56 @@ WinnerTie:
     lda #WINNER_TIE_SHIP_Y_LOC
     sta ship_2.y_loc
     jsr ship_2.SetLocationFromExtraData
+    jsr ship_2.SetColorAlive
     jsr ship_2.Enable
 
-    // fall through to wait for key
 
 WinnerWaitForKey:
-    nv_key_wait_any_key()
-    jsr SoundMuteOff
+    // fall through to wait for key
+    nv_screen_poke_color_str(WINNER_CONTINUE_ROW, WINNER_CONTINUE_COL, NV_COLOR_WHITE, winner_continue_str)
+    nv_key_wait_no_key()
 
+    //lda #10
+    //sta winner_key_count
+
+WinnerWaitForKeyLoop:
+    //nv_key_wait_any_key()
+    //jsr JoyScan
+    //jsr JoyIsAnyActivity
+    //bne WinnerWaitForKey
+
+    //nv_screen_poke_hex_byte_mem(0, 20, winner_key_count, true)
+    nv_key_scan()
+
+    nv_key_get_last_pressed_a()     // get key pressed in accum
+    //sta winner_temp_key
+    //nv_key_get_prev_pressed_y()
+    //cpy winner_temp_key
+    //bne Skipper
+    //jmp WinnerWaitForKeyLoop
+//Skipper:
+//    lda winner_temp_key
+//    pha
+//    ldx #NV_COLOR_WHITE
+//    nv_screen_poke_color_char_xa(5, 15)
+//    pla
+//    pha
+//    nv_screen_poke_hex_byte_a(5, 5, true)
+//
+//    pla
+    cmp #KEY_WINNER_CONTINUE
+    bne WrongKey
+RightKey:
+    //nv_screen_poke_hex_byte_a(0, 34, true)
+    //dec winner_key_count
+    beq WinnerGotKey
+
+WrongKey:
+    jmp WinnerWaitForKeyLoop
+
+WinnerGotKey:
+
+    jsr SoundMuteOff
     jsr AllSpritesDisable
 
     // clear collsions so replaying won't use value from last 
@@ -615,8 +664,11 @@ WinnerWaitForKey:
     sta sprite_collision_reg_value
     rts
 
+    //winner_key_count: .byte 0
+    //winner_temp_key: .byte 0
     winner_str: .text @"the winner!\$00"
     winner_tie_str: .text @"tie game!\$00"
+    winner_continue_str: .text @"press p to play more\$00"
 }
 // DoWinner End
 //////////////////////////////////////////////////////////////////////////////
@@ -660,11 +712,11 @@ DoneDiffParams:
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to wait for no key currently pressed
-WaitNoKey:
-{
-    nv_key_wait_no_key()
-    rts
-}
+//WaitNoKey:
+//{
+//    nv_key_wait_no_key()
+//    rts
+//}
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -767,11 +819,11 @@ DoKeyboard:
     // need this because joystick and keyboard seem to interfere
     // with each other and joystick activity can be misinterpreted 
     // as keyboard key presses
-    jsr JoyIsAnyActivity
-    beq NoJoy
-IsJoy:  // Is joystick activity so just return
-    rts
-NoJoy:  // is no joystick activity so check keyboard
+    //jsr JoyIsAnyActivity
+    //beq NoJoy
+//IsJoy:  // Is joystick activity so just return
+    //rts
+//NoJoy:  // is no joystick activity so check keyboard
 
     nv_key_scan()
 
@@ -813,7 +865,7 @@ CantIncBecuaseWind:
 // no repeat key presses handled here, only transition keys below this line
 // if its a repeat key press then we'll ignore it.
 TryTransitionKeys:
-    nv_key_get_prev_pressed_y() // previou key pressed to Y reg
+    nv_key_get_prev_pressed_y() // previous key pressed to Y reg
     sty scratch_byte            // then to scratch reg to compare with accum
     cmp scratch_byte            // if prev key == last key then done with keys
     bne NotDoneKeys
