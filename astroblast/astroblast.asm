@@ -239,11 +239,9 @@ NoCollisionShip1:
     jmp DoTitle
 
 NoWinShip2:
-
     jsr TurretHitCheck
     jsr ScoreToScreen
     jmp MainLoop
-
 
 ProgramDone:
     // Done moving sprites, move cursor out of the way 
@@ -711,15 +709,6 @@ DoneDiffParams:
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// subroutine to wait for no key currently pressed
-//WaitNoKey:
-//{
-//    nv_key_wait_no_key()
-//    rts
-//}
-
-
-//////////////////////////////////////////////////////////////////////////////
 // subroutine to put the score onto the screen
 ScoreToScreen:
 {
@@ -732,21 +721,25 @@ ScoreToScreen:
 // subroutine to change things up every x seconds.
 ChangeUp:
 {
+    .const COLOR_MASK = $0F
+
     // increment the changeup counter.
     nv_adc16_immediate(change_up_counter, 1, change_up_counter)
 
-    ldx cycling_color
-    inx
-    cpx background_color // this is background color, so skip that one
+    inc cycling_color
+    lda cycling_color
+    and #COLOR_MASK
+    sta cycling_color
+    lda background_color
+    and #COLOR_MASK
+    cmp cycling_color 
     bne NotBG
-    inx
+IsBG:
+    inc cycling_color
+    lda cycling_color
+    and #COLOR_MASK
+    sta cycling_color
 NotBG:
-    cpx #NV_COLOR_LAST + 1
-    bne SetColor
-    ldx #NV_COLOR_FIRST
-    stx cycling_color
-SetColor:
-    stx cycling_color
     nv_sprite_raw_set_color_from_memory(1, cycling_color)
 
     // change some speeds
