@@ -6,7 +6,30 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// TODO: add comments
+// macro for astroblaster that generates code that reads from
+// a list of streams, and based on a frame counter will run the appropriate
+// stream (all commands) in the list every time its called.  
+// So if an entire effect can be done by processing a differnt stream each
+// frame, the user can create the list of stream addresses and just call this
+// subroutine once per frame.
+// macro params:
+//   stream_proc_addr: Address of the stream processor subroutine  
+//                     that will be called to process streams.  
+//   effect_count_addr: Address of the frame counter for the effect 
+//                      it counts down to zero typically.  When an
+//                      effect is started the byte at this addr should be set
+//                      to effect_frames.  End each time this is code 
+//                      executes that byte will be decremented.  
+//                      If the byte at this address is zero then this
+//                      code does nothing.
+//   effect_frames: This is the total number of frames in the effect.
+//                  the byte at effect_count_addr is subracted from this
+//                  in order to get the zero based frame/step for the effect
+//                  that is the index into the effect table addr.
+//   effect_table_addr: the addres of a list of words that contain 16 bit
+//                      addresses of the streams that will be called.
+//                      there must be effect_frames number of words/addrs
+//                      at this location.
 .macro astro_effect_step(stream_proc_addr, effect_count_addr, 
                          effect_frames, effect_table_addr)
 {
@@ -35,7 +58,10 @@ Done:
 
 
 //////////////////////////////////////////////////////////////////////////////
-// TODO: add comments
+// macro that creates a subroutine for the astro_effect_step macro.
+// when expanded at a label you can jsr to the label to run the code
+// See astro_effect_step for details of what the code does and what
+// macro parameters are.  
 .macro astro_effect_step_sr(stream_proc_addr, effect_count_addr, 
                             effect_frames, effect_table_addr)
 {
