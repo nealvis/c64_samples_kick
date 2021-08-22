@@ -16,16 +16,7 @@
 
 #import "astro_vars_data.asm"
 #import "astro_turret_data.asm"
-/*
-#import "../nv_c64_util/nv_screen_macs.asm"
-#import "../nv_c64_util/nv_screen_rect_macs.asm"
-#import "../nv_c64_util/nv_pointer_macs.asm"
-#import "../nv_c64_util/nv_stream_processor_macs.asm"
-#import "../nv_c64_util/nv_debug_macs.asm"
-*/
-//#import "astro_stream_processor_macs.asm"
 #import "astro_stream_processor_code.asm"
-//#import "../nv_c64_util/nv_debug_code.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // call once to initialize turret variables and stuff
@@ -273,9 +264,6 @@ turret_active_retval: .byte 0
     turret_clear_rect(turret_6_bullet_rect)
     lda #0
     sta turret_6_count
-    //sta turret_6_frame_number
-    //nv_store16_immediate(turret_6_char_mem_cur, TURRET_6_CHAR_MEM_START)
-    //nv_store16_immediate(turret_6_color_mem_cur, TURRET_6_COLOR_MEM_START)
 
     // all positions to background color 
     lda background_color
