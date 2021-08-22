@@ -22,6 +22,7 @@
 #import "astro_sound.asm"
 #import "astro_stream_processor_code.asm"
 #import "astro_ships_code.asm"
+#import "../nv_c64_util/nv_joystick_code.asm"
 
 //#import "../nv_c64_util/nv_debug_code.asm"
 astro_title_str:     .text @"     astroblast \$00"
@@ -275,21 +276,25 @@ QuitGame:
 // subroutine to do all the keyboard stuff
 TitleDoKeyboard: 
 {
+    jsr JoyIsAnyActivity
+    beq TitleNoJoystickActiviity
+    rts                             // joystick activity, so don't read keyboard
+TitleNoJoystickActiviity:
     nv_key_scan()
 
     lda key_cool_counter
-    beq TitleNotInCoolDown       // not in keyboard cooldown, go scan
-    dec key_cool_counter    // in keyboard cooldown, dec the cntr
-    jmp TitleDoneKeys            // and jmp to skip rest of routine
+    beq TitleNotInCoolDown          // not in keyboard cooldown, go scan
+    dec key_cool_counter            // in keyboard cooldown, dec the cntr
+    jmp TitleDoneKeys               // and jmp to skip rest of routine
 TitleNotInCoolDown:
 
     nv_key_get_last_pressed_a()     // get key pressed in accum
 
-    cmp #NV_KEY_NO_KEY          // check if any key hit
+    cmp #NV_KEY_NO_KEY              // check if any key hit
     bne TitleHaveKey 
-    jmp TitleDoneKeys                // no key hit, skip to end
+    jmp TitleDoneKeys               // no key hit, skip to end
 TitleHaveKey:
-    ldy #TITLE_KEY_COOL_DURATION      // had a key, start cooldown counter        
+    ldy #TITLE_KEY_COOL_DURATION    // had a key, start cooldown counter        
     sty key_cool_counter
 
 

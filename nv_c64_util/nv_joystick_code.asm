@@ -92,6 +92,9 @@ JoyCurStateXY:
 // then this will set accum to non zero.  if there is no activity 
 // on either joystick then this will set accum to zero
 // note this routine assumes that JoyScan is being called regularly
+// Accum: changes (zero for no activity or nonzero for activity)
+// X Reg: no change
+// Y Reg: no change
 JoyIsAnyActivity:
 {
     lda nv_joy_port1_state

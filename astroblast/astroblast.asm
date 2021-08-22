@@ -30,8 +30,8 @@
 
 
 .const KEY_COOL_DURATION = $08
-.const ASTRO_GAME_SECONDS_ROW = 12
-.const ASTRO_GAME_SECONDS_COL = 0
+.const ASTRO_GAME_SECONDS_ROW = 0
+.const ASTRO_GAME_SECONDS_COL = 17
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
 nv_b8_label: .text @"nv b8 coll sprite: \$00"
@@ -178,6 +178,8 @@ RegularFrame:
 
     // fire the turret automatically if its time.
     jsr TurretAutoStart
+
+    
 
     // move the sprites based on velocities set above.
     jsr ship_1.MoveInExtraData
@@ -361,6 +363,9 @@ DoPreTitleInit:
     nv_screen_set_border_color_mem(border_color)
     nv_screen_set_background_color_mem(background_color)
 
+    // initialize joystick
+    jsr JoyInit
+
     // initialize random numbers, needs to be before soundstarts
     nv_rand_init(true)          // do before SoundInit
 
@@ -449,7 +454,6 @@ DoPostTitleInit:
     jsr TurretArmInit
     jsr TurretArmStart
     jsr ShipDeathInit
-    jsr JoyInit
 
     // initialize sprite locations to locations to start game 
     .const SHIP1_INIT_X_LOC = 22
@@ -494,17 +498,11 @@ DoPostTitleInit:
     jsr asteroid_4.SetLocationFromExtraData
     jsr asteroid_5.SetLocationFromExtraData
 
-
     jsr AllSpritesEnable
-
-    // update astro_score_to_win when its modifiable in the title screen
-
-    // position sprites here
-
 
     rts
 }
-// DoPostInit - end
+// DoPosttitleInit - end
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
