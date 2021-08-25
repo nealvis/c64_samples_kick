@@ -97,7 +97,7 @@ nv_key_col3_table:
 
 // table of chars to report for col4 keys:
 nv_key_col4_table: 
-.byte NV_KEY_9, NV_KEY_I, NV_KEY_J, NV_KEY_0, NV_KEY_M, NV_KEY_K, NV_KEY_0, NV_KEY_N
+.byte NV_KEY_9, NV_KEY_I, NV_KEY_J, NV_KEY_0, NV_KEY_M, NV_KEY_K, NV_KEY_O, NV_KEY_N
 //    9,        I,        J,        0,        M,        K,        O,        N
 
 // table of chars to report for col5 keys:
