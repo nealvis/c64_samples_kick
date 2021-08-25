@@ -54,3 +54,7 @@ astro_auto_turret_next_shot_frame: .word ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY
 // this is the score required to win the game it in BCD format
 .const ASTRO_DEFAULT_SCORE_TO_WIN = $0100
 astro_score_to_win: .word ASTRO_DEFAULT_SCORE_TO_WIN
+
+astro_slow_motion: .byte 0
+
+astro_multi_color1: .byte NV_COLOR_LITE_GREEN
