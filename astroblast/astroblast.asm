@@ -197,6 +197,10 @@ RegularFrame:
         nv_screen_set_border_color_mem(border_color)
     }
     nv_sprite_wait_last_scanline()         // wait for particular scanline.
+    lda astro_slow_motion
+    beq AstroSkipSlowMo
+    nv_sprite_wait_specific_scanline(240)
+AstroSkipSlowMo:
     .if (showTiming)
     {
         nv_screen_set_border_color_immed(NV_COLOR_GREEN)
@@ -206,6 +210,8 @@ RegularFrame:
     }
 
     SoundDoStep()
+
+    jsr StepShipExhaust
 
     //// call routine to update sprite x and y positions on screen
     jsr ship_1.SetLocationFromExtraData
@@ -271,6 +277,34 @@ ProgramDone:
     nv_screen_clear()
     rts   // program done, return
 // end main program
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to flash the ship's exhaust different colors
+StepShipExhaust:
+{
+    lda frame_counter
+    and #$07
+    bne NoToggle
+IsToggle:
+    lda astro_multi_color1
+    cmp #NV_COLOR_LITE_GREEN
+    beq GoYellow
+GoGreen:
+    lda #NV_COLOR_LITE_GREEN
+    sta astro_multi_color1
+    nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_LITE_GREY)
+    jmp NoToggle
+GoYellow:
+    lda #NV_COLOR_YELLOW
+    sta astro_multi_color1
+    nv_sprite_raw_set_multicolors(NV_COLOR_YELLOW, NV_COLOR_LITE_GREY)
+    
+NoToggle:
+
+    rts
+}
+// StepShipExhaust - end
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
@@ -382,6 +416,7 @@ DoPreTitleInit:
     // clear quit flag since it can be set in title screen
     lda #$00
     sta quit_flag
+    sta astro_slow_motion
 
     // start out in easy mode, user can adjust in title screen
     lda #ASTRO_DIFF_EASY
@@ -395,7 +430,7 @@ DoPreTitleInit:
     sta astro_end_on_seconds
 
     // set the global sprite multi colors        
-    nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_WHITE)
+    nv_sprite_raw_set_multicolors(NV_COLOR_LITE_GREEN, NV_COLOR_LITE_GREY)
 
     // setup the score required to win to default value
     nv_store16_immediate(astro_score_to_win, ASTRO_DEFAULT_SCORE_TO_WIN)
@@ -947,9 +982,19 @@ WasExperimental04:
 
 TryExperimental01:
     cmp #KEY_EXPERIMENTAL_01             
-    bne TryQuit                           
+    bne TryExperimental05                           
 WasExperimental01:
     jsr WindStart
+    jmp DoneKeys
+
+TryExperimental05:
+    cmp #KEY_EXPERIMENTAL_05             
+    bne TryQuit                           
+WasExperimental05:
+    lda astro_slow_motion
+    eor #$FF
+    //and #01
+    sta astro_slow_motion
     jmp DoneKeys
 
 TryQuit:
