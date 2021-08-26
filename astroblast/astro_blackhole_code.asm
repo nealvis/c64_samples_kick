@@ -165,6 +165,7 @@ HoleCleanup:
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
         .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
         .label data_ptr = info.base_addr + NV_SPRITE_DATA_PTR_OFFSET
+        .label sprite_num = info.base_addr + NV_SPRITE_NUM_OFFSET
 
 // sprite extra data
 sprite_extra:

@@ -213,6 +213,7 @@ AstroSkipSlowMo:
 
     SoundDoStep()
 
+    jsr SlowMoStep
     jsr StepShipExhaust
 
     //// call routine to update sprite x and y positions on screen
@@ -326,6 +327,14 @@ HandleCollisionShip1:
     // get extra pointer for the sprite that ship1 collided with loaded
     // so that we can then disable it
     ldy ship_1.collision_sprite
+    cpy blackhole.sprite_num
+    bne CollisionNotHole
+    jsr HoleForceStop
+    jsr SlowMoStart
+    lda #0
+    rts
+
+CollisionNotHole:
     jsr AstroSpriteExtraPtrToRegs 
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip1AsteroidFX
@@ -363,6 +372,14 @@ HandleCollisionShip2:
     // get extra pointer for the sprite that ship1 collided with loaded
     // so that we can then disable it
     ldy ship_2.collision_sprite
+    cpy blackhole.sprite_num
+    bne CollisionNotHole
+    jsr HoleForceStop
+    jsr SlowMoStart
+    lda #0
+    rts
+
+CollisionNotHole:
     jsr AstroSpriteExtraPtrToRegs 
     jsr NvSpriteExtraDisable
     jsr SoundPlayShip2AsteroidFX
@@ -387,7 +404,28 @@ NoCollisionShip2:
 // CheckCollisionsUpdateScoreShip2 end
 //////////////////////////////////////////////////////////////////////////////
 
+SlowMoStart:
+{
+    lda #255
+    sta astro_slow_motion
+    rts
+}
 
+SlowMoForceStop:
+{
+    lda #0
+    sta astro_slow_motion
+    rts
+}
+
+SlowMoStep:
+{
+    lda astro_slow_motion
+    beq Done
+    dec astro_slow_motion
+Done:
+    rts
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to initialize the things that must be initialized before
@@ -653,34 +691,12 @@ WinnerWaitForKey:
     nv_screen_poke_color_str(WINNER_CONTINUE_ROW, WINNER_CONTINUE_COL, NV_COLOR_WHITE, winner_continue_str)
     nv_key_wait_no_key()
 
-    //lda #10
-    //sta winner_key_count
-
 WinnerWaitForKeyLoop:
-    //nv_key_wait_any_key()
-    //jsr JoyScan
-    //jsr JoyIsAnyActivity
-    //bne WinnerWaitForKey
-
     //nv_screen_poke_hex_byte_mem(0, 20, winner_key_count, true)
     nv_key_scan()
 
     nv_key_get_last_pressed_a()     // get key pressed in accum
-    //sta winner_temp_key
-    //nv_key_get_prev_pressed_y()
-    //cpy winner_temp_key
-    //bne Skipper
-    //jmp WinnerWaitForKeyLoop
-//Skipper:
-//    lda winner_temp_key
-//    pha
-//    ldx #NV_COLOR_WHITE
-//    nv_screen_poke_color_char_xa(5, 15)
-//    pla
-//    pha
-//    nv_screen_poke_hex_byte_a(5, 5, true)
-//
-//    pla
+
     cmp #KEY_WINNER_CONTINUE
     bne WrongKey
 RightKey:
@@ -996,10 +1012,7 @@ TryExperimental05:
     cmp #KEY_EXPERIMENTAL_05             
     bne TryExperimental06                           
 WasExperimental05:
-    lda astro_slow_motion
-    eor #$FF
-    and #01
-    sta astro_slow_motion
+    jsr SlowMoStart
     jmp DoneKeys
 
 TryExperimental06:
@@ -1834,7 +1847,8 @@ TrySprite6:
     cpy #$06
     bne TrySprite7
 IsSprite6:
-    jmp InvalidSpriteNumber
+    jsr blackhole.LoadExtraPtrToRegs
+    jmp SpriteExtraPtrLoaded
 
 TrySprite7:
     cpy #$07
