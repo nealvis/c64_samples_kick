@@ -27,7 +27,7 @@
 #import "astro_vars_data.asm"
 #import "astro_wind_data.asm"
 #import "astro_ship_death_data.asm"
-
+#import "astro_blackhole_data.asm"
 
 .const KEY_COOL_DURATION = $08
 .const ASTRO_GAME_SECONDS_ROW = 0
@@ -63,6 +63,7 @@ nv_b8_label: .text @"nv b8 coll sprite: \$00"
 .import binary "astro_charset.bin"
 // end charset
 //////////////////////////////////////////////////////////////////////////////
+#import "astro_blackhole_code.asm"
 
 #import "astro_turret_code.asm"
 .const ASTRO_CHANGE_UP_MASK = $03
@@ -172,13 +173,14 @@ RegularFrame:
     // step through the effects
     jsr StarStep
     jsr WindStep
+    jsr HoleStep
     jsr TurretStep
     jsr TurretArmStep
     jsr ShipDeathStep
+    
 
     // fire the turret automatically if its time.
     jsr TurretAutoStart
-
 
 
     // move the sprites based on velocities set above.
@@ -260,6 +262,7 @@ ProgramDone:
     jsr TurretArmCleanup
     jsr TurretCleanup
     jsr WindCleanup
+    jsr HoleCleanup
     jsr ShipDeathCleanup
     jsr JoyCleanup
 
@@ -489,6 +492,8 @@ DoPostTitleInit:
     jsr TurretArmInit
     jsr TurretArmStart
     jsr ShipDeathInit
+    jsr HoleInit
+
 
     // initialize sprite locations to locations to start game 
     .const SHIP1_INIT_X_LOC = 22
@@ -989,12 +994,19 @@ WasExperimental01:
 
 TryExperimental05:
     cmp #KEY_EXPERIMENTAL_05             
-    bne TryQuit                           
+    bne TryExperimental06                           
 WasExperimental05:
     lda astro_slow_motion
     eor #$FF
-    //and #01
+    and #01
     sta astro_slow_motion
+    jmp DoneKeys
+
+TryExperimental06:
+    cmp #KEY_EXPERIMENTAL_06             
+    bne TryQuit                           
+WasExperimental06:
+    jsr HoleStart
     jmp DoneKeys
 
 TryQuit:
@@ -1763,8 +1775,6 @@ SetBounceAllOn:
 SetWrapAllOn:
         nv_sprite_set_all_actions_sr(info, NV_SPRITE_ACTION_WRAP)
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////
