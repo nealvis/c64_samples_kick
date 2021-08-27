@@ -21,4 +21,8 @@ hole_sprite_data_ptr_table:
     .word sprite_hole_3
     .word sprite_hole_4
 
-
+hole_rect:
+    hole_x_left:   .word 0
+    hole_y_top:    .word 0
+    hole_x_right:  .word 0
+    hole_y_bottom: .word 0

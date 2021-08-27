@@ -173,11 +173,10 @@ RegularFrame:
     // step through the effects
     jsr StarStep
     jsr WindStep
-    jsr HoleStep
+    jsr DoHoleStep
     jsr TurretStep
     jsr TurretArmStep
     jsr ShipDeathStep
-    
 
     // fire the turret automatically if its time.
     jsr TurretAutoStart
@@ -281,6 +280,38 @@ ProgramDone:
     nv_screen_clear()
     rts   // program done, return
 // end main program
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// subroutine to step the hole 
+DoHoleStep:
+{
+    jsr HoleActive
+    beq DoneDoHoleStep
+HoleIsActive:
+    jsr HoleStep
+/*
+    nv_bge16(hole_x_left, ship_1.x_loc, HoleToRightOfShip1)
+HoleToLeftOfShip1:
+    jsr ship_1.DecVelX
+    jmp DoneShip1
+HoleToRightOfShip1:
+    jsr ship_1.IncVelX
+
+DoneShip1:
+    nv_bge16(hole_x_left, ship_2.x_loc, HoleToRightOfShip2)
+HoleToLeftOfShip2:
+    jsr ship_2.DecVelX
+    jmp DoneShip2
+HoleToRightOfShip2:
+    jsr ship_2.IncVelX
+
+DoneShip2:
+*/
+DoneDoHoleStep:
+    rts
+}
+// DoHoleStep - end
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

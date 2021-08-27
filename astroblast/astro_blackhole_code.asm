@@ -77,6 +77,18 @@ HoleAlreadyStarted:
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// Subroutine to determine if hole is active
+// Accum: will be set to non zero if active or zero if not active
+HoleActive:
+{
+    lda hole_count
+    rts
+}
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
 // subroutine to call once per raster frame while blackhole is active
 // if hole_count is zero then this routine will do nothing. 
 // continually calling the routine will eventually get to 
@@ -116,7 +128,11 @@ NoChange:
     jsr HoleForceStop
     rts
 HoleStillAlive:
+    // update in memory location based on velocity
     jsr blackhole.SetLocationFromExtraData
+
+    // update the hitbox based on updated location
+    jsr HoleUpdateRect
 
     // check if time to animate the sprite
     dec hole_frame_counter
@@ -187,6 +203,27 @@ HoleCleanup:
 // HoleCleanup End
 //////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////
+// internal subroutine to update the hole_rect.  should be called whenever
+// the sprites location in memory is updated
+HoleUpdateRect:
+{
+    /////////// put hole sprite's rectangle, use the hitbox not full sprite
+    nv_xfer16_mem_mem(blackhole.x_loc, hole_x_left)
+    nv_adc16_8(hole_x_left, blackhole.hitbox_right, hole_x_right)
+    nv_adc16_8(hole_x_left, blackhole.hitbox_left, hole_x_left)
+    lda blackhole.y_loc     // 8 bit value so manually load MSB with $00
+    sta hole_y_top
+    lda #$00
+    sta hole_y_top+1
+    nv_adc16_8(hole_y_top, blackhole.hitbox_bottom, hole_y_bottom)
+    nv_adc16_8(hole_y_top, blackhole.hitbox_top, hole_y_top)
+    rts
+}
+// HoleUpdateRect - end
+//////////////////////////////////////////////////////////////////////////////
+
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 5
 .namespace blackhole
@@ -195,7 +232,7 @@ HoleCleanup:
                                           200, 100, -1, 0, // init x, y, VelX, VelY 
                                           sprite_hole_0, 
                                           sprite_extra, 
-                                          0, 0, 0, 0, // bounce on top, left, bottom, right  
+                                          1, 0, 1, 0, // bounce on top, left, bottom, right  
                                           0, 0, 0, 0, // min/max top, left, bottom, right
                                           0,            // sprite enabled 
                                           0, 0, 24, 21) // hitbox left, top, right, bottom
@@ -206,6 +243,10 @@ HoleCleanup:
         .label y_vel = info.base_addr + NV_SPRITE_VEL_Y_OFFSET
         .label data_ptr = info.base_addr + NV_SPRITE_DATA_PTR_OFFSET
         .label sprite_num = info.base_addr + NV_SPRITE_NUM_OFFSET
+        .label hitbox_left = info.base_addr + NV_SPRITE_HITBOX_LEFT_OFFSET
+        .label hitbox_top = info.base_addr + NV_SPRITE_HITBOX_TOP_OFFSET
+        .label hitbox_right = info.base_addr + NV_SPRITE_HITBOX_RIGHT_OFFSET
+        .label hitbox_bottom = info.base_addr + NV_SPRITE_HITBOX_BOTTOM_OFFSET
 
 // sprite extra data
 sprite_extra:
