@@ -809,6 +809,16 @@ SkipShipMax:
 
 SkipAsteroidMin:
 
+    // check if its time for a black hole
+    lda change_up_counter
+    and #$07
+    bne NoHole
+    jsr HoleStart
+
+NoHole:
+
+
+// revive all the disabled astroids
 CheckDisabled:
     jsr asteroid_1.LoadEnabledToA
     bne CheckAster2

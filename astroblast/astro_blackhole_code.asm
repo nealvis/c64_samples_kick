@@ -15,6 +15,7 @@
 #import "astro_vars_data.asm"
 #import "astro_blackhole_data.asm"
 #import "astro_ships_code.asm"
+#import "../nv_c64_util/nv_rand_macs.asm"
 
 //////////////////////////////////////////////////////////////////////////////
 // subroutine to start the initialize effect, call once before main loop
@@ -48,11 +49,22 @@ HoleStart:
     jsr blackhole.SetDataPtr
 
     nv_store16_immediate(blackhole.x_loc, NV_SPRITE_RIGHT_WRAP_DEFAULT)
-    lda #NV_SPRITE_TOP_WRAP_DEFAULT
+    //lda #NV_SPRITE_TOP_WRAP_DEFAULT
+    nv_rand_byte_a(true)
+    //and #$7F
+    clc
+    adc #NV_SPRITE_TOP_WRAP_DEFAULT
+
     sta blackhole.y_loc
     lda #1
     sta blackhole.y_vel
+    nv_rand_byte_a(true)
+    and #$01
+    bne PosVelY
     lda #$FF
+    sta blackhole.y_vel
+PosVelY:
+    lda #$FF    
     sta blackhole.x_vel
 
     jsr blackhole.Enable
