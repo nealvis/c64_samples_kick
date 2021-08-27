@@ -12,6 +12,7 @@
 hole_count: .byte 0
 hole_hit: .byte 0
 hole_frame_counter: .byte 0
+hole_change_vel_at_x_loc: .byte 0
 
 hole_sprite_data_ptr_table:
     .word sprite_hole_0

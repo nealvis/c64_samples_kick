@@ -55,15 +55,19 @@ HoleStart:
     clc
     adc #NV_SPRITE_TOP_WRAP_DEFAULT
 
+    // set Y velocity.  start with positive 1 but 
+    // get random bit to decide to change
     sta blackhole.y_loc
     lda #1
     sta blackhole.y_vel
     nv_rand_byte_a(true)
+    sta hole_change_vel_at_x_loc
     and #$01
-    bne PosVelY
+    bne SkipNegVelY
+NegVelY:
     lda #$FF
     sta blackhole.y_vel
-PosVelY:
+SkipNegVelY:
     lda #$FF    
     sta blackhole.x_vel
 
@@ -87,6 +91,25 @@ HoleStep:
     
 HoleStillStepping:
     // sprite movement, every frame
+    // change the Y velocity of hole when its left of
+    // the hole_change_vel_at_x_loc 
+    lda hole_change_vel_at_x_loc
+    cmp blackhole.x_loc              // set carry if accum >= Mem
+    bcc NoChange                     // branch if hole x_loc < hole_change_at_x_loc
+Change:
+    nv_rand_byte_a(true)             // get random byte in Accum
+    and #$3F                         // make sure its not bigger than 63
+    sta scratch_byte                 // store this random num betwn 0-63
+    lda hole_change_vel_at_x_loc     // setup to subtract the random from
+    sec                              // the last change location
+    sbc scratch_byte                 // do subtraction
+    sta hole_change_vel_at_x_loc     // save the next x location to change
+    nv_rand_byte_a(true)             // get new random byte
+    and #$03                         // make sure its between 0 and 3
+    tax                              // use the rand between 0-3 as index
+    lda y_vel_table,x                // look up the new y vel in table
+    sta blackhole.y_vel              // store new y vel
+NoChange:    
     jsr blackhole.MoveInExtraData
     nv_bgt16_immediate(blackhole.x_loc, 20, HoleStillAlive)
     // hole is done if we get here
@@ -130,6 +153,11 @@ HoleStillAlive:
 
 HoleStepDone:
     rts
+y_vel_table: 
+    .byte $00
+    .byte $01
+    .byte $FF
+    .byte $00    
 }
 // HoleStep End.    
 //////////////////////////////////////////////////////////////////////////////
