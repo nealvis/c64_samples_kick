@@ -111,6 +111,15 @@ FullSecond:
     {
         nv_screen_poke_hex_word_mem(0, 7, second_counter, true)
     }
+
+    // check the quit flag which is set if user presses quit key
+    lda quit_flag
+    beq CheckEndOnSeconds
+    
+    // quit flag is set, program done
+    jmp ProgramDone
+
+CheckEndOnSeconds:
     lda astro_end_on_seconds
     beq DoneEndOnSeconds
         // playing until some number of seconds elapses
@@ -139,17 +148,6 @@ DoneEndOnSeconds:
         nv_screen_poke_hex_word_mem(0, 14, change_up_counter, true)
     }
 
-    // check if its time to start some wind
-    jsr WindCheck
-
-    // check the quit flag which is set if user presses quit key
-    lda quit_flag
-    beq RegularFrame
-    
-    // quit flag is set, program done
-    jmp ProgramDone
-
-
 RegularFrame:
     // its a new frame, but not a new second and not time to change up
 
@@ -164,6 +162,9 @@ RegularFrame:
     {
         nv_screen_set_border_color_immed(NV_COLOR_LITE_GREEN)
     }
+
+    // check if its time to start some wind
+    jsr WindCheck
 
     // read keyboard and take action before other effects incase
     // other effects will override keyboard action
