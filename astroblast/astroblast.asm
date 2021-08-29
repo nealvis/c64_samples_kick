@@ -32,6 +32,7 @@
 .const KEY_COOL_DURATION = $08
 .const ASTRO_GAME_SECONDS_ROW = 0
 .const ASTRO_GAME_SECONDS_COL = 17
+.const DEBUG_KEYS_ON = false 
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
 nv_b8_label: .text @"nv b8 coll sprite: \$00"
@@ -905,17 +906,6 @@ DoPause:
 // subroutine to do all the keyboard stuff
 DoKeyboard:
 {
-    // Check for joystick activity.
-    // if there is any then we won't check keyboard.  
-    // need this because joystick and keyboard seem to interfere
-    // with each other and joystick activity can be misinterpreted 
-    // as keyboard key presses
-    //jsr JoyIsAnyActivity
-    //beq NoJoy
-//IsJoy:  // Is joystick activity so just return
-    //rts
-//NoJoy:  // is no joystick activity so check keyboard
-
     nv_key_scan()
 
     lda key_cool_counter
@@ -935,6 +925,8 @@ HaveKey:
     ldy #KEY_COOL_DURATION      // had a key, start cooldown counter        
     sty key_cool_counter
 
+.if (DEBUG_KEYS_ON)
+{
 TryShip1SlowX:
     cmp #KEY_SHIP1_SLOW_X       // check ship1 slow down X key
     bne TryShip1FastX           // wasn't A key, try D key
@@ -951,6 +943,7 @@ WasShip1FastX:
     jsr ship_1.IncVelX          // inc the ship X velocity
 CantIncBecuaseWind:   
     jmp DoneKeys                // and skip to bottom
+}
 
 //////
 // no repeat key presses handled here, only transition keys below this line
@@ -965,11 +958,14 @@ TryTransitionKeys:
 NotDoneKeys:
 TryPause:
     cmp #KEY_PAUSE             // check the pause key
-    bne TryIncBorder                // not speed up x key, skip to bottom
+    bne DonePauseKey                // not speed up x key, skip to bottom
 WasPause:
     jsr DoPause                // jsr to the pause subroutine
     jmp DoneKeys                // and skip to bottom
+DonePauseKey:
 
+.if (DEBUG_KEYS_ON)
+{
 TryIncBorder:
     cmp #KEY_INC_BORDER_COLOR             
     bne TryDecBorder                           
@@ -1001,6 +997,7 @@ WasDecBackgroundColor:
     dec background_color
     nv_screen_set_background_color_mem(background_color)          
     jmp DoneKeys                // and skip to bottom
+}
 
 TryIncVolume:
     cmp #KEY_INC_VOLUME             
@@ -1011,11 +1008,14 @@ WasIncVolume:
 
 TryDecVolume:
     cmp #KEY_DEC_VOLUME             
-    bne TryExperimental02                           
+    bne DoneVolumeKeys                           
 WasDecVolume:
     jsr SoundVolumeDown
     jmp DoneKeys
+DoneVolumeKeys:
 
+.if (DEBUG_KEYS_ON)
+{
 TryExperimental02:
     cmp #KEY_EXPERIMENTAL_02             
     bne TryExperimental03                           
@@ -1063,6 +1063,7 @@ TryExperimental06:
 WasExperimental06:
     jsr HoleStart
     jmp DoneKeys
+}
 
 TryQuit:
     cmp #KEY_QUIT               // check quit key
@@ -1087,20 +1088,42 @@ DoJoystick:
 Joy1TryFire:
     ldx #JOY_PORT_1_ID
     jsr JoyIsFiring
-    beq Joy2TryFire
+    beq Joy1NotFiring
 Joy1IsFiring:
+    lda astro_joy1_no_fire_flag
+    beq Joy2TryFire
     jsr TurretLdaSmartFireBottomID
-    jsr TurretStartIfArmed          // slow down the ship X
-    // fall through
+    jsr TurretStartIfArmed          
+    jmp Joy2TryFire
+
+Joy1NotFiring:
+    jsr TurretCurrentlyArmedLda 
+    beq Joy2TryFire
+    // here the joy stick not firing but turret is armed
+    // set the not firing flag
+    lda #$01
+    sta astro_joy1_no_fire_flag
+    // fall through to joy2tryfire
 
 Joy2TryFire:
     ldx #JOY_PORT_2_ID
     jsr JoyIsFiring
-    beq Joy1TryLeft
+    beq Joy2NotFiring
 Joy2IsFiring:
+    lda astro_joy2_no_fire_flag
+    beq Joy1TryLeft
     jsr TurretLdaSmartFireTopID
-    jsr TurretStartIfArmed          // slow down the ship X
-    // fall through
+    jsr TurretStartIfArmed          
+    jmp Joy1TryLeft
+
+Joy2NotFiring:
+    jsr TurretCurrentlyArmedLda 
+    beq Joy1TryLeft
+    // here the joy stick not firing but turret is armed
+    // set the not firing flag
+    lda #$01
+    sta astro_joy2_no_fire_flag
+    // fall through to joy1 try left
 
 Joy1TryLeft:
     ldx #JOY_PORT_1_ID
@@ -1145,6 +1168,8 @@ Joy2Done:
 JoyDone:
     rts
 }
+astro_joy1_no_fire_flag: .byte 1
+astro_joy2_no_fire_flag: .byte 1
 // DoJoystick - end
 //////////////////////////////////////////////////////////////////////////////
 
@@ -1188,6 +1213,10 @@ TurretStartIfArmed:
 TurretIsArmedCanStart:
     tya                             // get turret ID back in accum
     jsr TurretStart                 // start the turret with ID/s
+
+    lda #$00
+    sta astro_joy1_no_fire_flag
+    sta astro_joy2_no_fire_flag
 
     // now set the clock for when the next auto start can happen
     nv_adc16(frame_counter, astro_auto_turret_wait_frames, 
