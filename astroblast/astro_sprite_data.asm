@@ -106,6 +106,10 @@ sprite_5:
     .byte $1f,$ff,$f0,$0f,$f1,$c0,$0f,$e0
     .byte $80,$03,$c0,$00,$00,$00,$00,$0e
 
+
+/*
+The throbbing hole attempt
+
 sprite_hole_0:
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00,$00,$00,$00
@@ -147,22 +151,133 @@ sprite_hole_3:
     .byte $00,$00,$00,$00,$00,$00,$00,$8c
 
 sprite_hole_4:
-    .byte $02,$28,$80,$08,$b3,$20,$23,$08
-    .byte $c8,$08,$00,$20,$30,$00,$0c,$80
-    .byte $be,$02,$22,$ff,$80,$c3,$ff,$e3
-    .byte $0b,$ff,$e0,$8f,$d7,$f2,$0b,$c3
-    .byte $e0,$cf,$d7,$f3,$0b,$ff,$e0,$8b
-    .byte $ff,$e2,$02,$ff,$80,$c0,$be,$03
-    .byte $20,$00,$08,$0c,$00,$30,$22,$08
-    .byte $88,$08,$33,$20,$02,$88,$80,$8c
-
-/*
-    .byte $00,$aa,$00,$02,$00,$80,$08,$00
-    .byte $20,$20,$00,$08,$00,$aa,$00,$82
-    .byte $00,$82,$08,$28,$20,$20,$be,$08
-    .byte $02,$ff,$80,$23,$ff,$c8,$22,$d7
-    .byte $88,$23,$ff,$c8,$02,$ff,$80,$20
-    .byte $be,$08,$08,$28,$20,$82,$00,$82
-    .byte $00,$aa,$00,$20,$00,$08,$08,$00
-    .byte $20,$02,$00,$80,$00,$aa,$00,$8b
+    .byte $00,$08,$00,$80,$2e,$00,$3c,$3e
+    .byte $02,$0f,$2e,$aa,$0f,$bb,$be,$0b
+    .byte $ff,$fc,$0a,$ee,$ec,$0d,$bb,$78
+    .byte $2e,$7d,$f0,$bb,$eb,$b0,$fe,$41
+    .byte $e8,$bb,$eb,$be,$2e,$7d,$ee,$0d
+    .byte $bb,$7f,$0b,$ee,$f0,$0b,$ba,$f0
+    .byte $2f,$fe,$f0,$3c,$b8,$b8,$b0,$b8
+    .byte $38,$80,$20,$0a,$00,$20,$02,$8c
 */
+
+
+/*  
+the spidery galaxy attempt
+
+// sprite 2 / multicolor / color: $0b
+sprite_galaxy_0:
+.byte $00,$00,$00,$00,$e0,$00,$02,$38
+.byte $00,$00,$0e,$00,$00,$03,$80,$0b
+.byte $c0,$c0,$2c,$b0,$c0,$30,$20,$20
+.byte $a0,$28,$30,$80,$aa,$b2,$80,$82
+.byte $02,$0e,$aa,$03,$0c,$28,$02,$08
+.byte $08,$0e,$0b,$0e,$38,$03,$03,$a0
+.byte $02,$e0,$c0,$00,$38,$00,$00,$0e
+.byte $00,$00,$02,$00,$00,$00,$00,$8c
+
+// sprite 3 / multicolor / color: $0b
+sprite_galaxy_1:
+.byte $00,$00,$00,$00,$0a,$00,$00,$02
+.byte $80,$00,$00,$20,$00,$b8,$30,$03
+.byte $ce,$20,$0b,$0f,$30,$2c,$03,$20
+.byte $b0,$ea,$30,$83,$ea,$20,$0b,$82
+.byte $c0,$0c,$ab,$02,$00,$ab,$08,$0c
+.byte $c0,$2c,$0c,$3a,$b0,$0c,$0f,$c0
+.byte $02,$80,$20,$00,$c2,$a0,$00,$ab
+.byte $00,$00,$0c,$00,$00,$00,$00,$8c
+
+// sprite 4 / multicolor / color: $0b
+sprite_galaxy_2:
+.byte $00,$08,$00,$00,$02,$00,$00,$03
+.byte $80,$00,$00,$80,$02,$b0,$20,$0b
+.byte $cc,$20,$2c,$03,$08,$a0,$f0,$c0
+.byte $c3,$28,$cc,$0c,$a2,$08,$20,$8a
+.byte $0a,$33,$a8,$32,$a2,$28,$c3,$c3
+.byte $0f,$0a,$82,$c0,$2c,$02,$b0,$e0
+.byte $00,$af,$a0,$00,$2a,$80,$00,$0a
+.byte $00,$00,$00,$00,$00,$00,$00,$8c
+
+// sprite 5 / multicolor / color: $0b
+sprite_galaxy_3:
+.byte $08,$00,$00,$00,$80,$00,$00,$0c
+.byte $00,$00,$08,$00,$00,$0e,$00,$03
+.byte $c3,$82,$0e,$b0,$e0,$28,$2c,$e2
+.byte $b0,$28,$30,$e3,$aa,$32,$ce,$82
+.byte $32,$8a,$ab,$e3,$0e,$2b,$82,$8c
+.byte $30,$0e,$0a,$30,$38,$8e,$2c,$e0
+.byte $0b,$0f,$80,$02,$82,$00,$00,$e0
+.byte $20,$00,$3b,$00,$00,$0c,$00,$8c
+*/
+
+////////////////////////
+// sprite_hole_x are the animated sprites to use for the 
+// blackhole effect.  the first two sprites show the hole
+// growing and the last 3 sprites are full sized hole rotating.
+// the last three sprites should continue to loop for the
+// lifetime of the hole.  the sequence is:
+// sprite_hole_0
+// sprite_hole_1
+// sprite_hole_2
+// sprite_hole_3
+// sprite_hole_4
+// sprite_hole_2
+// sprite_hole_3
+// sprite_hole_4
+// sprite_hole_2
+// etc
+
+// multicolor / color: $0c
+sprite_hole_0:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$0c,$00,$08,$08,$20,$0e
+.byte $2e,$b0,$0b,$ae,$e0,$03,$fb,$e0
+.byte $0b,$ff,$a0,$0b,$d7,$80,$2f,$41
+.byte $80,$0b,$d7,$e0,$0e,$ff,$f8,$03
+.byte $bb,$80,$03,$ee,$e0,$0b,$ba,$c0
+.byte $0f,$fe,$c0,$20,$b8,$b0,$00,$20
+.byte $20,$00,$00,$00,$00,$00,$00,$8c
+
+// multicolor / color: $0c
+sprite_hole_1:
+.byte $00,$00,$00,$00,$0a,$00,$2c,$2e
+.byte $00,$2f,$2e,$00,$0f,$bb,$28,$0b
+.byte $ff,$fc,$0a,$ee,$e8,$03,$bb,$f0
+.byte $0f,$7d,$f0,$2a,$eb,$b0,$3e,$41
+.byte $e0,$2b,$eb,$b0,$0e,$7d,$f8,$03
+.byte $bb,$b8,$0b,$ee,$e0,$0b,$ba,$c0
+.byte $0f,$fe,$f0,$2c,$b8,$b0,$20,$30
+.byte $08,$00,$00,$00,$00,$00,$00,$8c
+
+// multicolor / color: $0c
+sprite_hole_2:
+.byte $00,$08,$00,$80,$2e,$00,$3c,$3e
+.byte $02,$0f,$2e,$aa,$0f,$bb,$be,$0b
+.byte $ff,$fc,$0a,$ee,$ec,$0d,$bb,$78
+.byte $2e,$7d,$f0,$bb,$eb,$b0,$fe,$41
+.byte $e8,$bb,$eb,$be,$2e,$7d,$ee,$0d
+.byte $bb,$7f,$0b,$ee,$f0,$0b,$ba,$f0
+.byte $2f,$fe,$f0,$3c,$b8,$b8,$b0,$b8
+.byte $38,$80,$20,$0a,$00,$20,$02,$8c
+
+// multicolor / color: $0c
+sprite_hole_3:
+.byte $2c,$03,$c0,$0e,$0b,$00,$0e,$0f
+.byte $00,$0f,$0e,$80,$0f,$bb,$8b,$0b
+.byte $ff,$fe,$0a,$ee,$f8,$ee,$7b,$f8
+.byte $fe,$7d,$70,$bb,$eb,$f8,$2e,$41
+.byte $e0,$0b,$eb,$b0,$01,$7d,$f8,$0e
+.byte $b9,$fa,$0b,$ee,$fe,$2f,$ba,$c3
+.byte $bf,$fe,$e0,$e0,$a2,$e0,$80,$a2
+.byte $f0,$00,$c0,$b0,$02,$c0,$b0,$8c
+
+// multicolor / color: $0c
+sprite_hole_4:
+.byte $00,$f0,$28,$02,$c0,$bc,$82,$c2
+.byte $f0,$e3,$e2,$a0,$bb,$fb,$80,$3b
+.byte $ff,$c0,$0a,$ee,$ee,$2e,$db,$ff
+.byte $0e,$7d,$f8,$0b,$eb,$70,$0e,$41
+.byte $e8,$09,$eb,$b0,$c3,$7d,$f8,$fe
+.byte $b7,$b0,$bf,$ee,$f8,$2f,$ba,$fc
+.byte $0b,$fe,$ee,$0f,$82,$ce,$0e,$83
+.byte $cb,$2c,$03,$80,$2c,$03,$00,$8c

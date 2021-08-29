@@ -164,7 +164,8 @@ HoleStillAlive:
     // decrement the count 
     dec hole_count
     bne HoleStepDone
-    lda #HOLE_FRAMES-2  // last three frames repeat
+    lda #HOLE_FRAMES-2  // last few frames repeat
+    //lda #HOLE_FRAMES
     sta hole_count    
 
 HoleStepDone:
