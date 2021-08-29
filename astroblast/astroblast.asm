@@ -1168,8 +1168,6 @@ Joy2Done:
 JoyDone:
     rts
 }
-astro_joy1_no_fire_flag: .byte 1
-astro_joy2_no_fire_flag: .byte 1
 // DoJoystick - end
 //////////////////////////////////////////////////////////////////////////////
 

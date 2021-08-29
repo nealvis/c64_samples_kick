@@ -52,9 +52,19 @@ astro_auto_turret_next_shot_frame: .word ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY
 
 
 // this is the score required to win the game it in BCD format
+// the constant is the default value if not changed in title screen
 .const ASTRO_DEFAULT_SCORE_TO_WIN = $0100
 astro_score_to_win: .word ASTRO_DEFAULT_SCORE_TO_WIN
 
+// when nonzero the game loop goes to slowmo mode.
 astro_slow_motion: .byte 0
 
+// this is the sprite multi color 1 color.  it toggles to 
+// make the ship exhaust look like its flickering
 astro_multi_color1: .byte NV_COLOR_LITE_GREEN
+
+// one flag for each joystick.  For player to shoot turret it must be nonzero
+// This forces players to unpress fire then repress it every time the turret
+// is armed and prevents a player from just holding down the fire button.
+astro_joy1_no_fire_flag: .byte 1
+astro_joy2_no_fire_flag: .byte 1
