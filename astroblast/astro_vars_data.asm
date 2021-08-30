@@ -43,10 +43,10 @@ turret_hit_ship_1: .byte 0
 .const ASTRO_DIFF_HARD = 3
 astro_diff_mode: .byte ASTRO_DIFF_EASY // 1=easy, 2=med, 3=hard
 
-// set this to the frame
-.const ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY = ASTRO_FPS * 5
-.const ASTRO_AUTO_TURRET_WAIT_FRAMES_MED = ASTRO_FPS * 3
-.const ASTRO_AUTO_TURRET_WAIT_FRAMES_HARD = ASTRO_FPS * 2
+// set this to the number of frames to wait before the auto turret fires
+.const ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY = ASTRO_FPS * 6
+.const ASTRO_AUTO_TURRET_WAIT_FRAMES_MED = ASTRO_FPS * 4
+.const ASTRO_AUTO_TURRET_WAIT_FRAMES_HARD = ASTRO_FPS * 2.3
 astro_auto_turret_wait_frames: .word ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY
 astro_auto_turret_next_shot_frame: .word ASTRO_AUTO_TURRET_WAIT_FRAMES_EASY
 

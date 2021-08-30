@@ -28,14 +28,39 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // call once to initialize starfield variables and stuff
+// parms:
+//   accum: set to 1, for easy, 2 for medium, 3 for hard
 TurretArmInit:
 {
+TurretTryEasy:
+    cmp #TURRET_ARM_EASY
+    bne TurretTryMed
+TurretIsEasy:
+    lda #TURRET_FRAMES_BETWEEN_STEPS_EASY
+    sta turret_frames_between_steps
+    jmp TurretDoneDiff
+
+TurretTryMed:
+    cmp #TURRET_ARM_MED
+    bne TurretIsHard
+TurretIsMed:
+    lda #TURRET_FRAMES_BETWEEN_STEPS_MED
+    sta turret_frames_between_steps
+    jmp TurretDoneDiff
+
+TurretIsHard:
+    lda #TURRET_FRAMES_BETWEEN_STEPS_HARD
+    sta turret_frames_between_steps
+
+TurretDoneDiff:
+
     lda #$00
     sta turret_arm_count
     sta turret_currently_armed
     sta turret_second_counter
     sta turret_second_saved_value
     sta turret_arm_frame_counter
+
 
     rts
 }
@@ -50,7 +75,7 @@ TurretArmStart:
     lda #TURRET_ARM_FRAMES
     sta turret_arm_count
 
-    lda #TURRET_FRAMES_BETWEEN_STEPS        // reset counter for next step
+    lda turret_frames_between_steps        // reset counter for next step
     sta turret_arm_frame_counter
 
     lda #$00
@@ -148,7 +173,7 @@ TurretNotCurrentlyArmed:
     bne TurretNoStepThisFrame
 
 TurretIsStepThisFrame:
-    lda #TURRET_FRAMES_BETWEEN_STEPS        // reset counter for next step
+    lda turret_frames_between_steps        // reset counter for next step
     sta turret_arm_frame_counter
     astro_effect_step(AstroStreamProcessor, turret_arm_count, 
                       TURRET_ARM_FRAMES, TurretArmStreamAddrTable)

@@ -560,7 +560,16 @@ DoPostTitleInit:
     jsr StarInit
     jsr WindInit
     jsr TurretInit
+    
+    // pass the diff mode to TurretArmInit.  Note that we are 
+    // assuming that TURRET_ARM_EASY = ASTRO_DIFF_EASY, etc.
+    // which is a convienent coincidence and why we are asserting it.
+    .assert "Turret Arm Diff Check", TURRET_ARM_EASY == ASTRO_DIFF_EASY, true
+    .assert "Turret Arm Diff Check", TURRET_ARM_MED == ASTRO_DIFF_MED, true
+    .assert "Turret Arm Diff Check", TURRET_ARM_HARD == ASTRO_DIFF_HARD, true
+    lda astro_diff_mode
     jsr TurretArmInit
+
     jsr TurretArmStart
     jsr ShipDeathInit
     jsr HoleInit
