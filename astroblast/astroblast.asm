@@ -1220,6 +1220,7 @@ TurretStartIfArmed:
 TurretIsArmedCanStart:
     tya                             // get turret ID back in accum
     jsr TurretStart                 // start the turret with ID/s
+    jsr SoundPlayTurretFireFX
 
     lda #$00
     sta astro_joy1_no_fire_flag
