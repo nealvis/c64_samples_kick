@@ -32,7 +32,7 @@
 .const KEY_COOL_DURATION = $08
 .const ASTRO_GAME_SECONDS_ROW = 0
 .const ASTRO_GAME_SECONDS_COL = 17
-.const DEBUG_KEYS_ON = false 
+.const DEBUG_KEYS_ON = true 
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
 nv_b8_label: .text @"nv b8 coll sprite: \$00"
@@ -550,6 +550,7 @@ DoPostTitleInit:
 
     lda #$00
     sta sprite_collision_reg_value
+    sta astro_slow_motion
 
     // initialize based on difficulty (must be after standard init)
     jsr AstroSetDiffParams
@@ -675,6 +676,7 @@ DoWinner:
     .const WINNER_CONTINUE_COL = 10
     jsr SoundMuteOn
 
+    jsr HoleForceStop
     jsr AllSpritesDisable
 
     nv_screen_clear()
@@ -1380,6 +1382,7 @@ Turret1DidHit:
     jsr ShipDeathStart
     lda #TURRET_1_ID
     jsr TurretForceStop
+    jsr SoundPlayShipHitByTurretFX
 
 Turret2HitCheck:
     lda #TURRET_2_ID
@@ -1401,6 +1404,7 @@ Turret2DidHit:
     jsr ShipDeathStart
     lda #TURRET_2_ID
     jsr TurretForceStop
+    jsr SoundPlayShipHitByTurretFX
 
 Turret3HitCheck:
     lda #TURRET_3_ID
@@ -1421,6 +1425,7 @@ Turret3DidHit:
     jsr ShipDeathStart
     lda #TURRET_3_ID
     jsr TurretForceStop
+    jsr SoundPlayShipHitByTurretFX
 
 
 Turret4HitCheck:
@@ -1443,6 +1448,7 @@ Turret4DidHit:
     jsr ShipDeathStart
     lda #TURRET_4_ID
     jsr TurretForceStop
+    jsr SoundPlayShipHitByTurretFX
 
 Turret5HitCheck:
     lda #TURRET_5_ID
@@ -1464,6 +1470,7 @@ Turret5DidHit:
     jsr ShipDeathStart
     lda #TURRET_5_ID
     jsr TurretForceStop
+    jsr SoundPlayShipHitByTurretFX
 
 
 Turret6HitCheck:
@@ -1485,6 +1492,7 @@ Turret6DidHit:
     jsr ShipDeathStart
     lda #TURRET_6_ID
     jsr TurretForceStop
+    jsr SoundPlayShipHitByTurretFX
 
 TurretHitCheckDone:
     rts

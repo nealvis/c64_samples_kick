@@ -9,6 +9,10 @@
 SoundLoadAddr:
 .import binary "astro_sound.bin"
 
+///////////////////////
+// sound effects
+// higher memory addresses for an effect are higher priority
+// lower addresses effects don't interupt higher address effects
 SoundFxShip1HitAsteroid:
 SoundFxShip2HitAsteroid:
 .import binary "ship_hit_asteroid_sound_fx.bin"
@@ -19,7 +23,11 @@ SoundFxShip2HitAsteroid:
 SoundFxTurretFire:
 .import binary "turret_fire_sound_fx.bin"
 
- 
+
+ SoundFxShipHitByTurret:
+.import binary "ship_hit_by_turret_sound_fx.bin"
+
+
 sound_master_volume: .byte 7
 sound_mute: .byte 0
 
@@ -205,4 +213,17 @@ SoundPlayTurretFireFX:
 
 
     
+//////////////////////////////////////////////////////////////////////////////
+// play turret firing sound effect
+// Before calling the private sound effect routine we'll need to:
+//        LDA #<effect        ;Start address of sound effect data
+//        LDY #>effect
+//        LDX #channel        ;0, 7 or 14 for channels 1-3
+//        JSR startaddress+6
+SoundPlayShipHitByTurretFX:
+    lda #<SoundFxShipHitByTurret
+    ldy #>SoundFxShipHitByTurret
+    ldx #14
+    jsr PrivateSoundPlayFx
+    rts    
 
