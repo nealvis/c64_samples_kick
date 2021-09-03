@@ -13,20 +13,24 @@ SoundLoadAddr:
 // sound effects
 // higher memory addresses for an effect are higher priority
 // lower addresses effects don't interupt higher address effects
-SoundFxShip1HitAsteroid:
-SoundFxShip2HitAsteroid:
+SoundFxShip1HitAsteroidPrivate:
+SoundFxShip2HitAsteroidPrivate:
 .import binary "ship_hit_asteroid_sound_fx.bin"
 
 //SoundFxShip2HitAsteroid:
 //.import binary "ship_hit_asteroid_sound_fx.bin"
 
-SoundFxTurretFire:
+SoundFxTurretFirePrivate:
 .import binary "turret_fire_sound_fx.bin"
 
-
- SoundFxShipHitByTurret:
+ SoundFxShipHitByTurretPrivate:
 .import binary "ship_hit_by_turret_sound_fx.bin"
 
+SoundFxHolePrivate:
+.import binary "hole_sound_fx.bin"
+
+SoundFxSilencePrivate:
+.import binary "silent_sound_fx.bin"
 
 sound_master_volume: .byte 7
 sound_mute: .byte 0
@@ -176,8 +180,8 @@ MuteCurrentlyOff:
 //        LDX #channel        ;0, 7 or 14 for channels 1-3
 //        JSR startaddress+6
 SoundPlayShip1AsteroidFX:
-    lda #<SoundFxShip1HitAsteroid
-    ldy #>SoundFxShip1HitAsteroid
+    lda #<SoundFxShip1HitAsteroidPrivate
+    ldy #>SoundFxShip1HitAsteroidPrivate
     ldx #14
     jsr PrivateSoundPlayFx
     rts 
@@ -190,8 +194,8 @@ SoundPlayShip1AsteroidFX:
 //        LDX #channel        ;0, 7 or 14 for channels 1-3
 //        JSR startaddress+6
 SoundPlayShip2AsteroidFX:
-    lda #<SoundFxShip2HitAsteroid
-    ldy #>SoundFxShip2HitAsteroid
+    lda #<SoundFxShip2HitAsteroidPrivate
+    ldy #>SoundFxShip2HitAsteroidPrivate
     ldx #14
     jsr PrivateSoundPlayFx
     rts    
@@ -205,8 +209,8 @@ SoundPlayShip2AsteroidFX:
 //        LDX #channel        ;0, 7 or 14 for channels 1-3
 //        JSR startaddress+6
 SoundPlayTurretFireFX:
-    lda #<SoundFxTurretFire
-    ldy #>SoundFxTurretFire
+    lda #<SoundFxTurretFirePrivate
+    ldy #>SoundFxTurretFirePrivate
     ldx #14
     jsr PrivateSoundPlayFx
     rts    
@@ -221,9 +225,50 @@ SoundPlayTurretFireFX:
 //        LDX #channel        ;0, 7 or 14 for channels 1-3
 //        JSR startaddress+6
 SoundPlayShipHitByTurretFX:
-    lda #<SoundFxShipHitByTurret
-    ldy #>SoundFxShipHitByTurret
+    lda #<SoundFxShipHitByTurretPrivate
+    ldy #>SoundFxShipHitByTurretPrivate
     ldx #14
     jsr PrivateSoundPlayFx
     rts    
 
+
+//////////////////////////////////////////////////////////////////////////////
+// play turret firing sound effect
+// Before calling the private sound effect routine we'll need to:
+//        LDA #<effect        ;Start address of sound effect data
+//        LDY #>effect
+//        LDX #channel        ;0, 7 or 14 for channels 1-3
+//        JSR startaddress+6
+SoundPlayHoleFX:
+    lda #$01 
+    sta hole_sound_playing
+    lda #<SoundFxHolePrivate
+    ldy #>SoundFxHolePrivate
+    //lda #<SoundFxTurretFirePrivate
+    //ldy #>SoundFxTurretFirePrivate
+
+    ldx #14
+    jsr PrivateSoundPlayFx
+    rts    
+hole_sound_playing: .byte 0
+
+//////////////////////////////////////////////////////////////////////////////
+// Stops all the effect sounds
+// Before calling the private sound effect routine we'll need to:
+//        LDA #<effect        ;Start address of sound effect data
+//        LDY #>effect
+//        LDX #channel        ;0, 7 or 14 for channels 1-3
+//        JSR startaddress+6
+SoundPlaySilenceFX:
+{
+    lda hole_sound_playing
+    beq Done
+    lda #$00
+    sta hole_sound_playing
+    lda #<SoundFxSilencePrivate
+    ldy #>SoundFxSilencePrivate
+    ldx #14
+    jsr PrivateSoundPlayFx
+Done:
+    rts    
+}

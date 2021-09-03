@@ -33,6 +33,7 @@
 .const ASTRO_GAME_SECONDS_ROW = 0
 .const ASTRO_GAME_SECONDS_COL = 17
 .const DEBUG_KEYS_ON = true 
+.const HOLE_SOUND_FRAMES = 31
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
 nv_b8_label: .text @"nv b8 coll sprite: \$00"
@@ -289,27 +290,17 @@ ProgramDone:
 DoHoleStep:
 {
     jsr HoleActive
-    beq DoneDoHoleStep
+    bne HoleIsActive   // its active
+
+HoleNotActive:
+    //jsr SoundPlaySilenceFX
+    rts
+    
 HoleIsActive:
     jsr HoleStep
-/*
-    nv_bge16(hole_x_left, ship_1.x_loc, HoleToRightOfShip1)
-HoleToLeftOfShip1:
-    jsr ship_1.DecVelX
-    jmp DoneShip1
-HoleToRightOfShip1:
-    jsr ship_1.IncVelX
-
-DoneShip1:
-    nv_bge16(hole_x_left, ship_2.x_loc, HoleToRightOfShip2)
-HoleToLeftOfShip2:
-    jsr ship_2.DecVelX
-    jmp DoneShip2
-HoleToRightOfShip2:
-    jsr ship_2.IncVelX
-
-DoneShip2:
-*/
+    nv_ble16(frame_counter, astro_hole_restart_sound_frame, DoneDoHoleStep)
+    jsr SoundPlayHoleFX
+    nv_adc16_immediate(frame_counter, HOLE_SOUND_FRAMES, astro_hole_restart_sound_frame)
 DoneDoHoleStep:
     rts
 }
@@ -858,6 +849,8 @@ SkipAsteroidMin:
     and #$07
     bne NoHole
     jsr HoleStart
+    jsr SoundPlayHoleFX
+    nv_adc16_immediate(frame_counter, HOLE_SOUND_FRAMES, astro_hole_restart_sound_frame)
 
 NoHole:
 
@@ -1073,6 +1066,8 @@ TryExperimental06:
     bne TryQuit                           
 WasExperimental06:
     jsr HoleStart
+    jsr SoundPlayHoleFX
+    nv_adc16_immediate(frame_counter, HOLE_SOUND_FRAMES, astro_hole_restart_sound_frame)
     jmp DoneKeys
 }
 
@@ -1086,6 +1081,8 @@ WasQuit:
 DoneKeys:
     rts
 }
+
+astro_hole_restart_sound_frame: .word 00
 // DoKeyboard - end
 //////////////////////////////////////////////////////////////////////////////
 
