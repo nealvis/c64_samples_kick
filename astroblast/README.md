@@ -11,3 +11,15 @@ To build the program open the astroblast directory in VS Code and then open the 
 
 ## Game Play
 This is a two player game.  There is no one player mode.  The object of the game is to collect more asteroids than the other player before the time runs out or the target number of asteroids has been collected.  Both options of playing for a duration vs number of asteroids and the game ending number of seconds or asteroids collected can be set in the opening title screen
+![Astroblast Title Screen](images/astroblast_title.jpg)
+
+To play this game both joysticks are used.  Joystick 1 controls the ship on the top of the screen as it moves left to right and joystick 2 controls the bottom ship.  Both ships are always moving forward unless pushed back by some solar wind in the game.  Players control the speed at which the ships move though.  
+
+There is a Turret on the far right of the screen halfway down.  This turret has two guns, one shoots up and the other shoots down.  The turret can only shoot while its armed.  Players can see that the turret is armed and about to shoot because the guns will be flashing yellow and white.  While the turret is armed either player can force it to fire by pressing the joystick fire button and only the gun pointed at the other player will shoot. If neither player fires while the turret is armed, it will eventually fire at both ships on its own.   If a turret shoots a ship, that ship is stunned which turns it grey, and its pushed back to the far left until it can recover.  While a ship is stunned it can not collect asteroids or be controled by the players joystick.
+
+## Game Points of Interest
+Some interesting points regarding the way the game is put together follow.
+### Game Sound
+The game sounds were created using GoatTracker v2.76.  The main music for the game is in the file astro_sound.sng. When loaded into GoatTracker you will see that there are a few different subtunes that are used in the game including: 
+ - Subtune 0: The main music that plays throughout most of the game
+ - Subtune 1: The music that plays during the winner screen once the game is over.
