@@ -31,6 +31,11 @@ The sound effects for the game are individual instruments created in GoatTracker
 
 #### astro_sound.bin
 Neither the .sng file nor the .ins files can be used directly within the game.  The must be converted to binary files first.  To convert the **astro_sound.sng** file to **astro_sound.bin** follow the following steps:
-1. Start GoatTracker with this command `goattrk2.exe -N`  the -N is for NTSC mode rather than PAL
-2. Load the astro_sound.sng file using the F10 key.  Note: you must have the cursor in the left pattern editing side of the program to load a .sng file.  If the cursor is in the right instrument side of the program then it assumes you want to load an instrument (.ins) file.  As an aside, once loaded, this file can be edited and then saved.  To save it as a .sng file, use the F11 key and give it the name you want to save as.
-4. 
+1. **Start GoatTracker** with this command **`goattrk2.exe -N`**  the -N is for NTSC mode rather than PAL
+2. **Load the astro_sound.sng file** using the **F10 key**.  Note: you must have the cursor in the left pattern editing side of the program to load a .sng file.  If the cursor is in the right instrument side of the program then it assumes you want to load an instrument (.ins) file.  As an aside, once loaded, this file can be edited and then saved.  To save it as a .sng file, use the F11 key and give it the name you want to save as.
+3. **Pack/relocate and save** the file as a binary file for the program by pressing the **F9 key** while the cursor is in the table on the left side of the program
+4. **Select the playroutine options** shown in this image (yes, yes, yes, no, no, no, no) ![goattracker playroutine options](images/goattracker_playroutine_options.jpg)
+5. **Select start address** of **$8000** 
+6. **Select zero page addresses** of **$FD and $FE**
+7. **Select format to save in** as **Raw Binary Format (no start addresses)**
+8. **Name the file.** To stay consistant with the game code it should be named **astro_sound.bin**
