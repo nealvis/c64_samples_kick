@@ -38,6 +38,8 @@ sound_mute: .byte 0
 .const MAX_VOLUME = $0F
 .const MIN_VOLUME = $00
 
+#import "astro_sound_macs.asm"
+
 //////////////////////////////////////////////////////////////
 // Subroutine to initialize Sound. 
 // to call 
@@ -77,7 +79,7 @@ sound_mute: .byte 0
 // to call 
 //   JSR SoundInit
 SoundInit:
-    lda #$00
+    //lda #$00
     jsr PrivateSoundInit
     rts
 
@@ -85,7 +87,7 @@ SoundInit:
 // Subroutine to call when done playing sounds
 //   JSR SoundDone
 SoundDone:
-    lda #$00
+    lda #ASTRO_SOUND_MAIN_TUNE
     jsr PrivateSoundInit
     rts
 

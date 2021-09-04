@@ -4,6 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "astro_sound_macs.asm"
 
 *=$0800 "BASIC Start"  // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
@@ -75,6 +76,7 @@ RealStart:
     jsr DoPreTitleInit
 
 DoTitle:
+
     jsr TitleStart              // show title screen
     bne RunGame                 // make sure non zero in accum and run game
     jmp ProgramDone             // if zero in accum then user quit
@@ -474,6 +476,7 @@ DoPreTitleInit:
 
     // initialize song 0 so we can hear music during title 
     // so user can adjust volume
+    lda #ASTRO_SOUND_MAIN_TUNE
     jsr SoundInit
 
     // start at volumen 2
@@ -554,6 +557,12 @@ DoPostTitleInit:
     jsr StarInit
     jsr WindInit
     jsr TurretInit
+
+    // initialize song 0 so we can hear music during title 
+    // so user can adjust volume
+    lda #ASTRO_SOUND_MAIN_TUNE
+    jsr SoundInit
+
     
     // pass the diff mode to TurretArmInit.  Note that we are 
     // assuming that TURRET_ARM_EASY = ASTRO_DIFF_EASY, etc.
@@ -728,10 +737,17 @@ WinnerWaitForKey:
     nv_screen_poke_color_str(WINNER_CONTINUE_ROW, WINNER_CONTINUE_COL, NV_COLOR_WHITE, winner_continue_str)
     nv_key_wait_no_key()
 
+    // initialize song 0 so we can hear music during title 
+    // so user can adjust volume
+    lda #ASTRO_SOUND_WIN_TUNE
+    jsr SoundInit
+    jsr SoundMuteOff
+
 WinnerWaitForKeyLoop:
     //nv_screen_poke_hex_byte_mem(0, 20, winner_key_count, true)
+    nv_sprite_wait_last_scanline()
+    SoundDoStep()
     nv_key_scan()
-
     nv_key_get_last_pressed_a()     // get key pressed in accum
 
     cmp #KEY_WINNER_CONTINUE

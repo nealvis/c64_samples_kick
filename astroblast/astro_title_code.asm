@@ -139,6 +139,11 @@ TitleStart:
     lda #$00
     sta play_flag
 
+    // initialize song 0 so we can hear music during title 
+    // so user can adjust volume
+    lda #ASTRO_SOUND_MAIN_TUNE
+    jsr SoundInit
+
     jsr StarInit
     jsr StarStart
 
