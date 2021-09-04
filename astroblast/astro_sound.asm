@@ -240,8 +240,6 @@ SoundPlayShipHitByTurretFX:
 //        LDX #channel        ;0, 7 or 14 for channels 1-3
 //        JSR startaddress+6
 SoundPlayHoleFX:
-    lda #$01 
-    sta hole_sound_playing
     lda #<SoundFxHolePrivate
     ldy #>SoundFxHolePrivate
     //lda #<SoundFxTurretFirePrivate
@@ -249,8 +247,7 @@ SoundPlayHoleFX:
 
     ldx #14
     jsr PrivateSoundPlayFx
-    rts    
-hole_sound_playing: .byte 0
+    rts
 
 //////////////////////////////////////////////////////////////////////////////
 // Stops all the effect sounds
@@ -261,10 +258,6 @@ hole_sound_playing: .byte 0
 //        JSR startaddress+6
 SoundPlaySilenceFX:
 {
-    lda hole_sound_playing
-    beq Done
-    lda #$00
-    sta hole_sound_playing
     lda #<SoundFxSilencePrivate
     ldy #>SoundFxSilencePrivate
     ldx #14

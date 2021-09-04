@@ -32,7 +32,7 @@
 .const KEY_COOL_DURATION = $08
 .const ASTRO_GAME_SECONDS_ROW = 0
 .const ASTRO_GAME_SECONDS_COL = 17
-.const DEBUG_KEYS_ON = true 
+.const DEBUG_KEYS_ON = false 
 .const HOLE_SOUND_FRAMES = 31
 
 ship1_collision_sprite_label: .text @"ship1 coll sprite: \$00"
@@ -355,6 +355,7 @@ HandleCollisionShip1:
     bne CollisionNotHole
     jsr HoleForceStop
     jsr SlowMoStart
+    jsr SoundPlaySilenceFX
     lda #0
     rts
 
@@ -400,6 +401,7 @@ HandleCollisionShip2:
     bne CollisionNotHole
     jsr HoleForceStop
     jsr SlowMoStart
+    jsr SoundPlaySilenceFX
     lda #0
     rts
 
