@@ -20,6 +20,17 @@ There is a Turret on the far right of the screen halfway down.  This turret has 
 ## Game Points of Interest
 Some interesting points regarding the way the game is put together follow.
 ### Game Sound
-The game sounds were created using GoatTracker v2.76.  The main music for the game is in the file astro_sound.sng. When loaded into GoatTracker you will see that there are a few different subtunes that are used in the game including: 
+The game sounds were created using GoatTracker v2.76.  The main music for the game is in the file **astro_sound.sng**. When loaded into GoatTracker you will see that there are a few different subtunes that are used in the game including: 
  - Subtune 0: The main music that plays throughout most of the game
  - Subtune 1: The music that plays during the winner screen once the game is over.
+The sound effects for the game are individual instruments created in GoatTracker.  These files are loaded and edited separately in GoatTracker.  Here are some of the sound effect files in the game:
+ - hole_sound.ins: The sound played when the blackhole appears in the game
+ - ship_hit_asteroid_sound_fx.ins: The sound played when a ship hits an asteroid
+ - silent_sound_fx.ins: a very short sound that is silence.  This is only use as a way to interupt other effects that are playing.
+ - turret_fire_sound_fx.ins: is the sound that is played when the turret fires.
+
+#### astro_sound.bin
+Neither the .sng file nor the .ins files can be used directly within the game.  The must be converted to binary files first.  To convert the **astro_sound.sng** file to **astro_sound.bin** follow the following steps:
+1. Start GoatTracker with this command `goattrk2.exe -N`  the -N is for NTSC mode rather than PAL
+2. Load the astro_sound.sng file using the F10 key.  Note: you must have the cursor in the left pattern editing side of the program to load a .sng file.  If the cursor is in the right instrument side of the program then it assumes you want to load an instrument (.ins) file.  As an aside, once loaded, this file can be edited and then saved.  To save it as a .sng file, use the F11 key and give it the name you want to save as.
+4. 
