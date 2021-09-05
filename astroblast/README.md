@@ -1,5 +1,5 @@
 # astroblast 
-Code to test the nv_sprite.asm library
+This is a mini game created to explore possibilities of game programming on the Commodore 64.  Game specific code is in the astroblast directory but code of a utility nature that could be used in other games was separated and put in the nv_c64_util directory where you will find lots of code and macros as well as test programs for them.
 
 ## Overview
 All the assembler code in this directory is written for Kick Assembler and in general the setup outlined in the [main repository README.md](../README.md).
