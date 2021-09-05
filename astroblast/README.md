@@ -29,18 +29,25 @@ The sound effects for the game are individual instruments created in GoatTracker
  - silent_sound_fx.ins: a very short sound that is silence.  This is only use as a way to interupt other effects that are playing.
  - turret_fire_sound_fx.ins: is the sound that is played when the turret fires.
 
-#### Game Music
-Neither the .sng file nor the .ins files can be used directly within the game.  The must be converted to binary files first.  To convert the **astro_sound.sng** file to **astro_sound.bin** follow the following steps:
+#### Game Music: astro_sound.sng / astro_sound.bin
+The .sng file cannot be used directly within the game.  This file must be converted to a binary file first and then the source code can import it directly at the right location.  To convert the **astro_sound.sng** file to **astro_sound.bin** follow the following steps:
 1. **Start GoatTracker** with this command **`goattrk2.exe -N`**  the -N is for NTSC mode rather than PAL
 2. **Load the astro_sound.sng file** using the **F10 key**.  Note: you must have the cursor in the left pattern editing side of the program to load a .sng file.  If the cursor is in the right instrument side of the program then it assumes you want to load an instrument (.ins) file.  As an aside, once loaded, this file can be edited and then saved.  To save it as a .sng file, use the F11 key and give it the name you want to save as.
 3. **Pack/relocate and save** the file as a binary file for the program by pressing the **F9 key** while the cursor is in the table on the left side of the program
 4. **Select the playroutine options** shown in this image (yes, yes, yes, no, no, no, no) ![goattracker playroutine options](images/goattracker_playroutine_options.jpg)
-5. **Select start address** of **$8000** 
-6. **Select zero page addresses** of **$FD and $FE**
+5. **Select start address** of **$8000**.  This must match the address into which the binary file is imported in the assembly source.
+6. **Select zero page addresses** of **$FD and $FE**.  These are two unused zero page addresses.  The Astroblast code may use these addresses but will save and restore their values when it does.
 7. **Select format to save in** as **Raw Binary Format (no start addresses)**
-8. **Name the file.** To stay consistant with the game code it should be named **astro_sound.bin**
+8. **Name the file.** To stay consistant with the game code it should be named **astro_sound.bin**  this file can then be directly imported into the assembly source code when its getting assembled.
 
-#### Game Sound Effects
+#### Game Music: Adding a subtune.
+Each .sng file can contain multiple subtunes.  The game engine can then select an appropriate subtune to play (it repeats in a loop) at specific points of the game.  When adding a subtune in GoatTracker:
+- Put cursor in the order list in the upper right of the application
+- Use `<` and `>` key to navigate to an unused subtune.  Note that subtune 00 is the main game music and subtune 01 is the music to play during the winner screen.  To add a third subtune use the `>` until you see `CHN ORDERLIST (SUBTUNE 02, POS 01)`.  Subtune 02 is the third subtune since they are zero based. ![GoatTracker ORDERLIST](images/goattracker_orderlist.jpg)
+- Next you will need ot insert patterns for each channel into the order list.  Do this by placing the cursor on the RST00 for the channel you want to add a pattern.  If you want to use more than one channel for the subtune you'll need to insert patterns ino each channel you want to use.  You can also use multiple patterns within a channel and they will be played sequentially.
+- After patterns are added to the subtune's order list the patterns need to be created (unless you are reusing existing patterns).  To see how patterns are created and edited look at the GoatTracker Documentation.
+
+#### Game Sound Effects: *.ins / *.bin
 To open, edit and save a sound effect for this game you can follow the steps below.
 1. **Start GoatTracker** with this command **`goattrk2.exe -N`**  the -N is for NTSC mode rather than PAL.
 2. **Open the .ins file.**  Each sound effect is saved as a GoatTracker instrument file (.ins file).  With the cursor in right side of the application where instruments are edited press the **F10 Key** and select the .ins file to edit.
