@@ -55,6 +55,7 @@ To open, edit and save a sound effect for this game you can follow the steps bel
 4. **To Save the .ins file** press the **F11 key** and then set the filename and directory for the file to save.
 5. **Convert the .ins file to .bin** by using the following utility that comes with GoatTracker **`ins2snd2.exe file.ins file.bin -b`** This will create the .bin file from the .ins file.
 
- 
+ ### Sprites
+ The sprites for the game were create via the Spritemate web application here: https://www.spritemate.com/.  To edit the sprites, load the file `**astro_sprites.spm**` from within the web application
  
  
