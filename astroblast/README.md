@@ -23,6 +23,7 @@ Some interesting points regarding the way the game is put together follow.
 The game sounds were created using GoatTracker v2.76.  The main music for the game is in the file **astro_sound.sng**. When loaded into GoatTracker you will see that there are a few different subtunes that are used in the game including: 
  - Subtune 0: The main music that plays throughout most of the game
  - Subtune 1: The music that plays during the winner screen once the game is over.
+ - Subtune 2: The music that plays during the title screen.
 The sound effects for the game are individual instruments created in GoatTracker.  These files are loaded and edited separately in GoatTracker.  Here are some of the sound effect files in the game:
  - hole_sound.ins: The sound played when the blackhole appears in the game
  - ship_hit_asteroid_sound_fx.ins: The sound played when a ship hits an asteroid
@@ -43,7 +44,7 @@ The .sng file cannot be used directly within the game.  This file must be conver
 #### Game Music: Adding a subtune.
 Each .sng file can contain multiple subtunes.  The game engine can then select an appropriate subtune to play (it repeats in a loop) at specific points of the game.  When adding a subtune in GoatTracker:
 - Put cursor in the order list in the upper right of the application
-- Use `<` and `>` key to navigate to an unused subtune.  Note that subtune 00 is the main game music and subtune 01 is the music to play during the winner screen.  To add a third subtune use the `>` until you see `CHN ORDERLIST (SUBTUNE 02, POS 01)`.  Subtune 02 is the third subtune since they are zero based. ![GoatTracker ORDERLIST](images/goattracker_orderlist.jpg)
+- Use `<` and `>` key to navigate to an unused subtune.  Note that subtune 00, 01 and 02 are used.  To add a fourth subtune use the `>` until you see `CHN ORDERLIST (SUBTUNE 03, POS 01)`.  Subtune 03 is the fourth subtune since they are zero based. ![GoatTracker ORDERLIST](images/goattracker_orderlist.jpg)
 - Next you will need ot insert patterns for each channel into the order list.  Do this by placing the cursor on the RST00 for the channel you want to add a pattern.  If you want to use more than one channel for the subtune you'll need to insert patterns ino each channel you want to use.  You can also use multiple patterns within a channel and they will be played sequentially.
 - After patterns are added to the subtune's order list the patterns need to be created (unless you are reusing existing patterns).  To see how patterns are created and edited look at the GoatTracker Documentation.
 
