@@ -29,7 +29,7 @@ The sound effects for the game are individual instruments created in GoatTracker
  - silent_sound_fx.ins: a very short sound that is silence.  This is only use as a way to interupt other effects that are playing.
  - turret_fire_sound_fx.ins: is the sound that is played when the turret fires.
 
-#### astro_sound.bin
+#### Game Music
 Neither the .sng file nor the .ins files can be used directly within the game.  The must be converted to binary files first.  To convert the **astro_sound.sng** file to **astro_sound.bin** follow the following steps:
 1. **Start GoatTracker** with this command **`goattrk2.exe -N`**  the -N is for NTSC mode rather than PAL
 2. **Load the astro_sound.sng file** using the **F10 key**.  Note: you must have the cursor in the left pattern editing side of the program to load a .sng file.  If the cursor is in the right instrument side of the program then it assumes you want to load an instrument (.ins) file.  As an aside, once loaded, this file can be edited and then saved.  To save it as a .sng file, use the F11 key and give it the name you want to save as.
@@ -39,3 +39,15 @@ Neither the .sng file nor the .ins files can be used directly within the game.  
 6. **Select zero page addresses** of **$FD and $FE**
 7. **Select format to save in** as **Raw Binary Format (no start addresses)**
 8. **Name the file.** To stay consistant with the game code it should be named **astro_sound.bin**
+
+#### Game Sound Effects
+To open, edit and save a sound effect for this game you can follow the steps below.
+1. **Start GoatTracker** with this command **`goattrk2.exe -N`**  the -N is for NTSC mode rather than PAL.
+2. **Open the .ins file.**  Each sound effect is saved as a GoatTracker instrument file (.ins file).  With the cursor in right side of the application where instruments are edited press the **F10 Key** and select the .ins file to edit.
+3. **To hear the effect** press the **space bar** with cursor on the right side of the screen.  If needed, <shift>-space will stop the instrument from playing.  When using an instrument as a sound effect there are lots of limitations which the GoatTracker manual spells out.  Among others, all notes must be absolute, not relative.  Also jumps causing a loop don't seem to work, instead the effect just ends at the jump.
+4. **To Save the .ins file** press the **F11 key** and then set the filename and directory for the file to save.
+5. **Convert the .ins file to .bin** by using the following utility that comes with GoatTracker **`ins2snd2.exe file.ins file.bin -b`** This will create the .bin file from the .ins file.
+
+ 
+ 
+ 
