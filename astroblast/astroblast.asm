@@ -476,7 +476,8 @@ DoPreTitleInit:
 
     // initialize song 0 so we can hear music during title 
     // so user can adjust volume
-    lda #ASTRO_SOUND_MAIN_TUNE
+    //lda #ASTRO_SOUND_MAIN_TUNE
+    lda #ASTRO_SOUND_TITLE_TUNE
     jsr SoundInit
 
     // start at volumen 2
