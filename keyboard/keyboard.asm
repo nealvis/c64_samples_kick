@@ -1,9 +1,20 @@
-// This sample shows reading from the keyboard
+//////////////////////////////////////////////////////////////////////////////
+// keyboard.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// This sample shows reading from the keyboard (without using 
+// nv_keyboard_xxx.asm from the nv_c64_util code).  Press any key
+// while running and the character typed will be displayed in 
+// the upper left corner of the screen.
+
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
-*=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
+*=$0800 "BASIC Start"  
+        .byte $00    // first byte of basic start should be zero
+        // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
         // will just call assembled program at correct location
         //    10 SYS (4096)
