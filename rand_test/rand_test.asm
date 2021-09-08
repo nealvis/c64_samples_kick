@@ -1,8 +1,16 @@
-// This program tests the code in the file nv_rand_macs.asm 
+//////////////////////////////////////////////////////////////////////////////
+// rand_test.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+/////////////////////////////////////////////////////////////////////////////
+// This program tests the code in the file nv_rand_macs.asm in the 
+// nv_c64_util repository.  The tests need to be manually verified 
+// by looking at the output.
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
+
 
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0
@@ -43,7 +51,7 @@ rand_color_label_str: .text @"RANDOM COLOR: \$00"
 
     .var row = 0
 
-    nv_rand_init()
+    nv_rand_init(true)
 
     nv_screen_clear()
     nv_screen_plot_cursor(row++, 33)
@@ -241,7 +249,7 @@ rand_color_label_str: .text @"RANDOM COLOR: \$00"
 {
     nv_screen_print_str(rand_byte_label_str)
     nv_screen_plot_cursor_col(15)
-    nv_rand_byte_a()
+    nv_rand_byte_a(true)
     nv_screen_print_hex_byte_a(true)
 }
 
@@ -251,14 +259,14 @@ rand_color_label_str: .text @"RANDOM COLOR: \$00"
 {
     nv_screen_print_str(rand_color_label_str)
     nv_screen_plot_cursor_col(15)
-    nv_rand_color_a()
+    nv_rand_color_a(true)
     sta scratch_byte
     nv_screen_print_hex_byte_a(true)
     ldx scratch_byte
     lda #224
-    nv_screen_poke_color_char_ax(row, 20)
-    nv_screen_poke_color_char_ax(row, 21)
-    nv_screen_poke_color_char_ax(row, 22)
-    nv_screen_poke_color_char_ax(row, 23)
-    nv_screen_poke_color_char_ax(row, 24)
+    nv_screen_poke_color_char_xa(row, 20)
+    nv_screen_poke_color_char_xa(row, 21)
+    nv_screen_poke_color_char_xa(row, 22)
+    nv_screen_poke_color_char_xa(row, 23)
+    nv_screen_poke_color_char_xa(row, 24)
 }
