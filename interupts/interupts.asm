@@ -1,11 +1,20 @@
-// This sample shows how to handle interupts on the C64
+//////////////////////////////////////////////////////////////////////////////
+// interupts.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// This sample shows how to handle interupts on the C64.
+// the screen will keep updating in the main program loop while
+// an interupt is called every time a scanline is encountered
+// the interupte handler will change the border color for a short 
+// time and then return.
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
 
-*=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
+*=$0800 "BASIC Start"  // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
         // will just call assembled program at correct location
         //    10 SYS (4096)
@@ -15,6 +24,7 @@
         // of the program which will be at $1000 or 4096 decimal
         // basic line is: 
         // 10 SYS (4096)
+        .byte $00                // first byte of basic should be zero
         .byte $0E, $08           // Forward address to next basic line
         .byte $0A, $00           // this will be line 10 ($0A)
         .byte $9E                // basic token for SYS
@@ -38,9 +48,6 @@ save_y: .byte 0
     nv_screen_clear()
     nv_screen_plot_cursor(0, 16)
     nv_screen_print_str(title_str)
-
-    //jmp MainStart
-
 
     // disable all interupts
     sei 
