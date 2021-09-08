@@ -1,10 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
+// keyboard_test.asm code
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
 // This program tests the nv_keyboard_*.asm code
 //////////////////////////////////////////////////////////////////////////////
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
 
 *=$0800 "BASIC Start"
@@ -127,4 +131,4 @@ Done:
 key_pressed: .byte NV_KEY_NO_KEY
 key_prev: .byte NV_KEY_NO_KEY
 
-#import "../nv_c64_util/nv_keyboard_code.asm"
+#import "../../nv_c64_util/nv_keyboard_code.asm"
