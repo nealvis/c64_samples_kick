@@ -55,7 +55,6 @@ transition_str: .text @"transition \$00"
 
     // test waiting while kernal handling keyboard
     jsr NvKeyWaitAnyKey
-    //nv_key_wait_any_key()
 
     // let user know key was detected
     nv_screen_plot_cursor(10, 8)
@@ -67,7 +66,6 @@ transition_str: .text @"transition \$00"
     nv_key_init()
 
     // wait again for any key via nv_keyboard instead of kernal this time
-    //nv_key_wait_any_key()
     jsr NvKeyWaitAnyKey
 
     nv_screen_clear()
@@ -106,7 +104,6 @@ TopLoop:
     lda key_prev
     cmp key_pressed
     beq RepeatKey    
-    //bne TransitionKey
 
 TransitionKey:
     nv_screen_poke_str(0, 8, transition_str)
