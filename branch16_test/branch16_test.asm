@@ -1,11 +1,17 @@
-// This sample shows how to do 16bit operations such as add, subtract, and compare
+//////////////////////////////////////////////////////////////////////////////
+// branch16_test.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// This program demonstrates and tests the 16bit branch operations 
+// in nv_branch16_macs.asm
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
-#import "../nv_c64_util/nv_screen_macs.asm"
-#import "../nv_c64_util/nv_keyboard_macs.asm"
+//#import "../../nv_c64_util/nv_screen_macs.asm"
+//#import "../../nv_c64_util/nv_keyboard_macs.asm"
 
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0
