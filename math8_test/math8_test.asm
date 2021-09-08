@@ -1,8 +1,14 @@
-// This sample shows how to do 16bit operations such as add, subtract, and compare
+//////////////////////////////////////////////////////////////////////////////
+// math8_test.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// This program is a tester for nv_math8_*.asm files in the nv_c64_util
+// repository
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0
@@ -228,7 +234,6 @@ op_07: .byte $07
     nv_screen_print_str(bit_str)
     nv_screen_print_hex_byte_mem(op1, true)
     nv_screen_print_str(equal_str)
-    //nv_screen_print_str(mask_str)
     nv_mask_from_bit_num_mem(op1, false)
     nv_screen_print_hex_byte_a(true)
     nv_screen_print_str(negated_str)
@@ -248,7 +253,6 @@ op_07: .byte $07
     nv_screen_print_str(bit_str)
     nv_screen_print_hex_byte_mem(op1, true)
     nv_screen_print_str(equal_str)
-    //nv_screen_print_str(mask_str)
     lda op1
     nv_mask_from_bit_num_a(false)
     nv_screen_print_hex_byte_a(true)
