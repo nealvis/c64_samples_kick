@@ -1,10 +1,15 @@
-// This sample shows multiple ways to pass parameters to subroutines in
-// 6502 assembly code
+//////////////////////////////////////////////////////////////////////////////
+// parameters.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// This sample programe shows multiple ways to pass parameters to 
+// subroutines in 6502 assembly code
 
 
-
-
-*=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
+*=$0800 "BASIC Start"  
+        .byte $00 // basic first byte should be zero
+        // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
         // will just call assembled program at correct location
         //    10 SYS (4096)
@@ -104,73 +109,73 @@ temp_rts_msb:
 // our assembly code will goto this address
 *=$1000 "Main Start"
 {
-        // clear screeen leave cursor upper left
-        jsr CLEAR_SCREEN_KERNAL_ADDR 
+    // clear screeen leave cursor upper left
+    jsr CLEAR_SCREEN_KERNAL_ADDR 
 
 
-        //// Registers only for parameter passing
-        lda #20    // x (col)
-        ldy #05    // y (row)  
-        ldx #01    // character 'A'
-        jsr PrintCharRegistersOnly
-        //
+    //// Registers only for parameter passing
+    lda #20    // x (col)
+    ldy #05    // y (row)  
+    ldx #01    // character 'A'
+    jsr PrintCharRegistersOnly
+    //
 
 
-        //// function defined param block for parameter passing
-        lda #20
-        sta func_param_block_x_addr
-        lda #2
-        sta func_param_block_y_addr
-        lda #2                                  // character 'B'
-        sta func_param_block_char_addr
-        jsr PrintCharFuncParamBlock
-        //
+    //// function defined param block for parameter passing
+    lda #20
+    sta func_param_block_x_addr
+    lda #2
+    sta func_param_block_y_addr
+    lda #2                                  // character 'B'
+    sta func_param_block_char_addr
+    jsr PrintCharFuncParamBlock
+    //
 
 
-        //// Code modification method for parameter passing
-        lda #22
-        sta code_modification_x_addr
-        lda #2
-        sta code_modification_y_addr
-        lda #3                                  // character 'C'
-        sta code_modification_char_addr
-        jsr PrintCharCodeModification
-        //
+    //// Code modification method for parameter passing
+    lda #22
+    sta code_modification_x_addr
+    lda #2
+    sta code_modification_y_addr
+    lda #3                                  // character 'C'
+    sta code_modification_char_addr
+    jsr PrintCharCodeModification
+    //
 
-        //// caller defined parameter block for parameter passing
-        lda #35                                 // X = 35
-        sta call_param_block_x_addr
-        lda #1                                  // Y = 1
-        sta call_param_block_y_addr
-        lda #4                                  // Character 'D'
-        sta call_param_block_char_addr          
-        lda #<call_param_block
-        ldy #>call_param_block
-        jsr PrintCharCallParamBlock
-        //
+    //// caller defined parameter block for parameter passing
+    lda #35                                 // X = 35
+    sta call_param_block_x_addr
+    lda #1                                  // Y = 1
+    sta call_param_block_y_addr
+    lda #4                                  // Character 'D'
+    sta call_param_block_char_addr          
+    lda #<call_param_block
+    ldy #>call_param_block
+    jsr PrintCharCallParamBlock
+    //
 
-        // Stack preserving method of parameter passing
-        lda #5                                  // Character 'E'
-        pha
-        lda #7                                  // X location (col)
-        pha
-        lda #3                                  // Y location (row)
-        pha
-        jsr PrintCharStackPreserving
-        //
+    // Stack preserving method of parameter passing
+    lda #5                                  // Character 'E'
+    pha
+    lda #7                                  // X location (col)
+    pha
+    lda #3                                  // Y location (row)
+    pha
+    jsr PrintCharStackPreserving
+    //
 
-        // Jmp Back method of parameter passing
-        lda #6                                  // Character 'F'
-        pha
-        lda #12                                 // X location (col)
-        pha
-        lda #3                                  // Y location (row)
-        pha
-        jsr PrintCharStackPreserving
-        //
+    // Jmp Back method of parameter passing
+    lda #6                                  // Character 'F'
+    pha
+    lda #12                                 // X location (col)
+    pha
+    lda #3                                  // Y location (row)
+    pha
+    jsr PrintCharStackPreserving
+    //
 
 
-        rts
+    rts
 }
 
 
