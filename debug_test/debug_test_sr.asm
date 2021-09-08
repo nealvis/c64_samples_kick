@@ -1,8 +1,14 @@
-// This sample shows how to do 16bit operations such as add, subtract, and compare
+//////////////////////////////////////////////////////////////////////////////
+// debug_test_sr.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// This program tests the debug subroutines in nv_debug_code.asm
+//
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 //#import "../nv_c64_util/nv_c64_util_macs.asm"
 //#import "../nv_c64_util/nv_debug_macs.asm"
 
@@ -570,4 +576,4 @@ op_FFFF_label_str: .text  @"op8 ffff\$00"
 }
 
 
-#import "../nv_c64_util/nv_debug_code.asm"
+#import "../../nv_c64_util/nv_debug_code.asm"
