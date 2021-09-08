@@ -1,14 +1,17 @@
 //////////////////////////////////////////////////////////////////////////////
 // math16_test_bcd.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
 // This program tests the bcd math operations in nv_math16.asm
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
 *=$0800 "BASIC Start"
-.byte 0 // first byte should be 0
+        .byte 0 // first byte should be 0
         // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
         // will just call assembled program at correct location
