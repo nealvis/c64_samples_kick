@@ -1,12 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////
 // math16_test.asm
-// This sample shows how to do 16bit operations such as 
-// add, subtract, and compare
-/////////////////////////////////////////////////////////////////////////////
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// This program tests the 16bit math operations in the nv_c64_util 
+// repository in the file nv_math16_macs.asm 
+// such as  add, subtract, and compare, etc.
+//////////////////////////////////////////////////////////////////////////////
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
 *=$0800 "BASIC Start"
 .byte 0 // first byte should be 0
