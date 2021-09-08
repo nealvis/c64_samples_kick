@@ -1,6 +1,15 @@
-// 10 SYS (4096)
-*=$0801 "BASIC Start"
+//////////////////////////////////////////////////////////////////////////////
+// screencolors.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// Sample c64 program that shows how to cycle through the screen and border
+// colors with no regard for syncing with scan lines
 
+
+// 10 SYS (4096)
+*=$0800 "BASIC Start"
+        .byte $00               // first byte of basic should be zero
         // These bytes are a one line basic program that will 
         // do a sys call to assembly language portion of
         // of the program which will be at $1000 or 4096 decimal
