@@ -1,10 +1,17 @@
+//////////////////////////////////////////////////////////////////////////////
+// hello.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
 // This sample shows two ways to print to the screen
 // 1 Calling a routine in BASIC
 // 2 Writing direct to screen memory
 
 
-*=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
+*=$0800 "BASIC Start"  
+        // location to put a 1 line basic program so we can just
         // type run to execute the assembled program.
+        
         // will just call assembled program at correct location
         //    10 SYS (4096)
 
@@ -13,6 +20,7 @@
         // of the program which will be at $1000 or 4096 decimal
         // basic line is: 
         // 10 SYS (4096)
+        .byte $00                // first byte of basic should be a zero
         .byte $0E, $08           // Forward address to next basic line
         .byte $0A, $00           // this will be line 10 ($0A)
         .byte $9E                // basic token for SYS
