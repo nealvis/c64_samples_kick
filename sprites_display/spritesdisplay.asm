@@ -1,6 +1,9 @@
-// This sample shows two ways to print to the screen
-// 1 Calling a routine in BASIC
-// 2 Writing direct to screen memory
+//////////////////////////////////////////////////////////////////////////////
+// spritesdisplay.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+/////////////////////////////////////////////////////////////////////////////
+// This sample shows how to display sprites to the screen
 
 
 *=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
