@@ -1,14 +1,18 @@
 //////////////////////////////////////////////////////////////////////////////
 // spritesmove.asm
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
 // This sample shows how to move sprites on the screen.
 // To do this, some of the nv_c64_util sprite raw functions are used.
 //////////////////////////////////////////////////////////////////////////////
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
-*=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
+*=$0800 "BASIC Start"   // location to put a 1 line basic program so we can just
+        .byte $00       // first byte of basic memory should be a zero
         // type run to execute the assembled program.
         // will just call assembled program at correct location
         //    10 SYS (4096)
