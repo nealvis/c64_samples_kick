@@ -1,11 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
 // nv_sprite_test.asm
-// sprite test program
+// Copyright(c) 2021 Neal Smith.
+// License: MIT. See LICENSE file in root directory.
+//////////////////////////////////////////////////////////////////////////////
+// sprite test program for the nv_sprite_*.asm files in nv_c64_util repo.
 //////////////////////////////////////////////////////////////////////////////
 
 // import all nv_c64_util macros and data.  The data
 // will go in default place
-#import "../nv_c64_util/nv_c64_util_macs_and_data.asm"
+#import "../../nv_c64_util/nv_c64_util_macs_and_data.asm"
 
 
 *=$0801 "BASIC Start"  // location to put a 1 line basic program so we can just
@@ -329,7 +332,6 @@ CheckShipCollision:
     rts
 
 
-
 //////////////////////////////////////////////////////////////////////////////
 // Namespace with everything related to asteroid 1
 .namespace asteroid_1
@@ -339,8 +341,9 @@ CheckShipCollision:
                                           sprite_asteroid_1, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
-
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          true,       // enabled
+                                          0, 0, 0, 0) // hitbox left top right bottom
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
@@ -394,8 +397,9 @@ SetWrapAllOn:
                                           sprite_asteroid_2, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
-
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          true,       // enabled
+                                          0, 0, 0, 0) // hitbox left, top, right bottom              
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
         .label x_vel = info.base_addr + NV_SPRITE_VEL_X_OFFSET
@@ -451,7 +455,9 @@ SetWrapAllOn:
                                           sprite_asteroid_3, 
                                           sprite_extra, 
                                           1, 1, 1, 1, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          true,       // enabled
+                                          0, 0, 0, 0) // hitbox left top right bottom
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -507,7 +513,9 @@ SetWrapAllOn:
                                           sprite_asteroid_4, 
                                           sprite_extra, 
                                           0, 0, 0, 0, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          true,       // enabled
+                                          0, 0, 0, 0) // hitbox left top right bottom
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -563,7 +571,9 @@ SetWrapAllOn:
                                           sprite_asteroid_5, 
                                           sprite_extra, 
                                           0, 0, 0, 0, // bounce on top, left, bottom, right  
-                                          0, 0, 0, 0) // min/max top, left, bottom, right
+                                          0, 0, 0, 0, // min/max top, left, bottom, right
+                                          true,       // enabled
+                                          0, 0, 0, 0) // hitbox left top right bottom
 
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
         .label y_loc = info.base_addr + NV_SPRITE_Y_OFFSET
@@ -619,7 +629,9 @@ SetWrapAllOn:
                                           sprite_ship, 
                                           sprite_extra, 
                                           1, 0, 1, 0, // bounce on top, left, bottom, right  
-                                          0, 0, 75, 0) // min/max top, left, bottom, right
+                                          0, 0, 75, 0, // min/max top, left, bottom, right
+                                          true,       // enabled
+                                          0, 0, 0, 0) // hitbox left top right bottom
 
         .var sprite_num = info.num
         .label x_loc = info.base_addr + NV_SPRITE_X_OFFSET
@@ -670,9 +682,9 @@ SetWrapAllOn:
 *=$3000 "Sprite Code"
 
 // put the actual sprite subroutines here
-#import "../nv_c64_util/nv_sprite_extra_code.asm"
-#import "../nv_c64_util/nv_sprite_raw_collisions_code.asm"
-#import "../nv_c64_util/nv_sprite_raw_code.asm"
+#import "../../nv_c64_util/nv_sprite_extra_code.asm"
+#import "../../nv_c64_util/nv_sprite_raw_collisions_code.asm"
+#import "../../nv_c64_util/nv_sprite_raw_code.asm"
 //#import "../nv_c64_util/nv_screen_code.asm"
 //#import "../nv_c64_util/nv_sprite_raw_code.asm"
 /*
