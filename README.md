@@ -37,4 +37,6 @@ To setup a development environment to build and run these sampes follow the foll
     
 - Now you should be ready to try the samples in this repository.
 
-- Clone the repository, VS Code, open one of the directories like hello, open the assembly file like hello.asm in the editor.  Then go to the command palette with ctrl-shift-p and select or type in "Kick Assembler: Build and Run" if configured correctly the program will run in VICE.
+- Clone this repository.
+- Some some samples may require some utility code from https://github.com/nealvis/nv_c64_util so clone that repo into a directory that sits at the same level as this repository.
+- In VS Code, open one of the directories like hello, open the assembly file like hello.asm in the editor.  Then go to the command palette with ctrl-shift-p and select or type in "Kick Assembler: Build and Run" if configured correctly the program will run in VICE.
